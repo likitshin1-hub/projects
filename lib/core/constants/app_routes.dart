@@ -1,30 +1,79 @@
 class AppRoutes {
   AppRoutes._();
 
-  static const splash = "/";
-  static const onboarding = "/onboarding";
+  // =========================
+  // Initial
+  // =========================
 
-  // Auth
-  static const login = "/login";
-  static const register = "/register";
-  static const forgotPassword = "/forgot-password";
+  static const String splash = '/';
 
-  // Home
-  static const home = "/home";
+  // =========================
+  // Authentication
+  // =========================
 
-  // Customer
-  static const createOrder = "/create-order";
-  static const tracking = "/tracking";
-  static const orderHistory = "/order-history";
+  static const String login = '/login';
 
+  static const String register = '/register';
+
+  static const String forgotPassword = '/forgot-password';
+
+  // =========================
+  // Main
+  // =========================
+
+  static const String home = '/home';
+
+  // =========================
+  // Profile
+  // =========================
+
+  static const String profile = '/profile';
+
+  static const String editProfile = '/profile/edit';
+
+  // =========================
+  // Order
+  // =========================
+
+  static const String orders = '/orders';
+
+  static const String orderDetail = '/orders/detail';
+
+  // =========================
   // Driver
-  static const driverHome = "/driver-home";
-  static const jobDetail = "/job-detail";
-  static const wallet = "/wallet";
-  static const withdraw = "/withdraw";
+  // =========================
 
-  // Shared
-  static const profile = "/profile";
-  static const settings = "/settings";
-  static const notification = "/notification";
+  static const String driver = '/driver';
+
+  static const String driverJobs = '/driver/jobs';
+
+  static const String jobDetail = '/driver/job-detail';
+
+  // =========================
+  // Tracking
+  // =========================
+
+  static const String tracking = '/tracking';
+
+  // =========================
+  // Wallet
+  // =========================
+
+  static const String wallet = '/wallet';
+
+  static const String withdraw = '/wallet/withdraw';
+
+  static const String transactionHistory = '/wallet/history';
+
+  // =========================
+  // Notification
+  // =========================
+
+  static const String notification = '/notifications';
+
+  // =========================
+  // Settings
+  // =========================
+
+  static const String settings = '/settings';
 }

@@ -1,22 +1,46 @@
 class AppAssets {
   AppAssets._();
 
-  // Logos
-  static const logo = "assets/images/logo.png";
-  static const logoWhite = "assets/images/logo_white.png";
+  // =========================
+  // Logo
+  // =========================
 
-  // Icons
-  static const truck = "assets/icons/truck.png";
-  static const wallet = "assets/icons/wallet.png";
-  static const delivery = "assets/icons/delivery.png";
+  static const String logo = 'assets/images/logo/tbmovehub_logo.png';
 
+  // =========================
   // Images
-  static const profilePlaceholder =
-      "assets/images/profile_placeholder.png";
+  // =========================
 
-  static const empty = "assets/images/empty.png";
-  static const onboarding = "assets/images/onboarding.png";
+  static const String deliveryBanner =
+      'assets/images/banners/delivery_banner.png';
 
+  static const String defaultDriver = 'assets/images/driver/default_driver.png';
+
+  static const String noImage = 'assets/images/placeholder/no_image.png';
+
+  // =========================
+  // Icons
+  // =========================
+
+  static const String homeIcon = 'assets/icons/home.png';
+
+  static const String orderIcon = 'assets/icons/order.png';
+
+  static const String walletIcon = 'assets/icons/wallet.png';
+
+  static const String profileIcon = 'assets/icons/profile.png';
+
+  // =========================
+  // SVG
+  // =========================
+
+  static const String locationSvg = 'assets/svg/location.svg';
+
+  static const String truckSvg = 'assets/svg/truck.svg';
+
+  // =========================
   // Animation
-  static const loading = "assets/lottie/loading.json";
+  // =========================
+
+  static const String loadingAnimation = 'assets/animations/loading.json';
 }

@@ -1,30 +1,97 @@
 class ApiConstants {
   ApiConstants._();
 
-  // Localhost Emulator
-  static const baseUrl = "http://10.0.2.2:8000/api";
+  // =========================
+  // Base Configuration
+  // =========================
 
-  // ถ้าใช้เครื่องจริง
-  // static const baseUrl = "http://192.168.1.100:8000/api";
+  static const String baseUrl = "http://10.0.2.2:8000/api";
 
+  static const String apiVersion = "/v1";
+
+  static const String contentType = "application/json";
+
+  // =========================
+  // Timeout
+  // =========================
+
+  static const Duration connectTimeout = Duration(seconds: 30);
+
+  static const Duration receiveTimeout = Duration(seconds: 30);
+
+  static const Duration sendTimeout = Duration(seconds: 30);
+
+  // =========================
   // Authentication
-  static const login = "/login";
-  static const register = "/register";
-  static const logout = "/logout";
+  // =========================
 
+  static const String login = "/login";
+
+  static const String register = "/register";
+
+  static const String logout = "/logout";
+
+  // =========================
   // User
-  static const profile = "/profile";
+  // =========================
 
+  static const String profile = "/profile";
+
+  static const String updateProfile = "/profile/update";
+
+  // =========================
+  // Food / Restaurant
+  // =========================
+
+  static const String restaurants = "/restaurants";
+
+  static const String menu = "/menu";
+
+  // =========================
   // Orders
-  static const orders = "/orders";
-  static const acceptOrder = "/orders/accept";
-  static const cancelOrder = "/orders/cancel";
+  // =========================
 
+  static const String orders = "/orders";
+
+  static const String orderDetail = "/orders/detail";
+
+  static const String createOrder = "/orders/create";
+
+  static const String acceptOrder = "/orders/accept";
+
+  static const String cancelOrder = "/orders/cancel";
+
+  // =========================
   // Driver
-  static const driver = "/driver";
-  static const wallet = "/wallet";
-  static const withdraw = "/withdraw";
+  // =========================
 
+  static const String driver = "/driver";
+
+  static const String driverJobs = "/driver/jobs";
+
+  static const String acceptJob = "/driver/jobs/accept";
+
+  // =========================
+  // Tracking
+  // =========================
+
+  static const String tracking = "/tracking";
+
+  static const String driverLocation = "/tracking/location";
+
+  // =========================
+  // Wallet
+  // =========================
+
+  static const String wallet = "/wallet";
+
+  static const String withdraw = "/withdraw";
+
+  static const String transactions = "/transactions";
+
+  // =========================
   // Notification
-  static const notification = "/notifications";
+  // =========================
+
+  static const String notification = "/notifications";
 }
