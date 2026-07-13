@@ -5,7 +5,7 @@ class AppStrings {
   // App Information
   // =========================
   static const String appName = 'TBMoveHub';
-  static const String appDescription = 'ระบบสั่งอาหารและบริการขนส่งครบวงจร';
+  static const String appDescription = 'ระบบบริการขนส่งพัสดุครบวงจร';
 
   // =========================
   // General
@@ -41,8 +41,13 @@ class AppStrings {
   // =========================
   static const String home = 'หน้าหลัก';
   static const String welcome = 'ยินดีต้อนรับ';
-  static const String recommended = 'เมนูแนะนำ';
-  static const String popular = 'ยอดนิยม';
+  static const String ourServices = 'บริการของเรา';
+  static const String recentBookings = 'การเรียกใช้งานล่าสุด';
+
+  // Services
+  static const String bookMotorcycle = 'มอเตอร์ไซค์';
+  static const String bookPickup = 'รถกระบะ';
+  static const String bookTruck = 'รถบรรทุก';
 
   // =========================
   // Order
@@ -55,7 +60,7 @@ class AppStrings {
 
   static const String pending = 'รอดำเนินการ';
   static const String accepted = 'รับงานแล้ว';
-  static const String preparing = 'กำลังเตรียมอาหาร';
+  static const String pickingUp = 'กำลังไปรับพัสดุ';
   static const String delivering = 'กำลังจัดส่ง';
   static const String completed = 'สำเร็จ';
   static const String cancelled = 'ยกเลิก';

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
+import 'core/router/app_router.dart';
 
 void main() {
-  runApp(const TBMoveHubApp());
+  runApp(const ProviderScope(child: TBMoveHubApp()));
 }
 
 class TBMoveHubApp extends StatelessWidget {
@@ -12,11 +14,11 @@ class TBMoveHubApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const Scaffold(body: Center(child: Text('TBMoveHub'))),
+      routerConfig: appRouter,
     );
   }
 }
