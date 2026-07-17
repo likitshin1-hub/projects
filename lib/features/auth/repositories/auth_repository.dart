@@ -46,6 +46,60 @@ class AuthRepository {
     }
   }
 
+  /// Login ด้วย Facebook
+  /// เมื่อเชื่อม SDK จริง: รับ [accessToken] มาจาก flutter_facebook_auth
+  /// แล้วส่งไปยัง Backend เพื่อแลกเปลี่ยนเป็น App Token
+  Future<ApiResult<String>> loginWithFacebook({
+    required String accessToken,
+  }) async {
+    // ===== Mock Mode =====
+    if (_useMock) {
+      await Future.delayed(const Duration(milliseconds: 800));
+      try {
+        await _storage.write(key: 'auth_token', value: 'mock_token_facebook');
+      } catch (_) {}
+      return ApiResult.success('mock_token_facebook');
+    }
+
+    try {
+      final response = await _authService.loginWithFacebook(
+        accessToken: accessToken,
+      );
+      final token = response.data['token'] as String? ?? '';
+      await _storage.write(key: 'auth_token', value: token);
+      return ApiResult.success(token);
+    } catch (e) {
+      return ApiResult.failure(_handleError(e));
+    }
+  }
+
+  /// Login ด้วย LINE
+  /// เมื่อเชื่อม SDK จริง: รับ [accessToken] มาจาก flutter_line_sdk
+  /// แล้วส่งไปยัง Backend เพื่อแลกเปลี่ยนเป็น App Token
+  Future<ApiResult<String>> loginWithLine({
+    required String accessToken,
+  }) async {
+    // ===== Mock Mode =====
+    if (_useMock) {
+      await Future.delayed(const Duration(milliseconds: 800));
+      try {
+        await _storage.write(key: 'auth_token', value: 'mock_token_line');
+      } catch (_) {}
+      return ApiResult.success('mock_token_line');
+    }
+
+    try {
+      final response = await _authService.loginWithLine(
+        accessToken: accessToken,
+      );
+      final token = response.data['token'] as String? ?? '';
+      await _storage.write(key: 'auth_token', value: token);
+      return ApiResult.success(token);
+    } catch (e) {
+      return ApiResult.failure(_handleError(e));
+    }
+  }
+
   Future<ApiResult<String>> register({
     required String username,
     required String phone,

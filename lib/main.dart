@@ -1,12 +1,29 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 
-void main() {
-  runApp(const ProviderScope(child: TBMoveHubApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (kIsWeb) {
+    await FacebookAuth.instance.webAndDesktopInitialize(
+      appId: '1020611840710101',
+      cookie: true,
+      xfbml: true,
+      version: 'v15.0',
+    );
+  }
+
+  runApp(
+    const ProviderScope(
+      child: TBMoveHubApp(),
+    ),
+  );
 }
 
 class TBMoveHubApp extends StatelessWidget {

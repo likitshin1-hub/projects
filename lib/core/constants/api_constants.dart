@@ -31,6 +31,10 @@ class ApiConstants {
 
   static const String logout = "/logout";
 
+  static const String loginFacebook = "/auth/facebook";
+
+  static const String loginLine = "/auth/line";
+
   // =========================
   // User
   // =========================

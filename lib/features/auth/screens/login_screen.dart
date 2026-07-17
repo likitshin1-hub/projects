@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_routes.dart';
@@ -34,6 +35,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+  }
+
+  void _onLoginFacebook() {
+    ref.read(authProvider.notifier).loginWithFacebook();
+  }
+
+  void _onLoginLine() {
+    ref.read(authProvider.notifier).loginWithLine();
   }
 
   @override
@@ -142,36 +151,73 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: AppDimensions.xl),
 
-                // ===== Divider =====
+                // ===== Divider: OR =====
                 Row(
                   children: [
-                    const Expanded(child: Divider()),
+                    const Expanded(child: Divider(thickness: 1)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.sm),
                       child: Text(
-                        'หรือ',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        'หรือเข้าสู่ระบบด้วย',
+                        style:
+                            Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
                       ),
                     ),
-                    const Expanded(child: Divider()),
+                    const Expanded(child: Divider(thickness: 1)),
                   ],
                 ),
                 const SizedBox(height: AppDimensions.lg),
 
                 // ===== Google Login Button =====
-                OutlinedButton.icon(
+                _SocialLoginButton(
+                  label: 'Google',
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.textPrimary,
+                  icon: const Icon(Icons.g_mobiledata, size: 28, color: AppColors.textPrimary),
                   onPressed: isLoading
                       ? null
                       : () {
-                          // เรียกฟังก์ชันเข้าสู่ระบบด้วย Google ของจริง
                           ref.read(authProvider.notifier).loginWithGoogle();
                         },
-                  icon: const Icon(Icons.g_mobiledata, size: 28),
-                  label: const Text('เข้าสู่ระบบด้วย Google'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.border),
-                  ),
+                ),
+                const SizedBox(height: AppDimensions.md),
+
+                // ===== Social Login Buttons =====
+                Row(
+                  children: [
+                    // Facebook Button
+                    Expanded(
+                      child: _SocialLoginButton(
+                        label: 'Facebook',
+                        backgroundColor: const Color(0xFF1877F2),
+                        foregroundColor: Colors.white,
+                        icon: Image.asset(
+                          'assets/images/facebook.png',
+                          width: 22,
+                          height: 22,
+                        ),
+                        onPressed: isLoading ? null : _onLoginFacebook,
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.md),
+                    // LINE Button
+                    Expanded(
+                      child: _SocialLoginButton(
+                        label: 'LINE',
+                        backgroundColor: const Color(0xFF06C755),
+                        foregroundColor: Colors.white,
+                        icon: Image.asset(
+                          'assets/images/line.png',
+                          width: 22,
+                          height: 22,
+                        ),
+                        onPressed: isLoading ? null : _onLoginLine,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: AppDimensions.xl),
 
@@ -197,3 +243,59 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
+
+// ============================================================
+// Social Login Button Widget
+// ============================================================
+
+class _SocialLoginButton extends StatelessWidget {
+  final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Widget icon;
+  final VoidCallback? onPressed;
+
+  const _SocialLoginButton({
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.icon,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        elevation: 2,
+        shadowColor: backgroundColor.withAlpha(100),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          icon,
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: foregroundColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+

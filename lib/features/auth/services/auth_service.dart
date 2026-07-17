@@ -19,6 +19,22 @@ class AuthService {
     );
   }
 
+  /// เรียก API ส่ง access_token ที่ได้จาก Facebook SDK ไปให้ Backend
+  Future<Response> loginWithFacebook({required String accessToken}) {
+    return _dioClient.post(
+      ApiConstants.loginFacebook,
+      data: {'access_token': accessToken},
+    );
+  }
+
+  /// เรียก API ส่ง access_token ที่ได้จาก LINE SDK ไปให้ Backend
+  Future<Response> loginWithLine({required String accessToken}) {
+    return _dioClient.post(
+      ApiConstants.loginLine,
+      data: {'access_token': accessToken},
+    );
+  }
+
   Future<Response> register({
     required String username,
     required String phone,
