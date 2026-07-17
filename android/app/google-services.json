@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "685846588226",
+    "project_id": "test-f40ec",
+    "storage_bucket": "test-f40ec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685846588226:android:8a8eb96ab572b0bd2ab6db",
+        "android_client_info": {
+          "package_name": "com.tbmovehub.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADVT0xcBRkQ6hq20Q7YtYWs49Hu6p2fus"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

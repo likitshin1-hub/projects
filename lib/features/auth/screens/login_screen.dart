@@ -71,7 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: Text(
                     AppStrings.appName,
-                    style:
+                        style:
                         Theme.of(context).textTheme.displaySmall?.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
@@ -139,6 +139,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         )
                       : const Text(AppStrings.login),
+                ),
+                const SizedBox(height: AppDimensions.xl),
+
+                // ===== Divider =====
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'หรือ',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: AppDimensions.lg),
+
+                // ===== Google Login Button =====
+                OutlinedButton.icon(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          // เรียกฟังก์ชันเข้าสู่ระบบด้วย Google ของจริง
+                          ref.read(authProvider.notifier).loginWithGoogle();
+                        },
+                  icon: const Icon(Icons.g_mobiledata, size: 28),
+                  label: const Text('เข้าสู่ระบบด้วย Google'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
+                  ),
                 ),
                 const SizedBox(height: AppDimensions.xl),
 

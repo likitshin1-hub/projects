@@ -75,6 +75,20 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<void> loginWithGoogle() async {
+    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
+    final result = await _repository.loginWithGoogle();
+    
+    if (result.isSuccess) {
+      state = state.copyWith(status: AuthStatus.success);
+    } else {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: result.error,
+      );
+    }
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     resetState();

@@ -24,6 +24,12 @@ class AppRoutes {
   static const String home = '/home';
 
   // =========================
+  // Booking
+  // =========================
+
+  static const String booking = '/booking';
+
+  // =========================
   // Profile
   // =========================
 
