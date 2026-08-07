@@ -6,9 +6,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../repositories/auth_repository.dart';
 import '../models/user_model.dart';
 
-// ===== State =====
+// =======================
+// State
+// =======================
 
-enum AuthStatus { idle, loading, success, error }
+enum AuthStatus {
+  idle,
+  loading,
+  success,
+  error,
+}
 
 class AuthState {
   final AuthStatus status;
@@ -21,23 +28,32 @@ class AuthState {
     this.user,
   });
 
+  static const _keep = Object();
+
   AuthState copyWith({
     AuthStatus? status,
-    String? errorMessage,
+    Object? errorMessage = _keep,
     UserModel? user,
   }) {
     return AuthState(
       status: status ?? this.status,
-      errorMessage: errorMessage,
+      errorMessage: errorMessage == _keep
+          ? this.errorMessage
+          : errorMessage as String?,
       user: user ?? this.user,
     );
   }
 }
 
-// ===== Notifier (Riverpod 3.x) =====
+
+// =======================
+// Notifier
+// =======================
 
 class AuthNotifier extends Notifier<AuthState> {
+
   late final AuthRepository _repository;
+
 
   @override
   AuthState build() {
@@ -45,115 +61,244 @@ class AuthNotifier extends Notifier<AuthState> {
     return const AuthState();
   }
 
+
+  // =======================
+  // Email Login
+  // =======================
+
   Future<void> login({
     required String email,
     required String password,
   }) async {
-    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
-    final result = await _repository.login(email: email, password: password);
+
+    state = state.copyWith(
+      status: AuthStatus.loading,
+      errorMessage: null,
+    );
+
+
+    final result = await _repository.login(
+      email: email,
+      password: password,
+    );
+
+
     if (result.isSuccess) {
-      state = state.copyWith(status: AuthStatus.success);
+
+      state = state.copyWith(
+        status: AuthStatus.success,
+      );
+
     } else {
+
       state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: result.error,
       );
+
     }
   }
 
-  /// Login ด้วย Facebook SDK จริง
+
+
+  // =======================
+  // Facebook Login
+  // =======================
+
   Future<void> loginWithFacebook() async {
-    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
+
+    state = state.copyWith(
+      status: AuthStatus.loading,
+      errorMessage: null,
+    );
+
 
     try {
-      final LoginResult result = await FacebookAuth.instance.login(
-        permissions: ['email', 'public_profile'],
+
+      final LoginResult result =
+          await FacebookAuth.instance.login(
+        permissions: [
+          'email',
+          'public_profile',
+        ],
       );
 
+
       if (result.status == LoginStatus.success) {
-        final AccessToken accessToken = result.accessToken!;
-        final userData = await FacebookAuth.instance.getUserData(
+
+
+        final AccessToken accessToken =
+            result.accessToken!;
+
+
+        final userData =
+            await FacebookAuth.instance.getUserData(
           fields: "id,name,email,picture.width(300)",
         );
 
-        print("Facebook Access Token: ${accessToken.tokenString}");
-        print(userData);
+
+        debugPrint(
+          "Facebook Token: ${accessToken.tokenString}",
+        );
+
+        debugPrint(
+          userData.toString(),
+        );
+
 
         final userModel = UserModel(
           id: userData["id"] ?? "",
           name: userData["name"] ?? "",
           email: userData["email"] ?? "",
-          photoUrl: userData["picture"]?["data"]?["url"],
+          photoUrl:
+              userData["picture"]?["data"]?["url"],
         );
 
-        // เรียก API ของ Backend เพื่อบันทึกหรือตรวจสอบ token (หากมีระบบหลังบ้าน)
+
+
         await _repository.loginWithFacebook(
           accessToken: accessToken.tokenString,
         );
+
+
 
         state = AuthState(
           status: AuthStatus.success,
           user: userModel,
         );
-      } else if (result.status == LoginStatus.cancelled) {
-        print("ผู้ใช้ยกเลิกการเข้าสู่ระบบ");
+
+
+      } else if (result.status ==
+          LoginStatus.cancelled) {
+
+
+        debugPrint(
+          "Facebook login cancelled",
+        );
+
+
         state = state.copyWith(
           status: AuthStatus.idle,
-          errorMessage: "ผู้ใช้ยกเลิกการเข้าสู่ระบบ",
+          errorMessage:
+              "ผู้ใช้ยกเลิกการเข้าสู่ระบบ",
         );
+
+
       } else {
-        print(result.message);
+
+
+        debugPrint(
+          result.message,
+        );
+
+
         state = state.copyWith(
           status: AuthStatus.error,
           errorMessage: result.message,
         );
+
       }
+
+
     } catch (e) {
-      print("Facebook Login Error: $e");
+
+
+      debugPrint(
+        "Facebook Login Error: $e",
+      );
+
+
       state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: e.toString(),
       );
+
     }
+
   }
 
-  /// Login ด้วย LINE
-  /// ใน Mock Mode: ข้ามไปเลยโดยไม่ต้องเชื่อม SDK จริง
-  /// เมื่อเชื่อม SDK จริง: เรียก LineSDK.instance.login() ก่อน แล้วส่ง accessToken มา
+
+
+
+  // =======================
+  // LINE Login
+  // =======================
+
   Future<void> loginWithLine() async {
-    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
-    
-    // สำหรับ Web: เนื่องจาก LINE SDK สำหรับ Flutter ไม่สนับสนุน Web อย่างสมบูรณ์แบบ Native
-    // จะใช้การจำลองการเข้าสู่ระบบเป็นหลักในการทดสอบ
+
+    state = state.copyWith(
+      status: AuthStatus.loading,
+      errorMessage: null,
+    );
+
+
     if (kIsWeb) {
-      await Future.delayed(const Duration(milliseconds: 1000));
+
+
+      await Future.delayed(
+        const Duration(seconds: 1),
+      );
+
+
       final userModel = UserModel(
         id: "mock_line_web_12345",
-        name: "Test LINE User (Web)",
+        name: "Test LINE User",
         email: "test.line.web@example.com",
-        photoUrl: "https://picsum.photos/200",
+        photoUrl:
+            "https://picsum.photos/200",
       );
+
+
       state = AuthState(
         status: AuthStatus.success,
         user: userModel,
       );
-      print("LINE Mock Web Login Success!");
+
+
+      debugPrint(
+        "LINE Mock Web Login Success",
+      );
+
+
       return;
     }
 
-    const mockLineToken = 'mock_line_access_token';
-    final result = await _repository.loginWithLine(
+
+
+    const mockLineToken =
+        "mock_line_access_token";
+
+
+    final result =
+        await _repository.loginWithLine(
       accessToken: mockLineToken,
     );
+
+
     if (result.isSuccess) {
-      state = state.copyWith(status: AuthStatus.success);
+
+      state = state.copyWith(
+        status: AuthStatus.success,
+      );
+
     } else {
+
       state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: result.error,
       );
+
     }
+
   }
+
+
+
+
+
+  // =======================
+  // Register
+  // =======================
 
   Future<void> register({
     required String username,
@@ -162,90 +307,199 @@ class AuthNotifier extends Notifier<AuthState> {
     required String password,
     required String confirmPassword,
   }) async {
-    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
-    final result = await _repository.register(
+
+
+    state = state.copyWith(
+      status: AuthStatus.loading,
+      errorMessage: null,
+    );
+
+
+    final result =
+        await _repository.register(
       username: username,
       phone: phone,
       email: email,
       password: password,
       confirmPassword: confirmPassword,
     );
+
+
+
     if (result.isSuccess) {
-      state = state.copyWith(status: AuthStatus.success);
+
+
+      state = state.copyWith(
+        status: AuthStatus.success,
+      );
+
+
     } else {
+
+
       state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: result.error,
       );
+
     }
+
   }
 
-  Future<void> loginWithGoogle({UserModel? selectedUser}) async {
+
+
+
+
+  // =======================
+  // Google Login
+  // =======================
+
+  Future<void> loginWithGoogle({
+    UserModel? selectedUser,
+  }) async {
+
+
     state = state.copyWith(
       status: AuthStatus.loading,
       errorMessage: null,
     );
 
-    // หากมีการเลือกบัญชีจำลองจาก Mock Dialog ให้ล็อกอินด้วยบัญชีนั้นทันที
+
+
     if (selectedUser != null) {
-      await Future.delayed(const Duration(milliseconds: 600));
+
+
+      await Future.delayed(
+        const Duration(milliseconds: 600),
+      );
+
+
       state = AuthState(
         status: AuthStatus.success,
         user: selectedUser,
       );
+
+
       return;
+
     }
 
-    final result = await _repository.loginWithGoogle();
+
+
+    final result =
+        await _repository.loginWithGoogle();
+
+
 
     if (result.isSuccess) {
-      final UserCredential? userCredential = result.data;
-      UserModel? userModel;
 
-      if (userCredential != null && userCredential.user != null) {
-        final firebaseUser = userCredential.user!;
+
+      final UserCredential? credential =
+          result.data;
+
+
+      UserModel userModel;
+
+
+
+      if (credential?.user != null) {
+
+
+        final firebaseUser =
+            credential!.user!;
+
+
         userModel = UserModel(
           id: firebaseUser.uid,
-          name: firebaseUser.displayName ?? '',
-          email: firebaseUser.email ?? '',
-          photoUrl: firebaseUser.photoURL,
+          name:
+              firebaseUser.displayName ?? "",
+          email:
+              firebaseUser.email ?? "",
+          photoUrl:
+              firebaseUser.photoURL,
         );
+
+
       } else {
+
+
         userModel = UserModel(
-          id: 'google_mock_user_1',
-          name: 'Mock Google User',
-          email: 'mock.google@example.com',
-          photoUrl: 'https://i.pravatar.cc/150?img=11',
+          id: "google_mock_user_1",
+          name: "Mock Google User",
+          email:
+              "mock.google@example.com",
+          photoUrl:
+              "https://i.pravatar.cc/150?img=11",
         );
+
       }
+
+
 
       state = AuthState(
         status: AuthStatus.success,
         user: userModel,
       );
+
+
     } else {
+
+
       state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: result.error,
       );
+
     }
+
   }
+
+
+
+
+
+  // =======================
+  // Logout
+  // =======================
 
   Future<void> logout() async {
+
+
     if (!kIsWeb) {
+
       await FacebookAuth.instance.logOut();
+
     }
+
+
     await _repository.logout();
-    state = const AuthState(status: AuthStatus.idle, user: null);
+
+
+    state = const AuthState(
+      status: AuthStatus.idle,
+      user: null,
+    );
+
   }
+
+
+
 
   void resetState() {
+
     state = const AuthState();
+
   }
+
 }
 
-// ===== Provider =====
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(() {
-  return AuthNotifier();
-});
+
+// =======================
+// Provider
+// =======================
+
+final authProvider =
+    NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);
