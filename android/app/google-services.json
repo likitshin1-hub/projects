@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "685846588226",
-    "project_id": "test-f40ec",
-    "storage_bucket": "test-f40ec.firebasestorage.app"
+    "project_number": "79528000892",
+    "project_id": "app018-f7783",
+    "storage_bucket": "app018-f7783.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:685846588226:android:8a8eb96ab572b0bd2ab6db",
+        "mobilesdk_app_id": "1:79528000892:android:8501e075f0b3e5c3fdf8f9",
         "android_client_info": {
           "package_name": "com.tbmovehub.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "79528000892-gpt7ughss1bof3haj5d2436hqqubt9vb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tbmovehub.app",
+            "certificate_hash": "c750ae8343e3bcede0829149da6ceb95719e2bad"
+          }
+        },
+        {
+          "client_id": "79528000892-78qtav0hc3eiilski43nd2tl5upd2pfl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyADVT0xcBRkQ6hq20Q7YtYWs49Hu6p2fus"
+          "current_key": "AIzaSyChaV7lDcpw4SfRLvKu64gw7lxHx2gF9Fc"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "79528000892-78qtav0hc3eiilski43nd2tl5upd2pfl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

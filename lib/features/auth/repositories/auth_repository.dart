@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -17,7 +18,7 @@ class AuthRepository {
   })  : _authService = authService ?? AuthService(),
         _storage = storage ?? const FlutterSecureStorage() {
           // TODO: ใส่ Client ID ของ Web / iOS ที่ได้จาก Firebase/Google Cloud ตรงนี้
-          // GoogleSignIn.instance.initialize(clientId: 'YOUR_CLIENT_ID.apps.googleusercontent.com');
+          // GoogleSignIn().initialize(clientId: 'YOUR_CLIENT_ID.apps.googleusercontent.com');
         }
 
   Future<ApiResult<String>> login({
@@ -132,50 +133,36 @@ class AuthRepository {
     }
   }
 
-  Future<ApiResult<String>> loginWithGoogle() async {
+  Future<ApiResult<UserCredential?>> loginWithGoogle() async {
     try {
-      // 1. เรียกหน้าต่าง Google Sign In
-      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
+      final UserCredential? userCredential = await _authService.signInWithGoogle();
 
-      // 2. ขอ Authentication Token
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-          
-      final String? idToken = googleAuth.idToken;
-      final String? accessToken = null; // No longer directly available in same way, usually idToken is enough
-
-      // ในระบบจริง คุณต้องส่ง accessToken หรือ idToken ไปให้ Backend ตรวจสอบ
-      // แต่ตอนนี้เราจะจำลองว่าล็อคอินสำเร็จและบันทึก mock token แทนไปก่อน
-      
-      if (_useMock) {
-        try {
-          await _storage.write(key: 'auth_token', value: 'google_mock_token');
-        } catch (_) {}
-        return ApiResult.success('google_mock_token');
+      if (userCredential == null) {
+        return ApiResult.failure('ยกเลิกการเข้าสู่ระบบ');
       }
 
-      // TODO: ส่ง Token ไป Backend
-      // final response = await _authService.loginWithGoogle(token: idToken);
-      // ...
-      
-      return ApiResult.success('google_mock_token');
-    } on GoogleSignInException catch (e) {
-      // ผู้ใช้กดยกเลิก หรือเกิดข้อผิดพลาดจาก Google
-      return ApiResult.failure('ยกเลิกการเข้าสู่ระบบ หรือเกิดข้อผิดพลาด: ${e.code}');
+      final String? token = await userCredential.user?.getIdToken();
+      if (token != null) {
+        await _storage.write(key: 'auth_token', value: token);
+      }
+
+      return ApiResult.success(userCredential);
     } catch (e) {
-      // Fallback for Web if it throws UnimplementedError and mock is enabled
-      if (_useMock) {
-        try {
-          await _storage.write(key: 'auth_token', value: 'google_mock_token');
-        } catch (_) {}
-        return ApiResult.success('google_mock_token');
-      }
-      return ApiResult.failure('Google Sign-In Error: ${_handleError(e)}');
+      print("Google Sign-In Exception: $e");
+      return ApiResult.failure('ไม่สามารถเปิด Google Sign-In ได้: ${_handleError(e)}');
     }
   }
 
   Future<void> logout() async {
-    await GoogleSignIn.instance.signOut();
-    await _storage.delete(key: 'auth_token');
+    try {
+      await GoogleSignIn().signOut();
+    } catch (_) {}
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {}
+    try {
+      await _storage.delete(key: 'auth_token');
+    } catch (_) {}
   }
 
   Future<String?> getToken() async {

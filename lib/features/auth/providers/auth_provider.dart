@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../repositories/auth_repository.dart';
 import '../models/user_model.dart';
@@ -179,12 +180,49 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> loginWithGoogle() async {
-    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
+  Future<void> loginWithGoogle({UserModel? selectedUser}) async {
+    state = state.copyWith(
+      status: AuthStatus.loading,
+      errorMessage: null,
+    );
+
+    // หากมีการเลือกบัญชีจำลองจาก Mock Dialog ให้ล็อกอินด้วยบัญชีนั้นทันที
+    if (selectedUser != null) {
+      await Future.delayed(const Duration(milliseconds: 600));
+      state = AuthState(
+        status: AuthStatus.success,
+        user: selectedUser,
+      );
+      return;
+    }
+
     final result = await _repository.loginWithGoogle();
-    
+
     if (result.isSuccess) {
-      state = state.copyWith(status: AuthStatus.success);
+      final UserCredential? userCredential = result.data;
+      UserModel? userModel;
+
+      if (userCredential != null && userCredential.user != null) {
+        final firebaseUser = userCredential.user!;
+        userModel = UserModel(
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName ?? '',
+          email: firebaseUser.email ?? '',
+          photoUrl: firebaseUser.photoURL,
+        );
+      } else {
+        userModel = UserModel(
+          id: 'google_mock_user_1',
+          name: 'Mock Google User',
+          email: 'mock.google@example.com',
+          photoUrl: 'https://i.pravatar.cc/150?img=11',
+        );
+      }
+
+      state = AuthState(
+        status: AuthStatus.success,
+        user: userModel,
+      );
     } else {
       state = state.copyWith(
         status: AuthStatus.error,

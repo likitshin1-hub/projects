@@ -8,6 +8,7 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../shared/widgets/custom_text_field.dart';
+import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -43,6 +44,106 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _onLoginLine() {
     ref.read(authProvider.notifier).loginWithLine();
+  }
+
+  void _showGoogleAccountChooser(BuildContext context) {
+    final mockAccounts = [
+      UserModel(
+        id: 'google_user_1',
+        name: 'สมชาย สายลุย',
+        email: 'somchai.dev@gmail.com',
+        photoUrl: 'https://i.pravatar.cc/150?img=11',
+      ),
+      UserModel(
+        id: 'google_user_2',
+        name: 'Jane Doe',
+        email: 'jane.doe@gmail.com',
+        photoUrl: 'https://i.pravatar.cc/150?img=5',
+      ),
+      UserModel(
+        id: 'google_user_3',
+        name: 'MoveHub Tester',
+        email: 'tester.movehub@gmail.com',
+        photoUrl: 'https://i.pravatar.cc/150?img=68',
+      ),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.account_circle, size: 28, color: AppColors.primary),
+                        SizedBox(width: 8),
+                        Text(
+                          'เลือกบัญชี Google (Mock Mode)',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(left: 4, bottom: 12),
+                  child: Text(
+                    'เลือกบัญชีเพื่อทดสอบการเข้าสู่ระบบและการสลับผู้ใช้',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                ),
+                ...mockAccounts.map((account) {
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: NetworkImage(account.photoUrl!),
+                    ),
+                    title: Text(
+                      account.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(account.email),
+                    onTap: () {
+                      Navigator.pop(context);
+                      ref
+                          .read(authProvider.notifier)
+                          .loginWithGoogle(selectedUser: account);
+                    },
+                  );
+                }),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.cloud_sync_outlined, color: Colors.blue),
+                  title: const Text('ทดสอบต่อ Google SDK จริง'),
+                  subtitle: const Text('เรียก Google Sign-In SDK ของเครื่อง'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ref.read(authProvider.notifier).loginWithGoogle();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
