@@ -12,10 +12,8 @@ class ApiConstants {
   /// Headers
   static const String applicationJson = "application/json";
   static const String contentType = applicationJson;
-
   static const String authorization = "Authorization";
   static const String bearer = "Bearer";
-
 
   // =========================
   // Auth
@@ -28,14 +26,12 @@ class ApiConstants {
   static const String loginFacebook = "/auth/facebook";
   static const String loginLine = "/auth/line";
 
-
   // =========================
   // User
   // =========================
 
   static const String profile = "/profile";
   static const String updateProfile = "/profile/update";
-
 
   // =========================
   // Food / Restaurant
@@ -44,7 +40,6 @@ class ApiConstants {
   static const String restaurants = "/restaurants";
   static const String menu = "/menu";
 
-
   // =========================
   // Orders
   // =========================
@@ -52,20 +47,16 @@ class ApiConstants {
   static const String orders = "/orders";
   static const String orderDetail = "/orders/detail";
   static const String createOrder = "/orders/create";
-
   static const String acceptOrder = "/orders/accept";
   static const String cancelOrder = "/orders/cancel";
-
 
   // =========================
   // Driver
   // =========================
 
   static const String driver = "/driver";
-
   static const String driverJobs = "/driver/jobs";
   static const String acceptJob = "/driver/jobs/accept";
-
 
   // =========================
   // Tracking
@@ -74,7 +65,6 @@ class ApiConstants {
   static const String tracking = "/tracking";
   static const String driverLocation = "/tracking/location";
 
-
   // =========================
   // Wallet
   // =========================
@@ -82,7 +72,6 @@ class ApiConstants {
   static const String wallet = "/wallet";
   static const String withdraw = "/wallet/withdraw";
   static const String transactions = "/transactions";
-
 
   // =========================
   // Notification
