@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 
 import '../services/secure_storage_service.dart';
 
-
 // ─────────────────────────────────────────────
 // Auth Interceptor
 // ─────────────────────────────────────────────
@@ -22,8 +21,8 @@ class AuthInterceptor extends Interceptor {
   AuthInterceptor({
     required SecureStorageService storageService,
     required Dio dio,
-  })  : _storageService = storageService,
-        _dio = dio;
+  }) : _storageService = storageService,
+       _dio = dio;
 
   // ─────────────────────────────
   // onRequest: ใส่ Bearer token
@@ -64,8 +63,7 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final is401 = err.response?.statusCode == 401;
-    final isRefreshEndpoint =
-        err.requestOptions.path.contains('/auth/refresh');
+    final isRefreshEndpoint = err.requestOptions.path.contains('/auth/refresh');
 
     if (is401 && !isRefreshEndpoint && !_isRefreshing) {
       _isRefreshing = true;

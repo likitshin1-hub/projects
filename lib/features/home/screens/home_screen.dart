@@ -56,16 +56,16 @@ class HomeScreen extends ConsumerWidget {
                   Text(
                     '${AppStrings.welcome} 👋',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: AppColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     AppStrings.appDescription,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.white.withValues(alpha: 0.85),
-                        ),
+                      color: AppColors.white.withValues(alpha: 0.85),
+                    ),
                   ),
                 ],
               ),
@@ -75,9 +75,9 @@ class HomeScreen extends ConsumerWidget {
             // ===== Services Section (Logistics) =====
             Text(
               AppStrings.ourServices,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.sm),
             Row(
@@ -86,21 +86,24 @@ class HomeScreen extends ConsumerWidget {
                   context: context,
                   title: AppStrings.bookMotorcycle,
                   icon: Icons.two_wheeler,
-                  onTap: () => context.push(AppRoutes.booking, extra: 'มอเตอร์ไซค์'),
+                  onTap: () =>
+                      context.push(AppRoutes.booking, extra: 'มอเตอร์ไซค์'),
                 ),
                 const SizedBox(width: AppDimensions.sm),
                 _buildServiceCard(
                   context: context,
                   title: AppStrings.bookPickup,
                   icon: Icons.local_shipping_outlined,
-                  onTap: () => context.push(AppRoutes.booking, extra: 'รถกระบะ'),
+                  onTap: () =>
+                      context.push(AppRoutes.booking, extra: 'รถกระบะ'),
                 ),
                 const SizedBox(width: AppDimensions.sm),
                 _buildServiceCard(
                   context: context,
                   title: AppStrings.bookTruck,
                   icon: Icons.fire_truck_outlined, // Placeholder for big truck
-                  onTap: () => context.push(AppRoutes.booking, extra: 'รถบรรทุก'),
+                  onTap: () =>
+                      context.push(AppRoutes.booking, extra: 'รถบรรทุก'),
                 ),
               ],
             ),
@@ -109,9 +112,9 @@ class HomeScreen extends ConsumerWidget {
             // ===== Recent Bookings Section =====
             Text(
               AppStrings.recentBookings,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.sm),
             ListView.separated(
@@ -124,14 +127,14 @@ class HomeScreen extends ConsumerWidget {
                 final statuses = [
                   AppStrings.delivering,
                   AppStrings.completed,
-                  AppStrings.completed
+                  AppStrings.completed,
                 ];
                 final colors = [
                   AppColors.delivering,
                   AppColors.completed,
-                  AppColors.completed
+                  AppColors.completed,
                 ];
-                
+
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(AppDimensions.md),
@@ -156,9 +159,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               child: Text(
                                 statuses[index],
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
+                                style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: colors[index],
                                       fontWeight: FontWeight.bold,
@@ -170,8 +171,11 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.my_location,
-                                size: 16, color: AppColors.primary),
+                            const Icon(
+                              Icons.my_location,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -186,8 +190,11 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.location_on,
-                                size: 16, color: AppColors.error),
+                            const Icon(
+                              Icons.location_on,
+                              size: 16,
+                              color: AppColors.error,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -231,18 +238,14 @@ class HomeScreen extends ConsumerWidget {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: Icon(
-                    icon,
-                    size: 28,
-                    color: AppColors.primary,
-                  ),
+                  child: Icon(icon, size: 28, color: AppColors.primary),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
               ],

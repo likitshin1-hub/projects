@@ -13,7 +13,7 @@ class AuthInterceptor extends Interceptor {
 
     if (token != null && token.isNotEmpty) {
       options.headers[ApiConstants.authorization] =
-          "${ApiConstants.bearer} $token";
+          '${ApiConstants.bearer} $token';
     }
 
     handler.next(options);

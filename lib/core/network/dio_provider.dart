@@ -19,10 +19,7 @@ class DioProvider {
       ),
     );
 
-    dio.interceptors.addAll([
-      AuthInterceptor(),
-      LoggerInterceptor.create(),
-    ]);
+    dio.interceptors.addAll([AuthInterceptor(), LoggerInterceptor.create()]);
 
     return dio;
   }

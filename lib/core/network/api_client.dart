@@ -5,18 +5,13 @@ class ApiClient {
 
   ApiClient(this._dio);
 
-
   // GET
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
-    return await _dio.get<T>(
-      path,
-      queryParameters: queryParameters,
-    );
+    return await _dio.get<T>(path, queryParameters: queryParameters);
   }
-
 
   // POST
   Future<Response<T>> post<T>(
@@ -31,7 +26,6 @@ class ApiClient {
     );
   }
 
-
   // PUT
   Future<Response<T>> put<T>(
     String path, {
@@ -44,7 +38,6 @@ class ApiClient {
       queryParameters: queryParameters,
     );
   }
-
 
   // PATCH
   Future<Response<T>> patch<T>(
@@ -59,18 +52,10 @@ class ApiClient {
     );
   }
 
-
   // DELETE
-  Future<Response<T>> delete<T>(
-    String path, {
-    dynamic data,
-  }) async {
-    return await _dio.delete<T>(
-      path,
-      data: data,
-    );
+  Future<Response<T>> delete<T>(String path, {dynamic data}) async {
+    return await _dio.delete<T>(path, data: data);
   }
-
 
   // Upload File
   Future<Response<T>> upload<T>(
@@ -80,9 +65,7 @@ class ApiClient {
     return await _dio.post<T>(
       path,
       data: formData,
-      options: Options(
-        contentType: "multipart/form-data",
-      ),
+      options: Options(contentType: "multipart/form-data"),
     );
   }
 }

@@ -24,9 +24,7 @@ class SecureStorageService {
   SecureStorageService() {
     _storage = const FlutterSecureStorage(
       aOptions: AndroidOptions(),
-      iOptions: IOSOptions(
-        accessibility: KeychainAccessibility.first_unlock,
-      ),
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
     );
   }
 
@@ -35,66 +33,44 @@ class SecureStorageService {
   // ─────────────────────────────────────────────
 
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(
-      key: _kAccessToken,
-      value: token,
-    );
+    await _storage.write(key: _kAccessToken, value: token);
   }
 
   Future<String?> getAccessToken() async {
-    return _storage.read(
-      key: _kAccessToken,
-    );
+    return _storage.read(key: _kAccessToken);
   }
 
   Future<void> deleteAccessToken() async {
-    await _storage.delete(
-      key: _kAccessToken,
-    );
+    await _storage.delete(key: _kAccessToken);
   }
-
 
   // ─────────────────────────────────────────────
   // Refresh Token
   // ─────────────────────────────────────────────
 
   Future<void> saveRefreshToken(String token) async {
-    await _storage.write(
-      key: _kRefreshToken,
-      value: token,
-    );
+    await _storage.write(key: _kRefreshToken, value: token);
   }
 
   Future<String?> getRefreshToken() async {
-    return _storage.read(
-      key: _kRefreshToken,
-    );
+    return _storage.read(key: _kRefreshToken);
   }
 
   Future<void> deleteRefreshToken() async {
-    await _storage.delete(
-      key: _kRefreshToken,
-    );
+    await _storage.delete(key: _kRefreshToken);
   }
-
 
   // ─────────────────────────────────────────────
   // User ID
   // ─────────────────────────────────────────────
 
   Future<void> saveUserId(String userId) async {
-    await _storage.write(
-      key: _kUserId,
-      value: userId,
-    );
+    await _storage.write(key: _kUserId, value: userId);
   }
 
   Future<String?> getUserId() async {
-    return _storage.read(
-      key: _kUserId,
-    );
+    return _storage.read(key: _kUserId);
   }
-
 
   // ─────────────────────────────────────────────
   // User Role
@@ -102,36 +78,24 @@ class SecureStorageService {
   // ─────────────────────────────────────────────
 
   Future<void> saveUserRole(String role) async {
-    await _storage.write(
-      key: _kUserRole,
-      value: role,
-    );
+    await _storage.write(key: _kUserRole, value: role);
   }
 
   Future<String?> getUserRole() async {
-    return _storage.read(
-      key: _kUserRole,
-    );
+    return _storage.read(key: _kUserRole);
   }
-
 
   // ─────────────────────────────────────────────
   // User Email
   // ─────────────────────────────────────────────
 
   Future<void> saveUserEmail(String email) async {
-    await _storage.write(
-      key: _kUserEmail,
-      value: email,
-    );
+    await _storage.write(key: _kUserEmail, value: email);
   }
 
   Future<String?> getUserEmail() async {
-    return _storage.read(
-      key: _kUserEmail,
-    );
+    return _storage.read(key: _kUserEmail);
   }
-
 
   // ─────────────────────────────────────────────
   // Composite Operations
@@ -145,61 +109,40 @@ class SecureStorageService {
     String? userRole,
     String? userEmail,
   }) async {
-
     await Future.wait([
       saveAccessToken(accessToken),
       saveRefreshToken(refreshToken),
       saveUserId(userId),
 
-      if (userRole != null)
-        saveUserRole(userRole),
+      if (userRole != null) saveUserRole(userRole),
 
-      if (userEmail != null)
-        saveUserEmail(userEmail),
+      if (userEmail != null) saveUserEmail(userEmail),
     ]);
-
   }
-
 
   /// ตรวจสอบ Token
   Future<bool> hasAccessToken() async {
-
     final token = await getAccessToken();
 
     return token != null && token.isNotEmpty;
-
   }
-
 
   /// Logout
   Future<void> clearAuthData() async {
-
     await Future.wait([
-
       deleteAccessToken(),
       deleteRefreshToken(),
 
-      _storage.delete(
-        key: _kUserId,
-      ),
+      _storage.delete(key: _kUserId),
 
-      _storage.delete(
-        key: _kUserRole,
-      ),
+      _storage.delete(key: _kUserRole),
 
-      _storage.delete(
-        key: _kUserEmail,
-      ),
-
+      _storage.delete(key: _kUserEmail),
     ]);
-
   }
-
 
   /// ล้าง Storage ทั้งหมด
   Future<void> clearAll() async {
-
     await _storage.deleteAll();
-
   }
 }

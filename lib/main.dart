@@ -30,11 +30,7 @@ Future<void> main() async {
     );
   }
 
-  runApp(
-    const ProviderScope(
-      child: TBMoveHubApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: TBMoveHubApp()));
 }
 
 class TBMoveHubApp extends StatelessWidget {

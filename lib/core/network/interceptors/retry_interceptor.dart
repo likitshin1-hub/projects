@@ -5,7 +5,10 @@ class RetryInterceptor extends Interceptor {
   final int maxRetries;
   final Duration delay;
 
-  RetryInterceptor({this.maxRetries = 3, this.delay = const Duration(seconds: 1)});
+  RetryInterceptor({
+    this.maxRetries = 3,
+    this.delay = const Duration(seconds: 1),
+  });
 
   @override
   Future<void> onError(

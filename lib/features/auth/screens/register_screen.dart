@@ -18,38 +18,50 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+
+  final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  // ค่าเริ่มต้นของการสมัคร
+  String _role = 'customer';
+
   @override
   void dispose() {
-    _usernameController.dispose();
+    _fullNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+
     super.dispose();
   }
 
   void _onRegister() {
-    if (!_formKey.currentState!.validate()) return;
-    ref.read(authProvider.notifier).register(
-          username: _usernameController.text.trim(),
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    ref
+        .read(authProvider.notifier)
+        .register(
+          role: _role,
+          fullName: _fullNameController.text.trim(),
           phone: _phoneController.text.trim(),
           email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          confirmPassword: _confirmPasswordController.text.trim(),
+          password: _passwordController.text,
+          confirmPassword: _confirmPasswordController.text,
         );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authProvider, (prev, next) {
+    ref.listen(authProvider, (prev, next) {
       if (next.status == AuthStatus.success) {
         ref.read(authProvider.notifier).resetState();
+
         context.go(AppRoutes.home);
       } else if (next.status == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,8 +74,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     });
 
-    final isLoading =
-        ref.watch(authProvider).status == AuthStatus.loading;
+    final isLoading = ref.watch(authProvider).status == AuthStatus.loading;
 
     return Scaffold(
       appBar: AppBar(
@@ -81,67 +92,141 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // =========================
+                // Role
+                // =========================
+                DropdownButtonFormField<String>(
+                  value: _role,
+                  decoration: const InputDecoration(
+                    labelText: 'ประเภทบัญชี',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'customer', child: Text('ลูกค้า')),
+                    DropdownMenuItem(value: 'driver', child: Text('คนขับ')),
+                  ],
+                  onChanged: isLoading
+                      ? null
+                      : (value) {
+                          if (value != null) {
+                            setState(() {
+                              _role = value;
+                            });
+                          }
+                        },
+                ),
+
+                const SizedBox(height: AppDimensions.md),
+
+                // =========================
+                // Full Name
+                // =========================
                 CustomTextField(
-                  label: AppStrings.username,
-                  hintText: 'สมชาย ใจดี',
-                  controller: _usernameController,
+                  label: 'ชื่อ-นามสกุล',
+                  hintText: 'ลิขิต นาคหิต',
+                  controller: _fullNameController,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
+                    if (v == null || v.trim().isEmpty) {
+                      return AppStrings.requiredField;
+                    }
+
                     return null;
                   },
                 ),
+
                 const SizedBox(height: AppDimensions.md),
+
+                // =========================
+                // Phone
+                // =========================
                 CustomTextField(
                   label: AppStrings.phone,
                   hintText: '0812345678',
                   keyboardType: TextInputType.phone,
                   controller: _phoneController,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
+                    if (v == null || v.trim().isEmpty) {
+                      return AppStrings.requiredField;
+                    }
+
                     return null;
                   },
                 ),
+
                 const SizedBox(height: AppDimensions.md),
+
+                // =========================
+                // Email
+                // =========================
                 CustomTextField(
                   label: AppStrings.email,
                   hintText: 'example@email.com',
                   keyboardType: TextInputType.emailAddress,
                   controller: _emailController,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
-                    if (!v.contains('@')) return AppStrings.invalidEmail;
+                    if (v == null || v.trim().isEmpty) {
+                      return AppStrings.requiredField;
+                    }
+
+                    if (!v.contains('@')) {
+                      return AppStrings.invalidEmail;
+                    }
+
                     return null;
                   },
                 ),
+
                 const SizedBox(height: AppDimensions.md),
+
+                // =========================
+                // Password
+                // =========================
                 CustomTextField(
                   label: AppStrings.password,
                   hintText: '********',
                   isPassword: true,
                   controller: _passwordController,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
-                    if (v.length < 8) return AppStrings.passwordTooShort;
+                    if (v == null || v.isEmpty) {
+                      return AppStrings.requiredField;
+                    }
+
+                    if (v.length < 6) {
+                      return AppStrings.passwordTooShort;
+                    }
+
                     return null;
                   },
                 ),
+
                 const SizedBox(height: AppDimensions.md),
+
+                // =========================
+                // Confirm Password
+                // =========================
                 CustomTextField(
                   label: AppStrings.confirmPassword,
                   hintText: '********',
                   isPassword: true,
                   controller: _confirmPasswordController,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
+                    if (v == null || v.isEmpty) {
+                      return AppStrings.requiredField;
+                    }
+
                     if (v != _passwordController.text) {
                       return 'รหัสผ่านไม่ตรงกัน';
                     }
+
                     return null;
                   },
                 ),
+
                 const SizedBox(height: AppDimensions.xl),
 
-                // ===== Register Button =====
+                // =========================
+                // Register Button
+                // =========================
                 ElevatedButton(
                   onPressed: isLoading ? null : _onRegister,
                   child: isLoading
@@ -155,9 +240,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         )
                       : const Text(AppStrings.register),
                 ),
+
                 const SizedBox(height: AppDimensions.lg),
 
-                // ===== Divider =====
+                // =========================
+                // Divider
+                // =========================
                 Row(
                   children: [
                     const Expanded(child: Divider()),
@@ -171,14 +259,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const Expanded(child: Divider()),
                   ],
                 ),
+
                 const SizedBox(height: AppDimensions.lg),
 
-                // ===== Google Register Button =====
+                // =========================
+                // Google Register
+                // =========================
                 OutlinedButton.icon(
                   onPressed: isLoading
                       ? null
                       : () {
-                          // เรียกฟังก์ชันเข้าสู่ระบบด้วย Google ของจริง (สมัครและล็อคอินใช้ Flow เดียวกัน)
                           ref.read(authProvider.notifier).loginWithGoogle();
                         },
                   icon: const Icon(Icons.g_mobiledata, size: 28),
@@ -188,9 +278,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     side: const BorderSide(color: AppColors.border),
                   ),
                 ),
+
                 const SizedBox(height: AppDimensions.lg),
 
-                // ===== Login Link =====
+                // =========================
+                // Login Link
+                // =========================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

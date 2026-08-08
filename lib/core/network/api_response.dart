@@ -56,10 +56,7 @@ class ApiResponse<T> {
     );
   }
 
-  factory ApiResponse.error({
-    required String message,
-    int? statusCode,
-  }) {
+  factory ApiResponse.error({required String message, int? statusCode}) {
     return ApiResponse<T>(
       success: false,
       message: message,

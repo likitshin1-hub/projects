@@ -29,12 +29,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   void initState() {
     super.initState();
     _selectedVehicle = widget.initialVehicleType ?? _vehicleOptions.first;
-    
+
     // ตั้งค่าเริ่มต้นลง State
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(bookingProvider.notifier).updateForm(
-            vehicleType: _selectedVehicle,
-          );
+      ref
+          .read(bookingProvider.notifier)
+          .updateForm(vehicleType: _selectedVehicle);
     });
 
     _pickupController.addListener(_onFormChanged);
@@ -51,7 +51,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 
   void _onFormChanged() {
-    ref.read(bookingProvider.notifier).updateForm(
+    ref
+        .read(bookingProvider.notifier)
+        .updateForm(
           pickup: _pickupController.text,
           dropoff: _dropoffController.text,
           details: _detailsController.text,
@@ -63,9 +65,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       setState(() {
         _selectedVehicle = newValue;
       });
-      ref.read(bookingProvider.notifier).updateForm(
-            vehicleType: _selectedVehicle,
-          );
+      ref
+          .read(bookingProvider.notifier)
+          .updateForm(vehicleType: _selectedVehicle);
     }
   }
 
@@ -95,9 +97,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('จองรถส่งพัสดุ'),
-      ),
+      appBar: AppBar(title: const Text('จองรถส่งพัสดุ')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.lg),
         child: Column(
@@ -106,9 +106,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             // ===== Vehicle Type Selection =====
             Text(
               'ประเภทยานพาหนะ',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.sm),
             DropdownButtonFormField<String>(
@@ -135,9 +135,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             // ===== Location =====
             Text(
               'สถานที่',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.sm),
             CustomTextField(
@@ -153,7 +153,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                 ),
-                prefixIcon: const Icon(Icons.my_location, color: AppColors.primary),
+                prefixIcon: const Icon(
+                  Icons.my_location,
+                  color: AppColors.primary,
+                ),
               ),
             ),
             const SizedBox(height: AppDimensions.md),
@@ -165,7 +168,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                 ),
-                prefixIcon: const Icon(Icons.location_on, color: AppColors.error),
+                prefixIcon: const Icon(
+                  Icons.location_on,
+                  color: AppColors.error,
+                ),
               ),
             ),
             const SizedBox(height: AppDimensions.lg),
@@ -173,9 +179,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             // ===== Details =====
             Text(
               'รายละเอียดพัสดุ / หมายเหตุ',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.sm),
             TextField(
@@ -196,17 +202,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'ราคาประเมิน:',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   bookingState.status == BookingStatus.calculating
                       ? const SizedBox(
@@ -231,7 +236,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
             // ===== Submit Button =====
             ElevatedButton(
-              onPressed: (bookingState.status == BookingStatus.ready &&
+              onPressed:
+                  (bookingState.status == BookingStatus.ready &&
                       bookingState.estimatedPrice > 0)
                   ? _submit
                   : null,
