@@ -116,33 +116,4 @@ class AppRoutes {
   // =========================
 
   static const String settings = '/settings';
-
-  // =========================
-  // Chat
-  // =========================
-  static const String chatDetail = '/chat/detail';
-
-  // =========================
-  // Rewards
-  // =========================
-
-  static const String rewards = '/rewards';
-
-  // =========================
-  // Coupons
-  // =========================
-
-  static const String coupons = '/coupons';
-
-  // =========================
-  // Claim Coupons
-  // =========================
-
-  static const String claimCoupons = '/claim-coupons';
-
-  // =========================
-  // Help & Support
-  // =========================
-
-  static const String help = '/help';
 }

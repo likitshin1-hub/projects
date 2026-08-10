@@ -23,6 +23,7 @@ import '../../features/booking/screens/delivery_success_screen.dart';
 import '../../features/booking/screens/cancel_order_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/chat/screens/call_screen.dart';
+import '../../features/history/screens/delivery_history_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
