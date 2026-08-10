@@ -12,7 +12,6 @@ import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/verification_screen.dart';
 import '../../features/auth/screens/success_screen.dart';
 import '../../features/auth/screens/terms_screen.dart';
-import '../../features/splash/screens/splash_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 
 // Booking
