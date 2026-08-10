@@ -9,6 +9,8 @@ class CustomTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final Widget? prefixIcon;
+  final bool hasShadow;
 
   const CustomTextField({
     super.key,
@@ -18,6 +20,8 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.controller,
     this.validator,
+    this.prefixIcon,
+    this.hasShadow = false,
   });
 
   @override
@@ -29,6 +33,55 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    Widget inputField = TextFormField(
+      controller: widget.controller,
+      obscureText: widget.isPassword ? _obscureText : false,
+      keyboardType: widget.keyboardType,
+      validator: widget.validator,
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        prefixIcon: widget.prefixIcon != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: widget.prefixIcon,
+              )
+            : null,
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 40,
+          minHeight: 24,
+        ),
+        suffixIcon: widget.isPassword
+            ? IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  color: AppColors.textSecondary,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              )
+            : null,
+      ),
+    );
+
+    if (widget.hasShadow) {
+      inputField = Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: inputField,
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,28 +93,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
               ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: widget.controller,
-          obscureText: widget.isPassword ? _obscureText : false,
-          keyboardType: widget.keyboardType,
-          validator: widget.validator,
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            suffixIcon: widget.isPassword
-                ? IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  )
-                : null,
-          ),
-        ),
+        inputField,
       ],
     );
   }

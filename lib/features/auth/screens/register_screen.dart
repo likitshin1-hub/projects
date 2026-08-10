@@ -1,12 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../shared/widgets/custom_text_field.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -18,17 +19,24 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _idCardController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _acceptTerms = false;
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _phoneController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
+    _idCardController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -36,8 +44,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _onRegister() {
     if (!_formKey.currentState!.validate()) return;
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'กรุณายอมรับเงื่อนไขการให้บริการก่อนสมัครสมาชิก',
+            style: GoogleFonts.kanit(),
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+      );
+      return;
+    }
     ref.read(authProvider.notifier).register(
-          username: _usernameController.text.trim(),
+          username:
+              '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
           phone: _phoneController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -54,160 +77,469 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       } else if (next.status == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.errorMessage ?? AppStrings.error),
+            content: Text(
+              next.errorMessage ?? AppStrings.error,
+              style: GoogleFonts.kanit(),
+            ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
         );
       }
     });
 
-    final isLoading =
-        ref.watch(authProvider).status == AuthStatus.loading;
+    final isLoading = ref.watch(authProvider).status == AuthStatus.loading;
+    final isDarkMode = ref.watch(themeProvider);
+
+    final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
+    final cardBgColor = isDarkMode
+        ? const Color(0xFF1E293B).withValues(alpha: 0.65)
+        : Colors.white.withValues(alpha: 0.85);
+    final cardBorderColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.1)
+        : const Color(0xFFE2E8F0);
+    final primaryTextColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final inputBgColor = isDarkMode
+        ? const Color(0xFF0F172A).withValues(alpha: 0.6)
+        : const Color(0xFFF1F5F9);
 
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text(AppStrings.register),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: primaryTextColor, size: 20),
           onPressed: () => context.pop(),
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppDimensions.lg),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                CustomTextField(
-                  label: AppStrings.username,
-                  hintText: 'สมชาย ใจดี',
-                  controller: _usernameController,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
-                    return null;
-                  },
-                ),
-                const SizedBox(height: AppDimensions.md),
-                CustomTextField(
-                  label: AppStrings.phone,
-                  hintText: '0812345678',
-                  keyboardType: TextInputType.phone,
-                  controller: _phoneController,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
-                    return null;
-                  },
-                ),
-                const SizedBox(height: AppDimensions.md),
-                CustomTextField(
-                  label: AppStrings.email,
-                  hintText: 'example@email.com',
-                  keyboardType: TextInputType.emailAddress,
-                  controller: _emailController,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
-                    if (!v.contains('@')) return AppStrings.invalidEmail;
-                    return null;
-                  },
-                ),
-                const SizedBox(height: AppDimensions.md),
-                CustomTextField(
-                  label: AppStrings.password,
-                  hintText: '********',
-                  isPassword: true,
-                  controller: _passwordController,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
-                    if (v.length < 8) return AppStrings.passwordTooShort;
-                    return null;
-                  },
-                ),
-                const SizedBox(height: AppDimensions.md),
-                CustomTextField(
-                  label: AppStrings.confirmPassword,
-                  hintText: '********',
-                  isPassword: true,
-                  controller: _confirmPasswordController,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return AppStrings.requiredField;
-                    if (v != _passwordController.text) {
-                      return 'รหัสผ่านไม่ตรงกัน';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: AppDimensions.xl),
-
-                // ===== Register Button =====
-                ElevatedButton(
-                  onPressed: isLoading ? null : _onRegister,
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: AppColors.white,
-                          ),
-                        )
-                      : const Text(AppStrings.register),
-                ),
-                const SizedBox(height: AppDimensions.lg),
-
-                // ===== Divider =====
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'หรือ',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-                const SizedBox(height: AppDimensions.lg),
-
-                // ===== Google Register Button =====
-                OutlinedButton.icon(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          // เรียกฟังก์ชันเข้าสู่ระบบด้วย Google ของจริง (สมัครและล็อคอินใช้ Flow เดียวกัน)
-                          ref.read(authProvider.notifier).loginWithGoogle();
-                        },
-                  icon: const Icon(Icons.g_mobiledata, size: 28),
-                  label: const Text('สมัครสมาชิกด้วย Google'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.border),
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.lg),
-
-                // ===== Login Link =====
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'มีบัญชีอยู่แล้ว?',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    TextButton(
-                      onPressed: () => context.pop(),
-                      child: const Text(AppStrings.login),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+        centerTitle: true,
+        title: Text(
+          'สมัครสมาชิก',
+          style: GoogleFonts.kanit(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: primaryTextColor,
           ),
         ),
+      ),
+      body: Stack(
+        children: [
+          // ===== Google-Style Ambient Glow =====
+          Positioned(
+            top: -80,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF10B981).withValues(alpha: isDarkMode ? 0.3 : 0.18),
+                    const Color(0xFF3B82F6).withValues(alpha: isDarkMode ? 0.15 : 0.08),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -100,
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF8B5CF6).withValues(alpha: isDarkMode ? 0.3 : 0.15),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+
+          // ===== Main Scroll Content =====
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'สร้างบัญชีใหม่',
+                    style: GoogleFonts.kanit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: primaryTextColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'กรอกข้อมูลให้ครบถ้วนเพื่อเริ่มใช้งานบริการจัดส่งสินค้า',
+                    style: GoogleFonts.kanit(
+                      fontSize: 13,
+                      color: secondaryTextColor,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Form Glassmorphism Card
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: cardBgColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: cardBorderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.25 : 0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildFieldLabel('ชื่อ', primaryTextColor),
+                                    const SizedBox(height: 6),
+                                    TextFormField(
+                                      controller: _firstNameController,
+                                      style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
+                                      validator: (v) {
+                                        if (v == null || v.isEmpty) return AppStrings.requiredField;
+                                        return null;
+                                      },
+                                      decoration: _buildInputDecoration(
+                                        hint: 'ชื่อจริง',
+                                        icon: Icons.person_outline_rounded,
+                                        inputBgColor: inputBgColor,
+                                        borderColor: cardBorderColor,
+                                        secondaryTextColor: secondaryTextColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildFieldLabel('นามสกุล', primaryTextColor),
+                                    const SizedBox(height: 6),
+                                    TextFormField(
+                                      controller: _lastNameController,
+                                      style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
+                                      validator: (v) {
+                                        if (v == null || v.isEmpty) return AppStrings.requiredField;
+                                        return null;
+                                      },
+                                      decoration: _buildInputDecoration(
+                                        hint: 'นามสกุล',
+                                        icon: Icons.person_outline_rounded,
+                                        inputBgColor: inputBgColor,
+                                        borderColor: cardBorderColor,
+                                        secondaryTextColor: secondaryTextColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildFieldLabel('อีเมล', primaryTextColor),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return AppStrings.requiredField;
+                              if (!v.contains('@')) return AppStrings.invalidEmail;
+                              return null;
+                            },
+                            decoration: _buildInputDecoration(
+                              hint: 'tbmovehub@gmail.com',
+                              icon: Icons.mail_outline_rounded,
+                              inputBgColor: inputBgColor,
+                              borderColor: cardBorderColor,
+                              secondaryTextColor: secondaryTextColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildFieldLabel('เบอร์โทรศัพท์', primaryTextColor),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return AppStrings.requiredField;
+                              return null;
+                            },
+                            decoration: _buildInputDecoration(
+                              hint: '08X.XXX.XXXX',
+                              icon: Icons.phone_outlined,
+                              inputBgColor: inputBgColor,
+                              borderColor: cardBorderColor,
+                              secondaryTextColor: secondaryTextColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildFieldLabel('เลขบัตรประชาชน (13 หลัก)', primaryTextColor),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _idCardController,
+                            keyboardType: TextInputType.number,
+                            style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return AppStrings.requiredField;
+                              if (v.length != 13) return 'กรุณากรอกเลขบัตร 13 หลัก';
+                              return null;
+                            },
+                            decoration: _buildInputDecoration(
+                              hint: 'X-XXXX-XXXXX-XX-X',
+                              icon: Icons.credit_card_outlined,
+                              inputBgColor: inputBgColor,
+                              borderColor: cardBorderColor,
+                              secondaryTextColor: secondaryTextColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildFieldLabel('รหัสผ่าน', primaryTextColor),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return AppStrings.requiredField;
+                              if (v.length < 8) return AppStrings.passwordTooShort;
+                              return null;
+                            },
+                            decoration: _buildInputDecoration(
+                              hint: 'อย่างน้อย 8 ตัวอักษร',
+                              icon: Icons.lock_outline_rounded,
+                              inputBgColor: inputBgColor,
+                              borderColor: cardBorderColor,
+                              secondaryTextColor: secondaryTextColor,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: secondaryTextColor,
+                                  size: 18,
+                                ),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildFieldLabel('ยืนยันรหัสผ่าน', primaryTextColor),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: _obscureConfirmPassword,
+                            style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return AppStrings.requiredField;
+                              if (v != _passwordController.text) return 'รหัสผ่านไม่ตรงกัน';
+                              return null;
+                            },
+                            decoration: _buildInputDecoration(
+                              hint: 'กรอกรหัสผ่านอีกครั้ง',
+                              icon: Icons.lock_outline_rounded,
+                              inputBgColor: inputBgColor,
+                              borderColor: cardBorderColor,
+                              secondaryTextColor: secondaryTextColor,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: secondaryTextColor,
+                                  size: 18,
+                                ),
+                                onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Terms Checkbox
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: _acceptTerms,
+                                  activeColor: const Color(0xFF0284C7),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  onChanged: (v) => setState(() => _acceptTerms = v ?? false),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    final accepted = await context.push<bool>(AppRoutes.terms);
+                                    if (accepted == true) {
+                                      setState(() => _acceptTerms = true);
+                                    }
+                                  },
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: GoogleFonts.kanit(fontSize: 13, color: secondaryTextColor, height: 1.4),
+                                      children: [
+                                        const TextSpan(text: 'ข้าพเจ้ายินยอมและยอมรับ '),
+                                        TextSpan(
+                                          text: 'เงื่อนไขการให้บริการ',
+                                          style: GoogleFonts.kanit(color: const Color(0xFF0284C7), fontWeight: FontWeight.w600),
+                                        ),
+                                        const TextSpan(text: ' และ '),
+                                        TextSpan(
+                                          text: 'นโยบายความเป็นส่วนตัว',
+                                          style: GoogleFonts.kanit(color: const Color(0xFF0284C7), fontWeight: FontWeight.w600),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Register Submit Button
+                          SizedBox(
+                            height: 52,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF0284C7), Color(0xFF2563EB)],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                onPressed: isLoading ? null : _onRegister,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                child: isLoading
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                                      )
+                                    : Text(
+                                        'ยืนยันสมัครสมาชิก',
+                                        style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('มีบัญชีผู้ใช้แล้ว? ', style: GoogleFonts.kanit(color: secondaryTextColor, fontSize: 14)),
+                      GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Text(
+                          'เข้าสู่ระบบ',
+                          style: GoogleFonts.kanit(color: const Color(0xFF0284C7), fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label, Color color) {
+    return Text(
+      label,
+      style: GoogleFonts.kanit(color: color, fontWeight: FontWeight.w600, fontSize: 13),
+    );
+  }
+
+  InputDecoration _buildInputDecoration({
+    required String hint,
+    required IconData icon,
+    required Color inputBgColor,
+    required Color borderColor,
+    required Color secondaryTextColor,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: GoogleFonts.kanit(color: secondaryTextColor, fontSize: 13),
+      prefixIcon: Icon(icon, color: secondaryTextColor, size: 18),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: inputBgColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: borderColor, width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: borderColor, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.5),
       ),
     );
   }

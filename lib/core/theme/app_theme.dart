@@ -65,4 +65,33 @@ class AppTheme {
       dividerColor: AppColors.divider,
     );
   }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+
+      brightness: Brightness.dark,
+
+      scaffoldBackgroundColor: const Color(0xFF0B0F17),
+
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
+        brightness: Brightness.dark,
+        surface: const Color(0xFF1E293B),
+      ),
+
+      textTheme: AppTextTheme.lightTextTheme,
+
+      inputDecorationTheme: AppInputTheme.lightInputTheme,
+
+      appBarTheme: const AppBarTheme(
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: Color(0xFF0B0F17),
+        foregroundColor: Colors.white,
+      ),
+
+      dividerColor: const Color(0xFF334155),
+    );
+  }
 }

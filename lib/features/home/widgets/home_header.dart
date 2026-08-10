@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_routes.dart';
+
+class HomeHeader extends StatelessWidget {
+  final VoidCallback? onMenuPressed;
+
+  const HomeHeader({
+    super.key,
+    this.onMenuPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: statusBarHeight + 12,
+        left: 20,
+        right: 20,
+        bottom: 32,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF1C7FF6),
+            Color(0xFF0056C6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x4D1C7FF6),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // =========================
+          // MENU & NOTIFICATION ROW
+          // =========================
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 48,
+                  minHeight: 48,
+                ),
+                icon: const Icon(
+                  Icons.menu_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                onPressed: onMenuPressed,
+              ),
+              GestureDetector(
+                onTap: () {
+                  context.push(AppRoutes.notification);
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(
+                      Icons.notifications_none_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                    Positioned(
+                      top: -1,
+                      right: -1,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 14,
+                          minHeight: 14,
+                        ),
+                        child: Text(
+                          '3',
+                          style: GoogleFonts.kanit(
+                            fontSize: 8,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // =========================
+          // GREETING
+          // =========================
+          Text(
+            'ยินดีต้อนรับสู่',
+            style: GoogleFonts.kanit(
+              fontSize: 16,
+              color: Colors.white.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+
+          const SizedBox(height: 3),
+
+          // =========================
+          // LOGO / APP NAME
+          // =========================
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  'TB MOVE HUB',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.kanit(
+                    fontSize: 26,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    height: 1.1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.location_on_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          // =========================
+          // SUBTITLE
+          // =========================
+          Text(
+            'บริการขนส่งครบ จบในที่เดียว',
+            style: GoogleFonts.kanit(
+              fontSize: 13,
+              color: Colors.white.withValues(alpha: 0.85),
+              fontWeight: FontWeight.w300,
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

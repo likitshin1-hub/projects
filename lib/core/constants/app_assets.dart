@@ -13,10 +13,22 @@ class AppAssets {
 
   static const String deliveryBanner =
       'assets/images/banners/delivery_banner.png';
+  static const String claimCouponBanner =
+      'assets/images/banners/claim_coupon_banner.png';
 
   static const String defaultDriver = 'assets/images/driver/default_driver.png';
 
   static const String noImage = 'assets/images/placeholder/no_image.png';
+
+  // Vehicles
+  static const String motorcycle = 'assets/images/vehicles/motorcycle.png';
+  static const String sedan = 'assets/images/vehicles/sedan.png';
+  static const String pickup = 'assets/images/vehicles/pickup.png';
+  static const String reefer = 'assets/images/vehicles/reefer.png';
+  static const String truckLift = 'assets/images/vehicles/truck_lift.png';
+
+  // Badges
+  static const String trustShieldBox = 'assets/images/badges/trust_shield_box.png';
 
   // =========================
   // Icons

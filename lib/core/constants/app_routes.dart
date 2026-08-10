@@ -17,6 +17,12 @@ class AppRoutes {
 
   static const String forgotPassword = '/forgot-password';
 
+  static const String verification = '/verify';
+
+  static const String successVerification = '/verify-success';
+
+  static const String terms = '/terms';
+
   // =========================
   // Main
   // =========================
@@ -56,10 +62,24 @@ class AppRoutes {
   static const String jobDetail = '/driver/job-detail';
 
   // =========================
-  // Tracking
+  // Tracking & Booking
   // =========================
 
   static const String tracking = '/tracking';
+  
+  static const String trackingDetail = '/tracking/detail';
+  
+  static const String deliverySuccess = '/delivery-success';
+  
+  static const String cancelOrder = '/cancel-order';
+
+  // =========================
+  // Chat & Call
+  // =========================
+
+  static const String chat = '/chat';
+  
+  static const String call = '/call';
 
   // =========================
   // Wallet
@@ -76,6 +96,18 @@ class AppRoutes {
   // =========================
 
   static const String notification = '/notifications';
+
+  static const String notificationDetail = '/notifications/detail';
+
+  static const String coupons = '/coupons';
+
+  static const String claimCoupons = '/coupons/claim';
+
+  static const String rewards = '/rewards';
+
+  static const String help = '/help';
+
+  static const String chatDetail = '/chat/detail';
 
   // =========================
   // Settings

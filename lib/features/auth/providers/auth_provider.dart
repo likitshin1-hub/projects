@@ -201,6 +201,10 @@ class AuthNotifier extends Notifier<AuthState> {
     state = const AuthState(status: AuthStatus.idle, user: null);
   }
 
+  Future<void> updateUser(UserModel user) async {
+    state = state.copyWith(user: user);
+  }
+
   void resetState() {
     state = const AuthState();
   }
