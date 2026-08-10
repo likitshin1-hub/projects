@@ -311,6 +311,7 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
             ),
+          ],
         ],
       ),
     );
