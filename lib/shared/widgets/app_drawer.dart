@@ -213,13 +213,9 @@ class AppDrawer extends ConsumerWidget {
           InkWell(
             onTap: () async {
               Navigator.pop(context);
-              if (isLoggedIn) {
-                await ref.read(authProvider.notifier).logout();
-                if (context.mounted) {
-                  context.go(AppRoutes.login);
-                }
-              } else {
-                context.push(AppRoutes.login);
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) {
+                context.go(AppRoutes.login);
               }
             },
             child: Container(
@@ -227,17 +223,17 @@ class AppDrawer extends ConsumerWidget {
               width: double.infinity,
               child: Row(
                 children: [
-                  Icon(
-                    isLoggedIn ? Icons.power_settings_new_rounded : Icons.login_rounded,
-                    color: isLoggedIn ? Colors.redAccent : const Color(0xFF10B981),
+                  const Icon(
+                    Icons.power_settings_new_rounded,
+                    color: Colors.redAccent,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    isLoggedIn ? 'ออกจากระบบ' : 'เข้าสู่ระบบ / สมัครสมาชิก',
+                    'ออกจากระบบ',
                     style: GoogleFonts.kanit(
                       fontSize: 14.5,
-                      color: isLoggedIn ? Colors.redAccent : const Color(0xFF10B981),
+                      color: Colors.redAccent,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
