@@ -281,12 +281,12 @@ class AuthNotifier extends Notifier<AuthState> {
     final result = await _repository.loginWithGoogle();
 
     if (result.isSuccess) {
-      final UserCredential? credential = result.data;
+      final dynamic credential = result.data;
 
       UserModel userModel;
 
-      if (credential?.user != null) {
-        final firebaseUser = credential!.user!;
+      if (credential != null && credential is UserCredential && credential.user != null) {
+        final firebaseUser = credential.user!;
 
         userModel = UserModel(
           id: firebaseUser.uid,
@@ -294,6 +294,8 @@ class AuthNotifier extends Notifier<AuthState> {
           email: firebaseUser.email ?? '',
           photoUrl: firebaseUser.photoURL,
         );
+      } else if (result.data is UserModel) {
+        userModel = result.data as UserModel;
       } else {
         userModel = UserModel(
           id: 'google_mock_user_1',
@@ -332,10 +334,6 @@ class AuthNotifier extends Notifier<AuthState> {
       status: AuthStatus.idle,
       user: null,
     );
-  }
-
-  Future<void> updateUser(UserModel user) async {
-    state = state.copyWith(user: user);
   }
 
   void resetState() {
