@@ -216,7 +216,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: GoogleFonts.kanit(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1F2937),
+                      color: ref.watch(themeProvider)
+                          ? Colors.white
+                          : const Color(0xFF1F2937),
                     ),
                   ),
 

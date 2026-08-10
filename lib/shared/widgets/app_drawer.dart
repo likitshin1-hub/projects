@@ -30,6 +30,12 @@ class AppDrawer extends ConsumerWidget {
 
     return Drawer(
       backgroundColor: drawerBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
       child: Column(
         children: [
           // Drawer Header
@@ -42,6 +48,9 @@ class AppDrawer extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(24),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,8 +58,8 @@ class AppDrawer extends ConsumerWidget {
                 Row(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 54,
+                      height: 54,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white,
@@ -66,9 +75,9 @@ class AppDrawer extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isLoggedIn ? user.name : 'ยินดีต้อนรับสู่ TBMoveHub',
+                            isLoggedIn ? user.name : 'TB MOVE HUB',
                             style: GoogleFonts.kanit(
-                              fontSize: 17,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -79,7 +88,7 @@ class AppDrawer extends ConsumerWidget {
                           Text(
                             isLoggedIn
                                 ? (isDriver ? 'พาร์ทเนอร์คนขับ (Driver)' : 'ผู้ใช้บริการ (Customer)')
-                                : 'กรุณาเข้าสู่ระบบเพื่อใช้งานเต็มรูปแบบ',
+                                : 'บริการขนส่งมืออาชีพ',
                             style: GoogleFonts.kanit(
                               fontSize: 12,
                               color: Colors.white.withValues(alpha: 0.85),
@@ -97,14 +106,14 @@ class AppDrawer extends ConsumerWidget {
           // Menu List
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               children: [
                 // 1. หน้าหลัก (Home)
                 _buildDrawerTile(
                   context,
                   icon: Icons.home_rounded,
                   title: 'หน้าหลัก',
-                  subtitle: 'ค้นหาบริการขนส่งและเรียกใช้บริการ',
+                  subtitle: 'ศูนย์รวมบริการขนส่งพัสดุและเรียกรถ',
                   iconColor: const Color(0xFF1C7FF6),
                   iconBgColor: itemBg,
                   textColor: textColor,
@@ -115,49 +124,45 @@ class AppDrawer extends ConsumerWidget {
                   },
                 ),
 
-                // Logic 1: ยังไม่ได้ล็อกอิน -> แสดงเมนู "เข้าสู่ระบบ / สมัครสมาชิก"
-                if (!isLoggedIn) ...[
-                  _buildDrawerTile(
-                    context,
-                    icon: Icons.login_rounded,
-                    title: 'เข้าสู่ระบบ / สมัครสมาชิก',
-                    subtitle: 'เข้าสู่ระบบบัญชีของคุณ',
-                    iconColor: const Color(0xFF10B981),
-                    iconBgColor: itemBg,
-                    textColor: textColor,
-                    subTextColor: subTextColor,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(AppRoutes.login);
-                    },
-                  ),
-                ],
+                // 2. เรียกใช้บริการจัดส่ง (Booking)
+                _buildDrawerTile(
+                  context,
+                  icon: Icons.add_box_rounded,
+                  title: 'เรียกใช้บริการจัดส่ง',
+                  subtitle: 'จองรถขนส่งพัสดุและย้ายของ',
+                  iconColor: const Color(0xFF0284C7),
+                  iconBgColor: itemBg,
+                  textColor: textColor,
+                  subTextColor: subTextColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.booking);
+                  },
+                ),
 
-                // Logic 2: ล็อกอินแล้ว แต่ยังไม่ได้เป็นคนขับ -> แสดงเมนู "สมัครสมาชิกพาร์ทเนอร์คนขับ"
-                if (isLoggedIn && !isDriver) ...[
-                  _buildDrawerTile(
-                    context,
-                    icon: Icons.local_shipping_rounded,
-                    title: 'สมัครพาร์ทเนอร์คนขับ',
-                    subtitle: 'ร่วมสร้างรายได้กับเรา ขับง่าย ได้เงินไว',
-                    iconColor: const Color(0xFFF59E0B),
-                    iconBgColor: itemBg,
-                    textColor: textColor,
-                    subTextColor: subTextColor,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(AppRoutes.partnerLanding);
-                    },
-                  ),
-                ],
+                // 3. สมัครพาร์ทเนอร์คนขับ / ไรเดอร์ (Rider/Driver Signup - New Menu Feature!)
+                _buildDrawerTile(
+                  context,
+                  icon: Icons.two_wheeler_rounded,
+                  title: 'สมัครพาร์ทเนอร์คนขับ / ไรเดอร์ 🛵',
+                  subtitle: 'ร่วมสร้างรายได้กับเรา ขับง่าย ได้เงินไว',
+                  iconColor: const Color(0xFFF59E0B),
+                  iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
+                  textColor: textColor,
+                  subTextColor: subTextColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.partnerLanding);
+                  },
+                ),
 
-                // Logic 3: ล็อกอินแล้ว และเป็นคนขับแล้ว -> แสดงเมนู "ศูนย์พาร์ทเนอร์คนขับ"
+                // 4. ศูนย์พาร์ทเนอร์คนขับ (แสดงเฉพาะคนขับ)
                 if (isLoggedIn && isDriver) ...[
                   _buildDrawerTile(
                     context,
                     icon: Icons.dashboard_rounded,
                     title: 'ศูนย์พาร์ทเนอร์คนขับ',
-                    subtitle: 'ระบบจัดการงานสำหรับคนขับ',
+                    subtitle: 'แดชบอร์ดและจัดการงานจัดส่ง',
                     iconColor: const Color(0xFF10B981),
                     iconBgColor: itemBg,
                     textColor: textColor,
@@ -169,32 +174,80 @@ class AppDrawer extends ConsumerWidget {
                   ),
                 ],
 
-                // 4. ลืมรหัสผ่าน (Forgot Password)
-                if (!isLoggedIn) ...[
+                // 5. คูปองของฉัน (Coupons)
+                _buildDrawerTile(
+                  context,
+                  icon: Icons.local_activity_rounded,
+                  title: 'คูปองของฉัน',
+                  subtitle: 'เก็บและใช้โค้ดส่วนลดขนส่ง',
+                  iconColor: const Color(0xFF10B981),
+                  iconBgColor: itemBg,
+                  textColor: textColor,
+                  subTextColor: subTextColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.coupons);
+                  },
+                ),
+
+                // 6. สะสมรีวอร์ด (Rewards)
+                _buildDrawerTile(
+                  context,
+                  icon: Icons.emoji_events_rounded,
+                  title: 'สะสมรีวอร์ด',
+                  subtitle: 'แลกแต้มรับของรางวัลและสิทธิพิเศษ',
+                  iconColor: const Color(0xFFFFB300),
+                  iconBgColor: itemBg,
+                  textColor: textColor,
+                  subTextColor: subTextColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.rewards);
+                  },
+                ),
+
+                // 7. ประวัติการจัดส่ง (History)
+                _buildDrawerTile(
+                  context,
+                  icon: Icons.calendar_month_rounded,
+                  title: 'ประวัติการจัดส่ง',
+                  subtitle: 'รายการคำสั่งซื้อและสถานะพัสดุ',
+                  iconColor: const Color(0xFF8B5CF6),
+                  iconBgColor: itemBg,
+                  textColor: textColor,
+                  subTextColor: subTextColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.history);
+                  },
+                ),
+
+                // 8. แก้ไขโปรไฟล์ (Edit Profile)
+                if (isLoggedIn) ...[
                   _buildDrawerTile(
                     context,
-                    icon: Icons.lock_reset_rounded,
-                    title: 'ลืมรหัสผ่าน',
-                    subtitle: 'กู้คืนหรือรีเซ็ตรหัสผ่านบัญชี',
+                    icon: Icons.person_outline_rounded,
+                    title: 'แก้ไขโปรไฟล์',
+                    subtitle: 'จัดการข้อมูลส่วนตัวและที่อยู่',
                     iconColor: const Color(0xFFEC4899),
                     iconBgColor: itemBg,
                     textColor: textColor,
                     subTextColor: subTextColor,
                     onTap: () {
                       Navigator.pop(context);
-                      context.push(AppRoutes.forgotPassword);
+                      context.push(AppRoutes.editProfile);
                     },
                   ),
                 ],
 
                 Divider(height: 24, indent: 20, endIndent: 20, color: dividerColor),
 
-                // Additional items
+                // 9. ตั้งค่าระบบ (Settings & Theme)
                 _buildDrawerTile(
                   context,
                   icon: Icons.settings_rounded,
-                  title: 'การตั้งค่าระบบ & เลือกธีม',
-                  subtitle: 'ปรับแต่งการแสดงผลโหมดมืด/สว่าง',
+                  title: 'ตั้งค่าระบบ & เลือกธีม',
+                  subtitle: 'ปรับแต่งโหมดสว่าง / โหมดมืด',
                   iconColor: const Color(0xFF6366F1),
                   iconBgColor: itemBg,
                   textColor: textColor,
@@ -205,9 +258,10 @@ class AppDrawer extends ConsumerWidget {
                   },
                 ),
 
+                // 10. ความช่วยเหลือ / ติดต่อเรา (Help)
                 _buildDrawerTile(
                   context,
-                  icon: Icons.help_outline_rounded,
+                  icon: Icons.info_outline_rounded,
                   title: 'ความช่วยเหลือ / ติดต่อเรา',
                   subtitle: 'คำถามที่พบบ่อยและศูนย์ช่วยเหลือ',
                   iconColor: const Color(0xFF64748B),
@@ -223,9 +277,38 @@ class AppDrawer extends ConsumerWidget {
             ),
           ),
 
-          // Drawer Footer (Logout when logged in)
-          if (isLoggedIn) ...[
-            Divider(height: 1, color: dividerColor),
+          // Drawer Footer (Login or Logout)
+          Divider(height: 1, color: dividerColor),
+          if (!isLoggedIn)
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRoutes.login);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                width: double.infinity,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.login_rounded,
+                      color: Color(0xFF10B981),
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'เข้าสู่ระบบ / สมัครสมาชิก',
+                      style: GoogleFonts.kanit(
+                        fontSize: 15,
+                        color: const Color(0xFF10B981),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
             InkWell(
               onTap: () async {
                 Navigator.pop(context);
@@ -257,7 +340,6 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
             ),
-          ],
         ],
       ),
     );
@@ -275,22 +357,22 @@ class AppDrawer extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             color: iconBgColor,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: iconColor, size: 22),
+          child: Icon(icon, color: iconColor, size: 20),
         ),
         title: Text(
           title,
           style: GoogleFonts.kanit(
-            fontSize: 14.5,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: textColor,
           ),
@@ -298,9 +380,14 @@ class AppDrawer extends ConsumerWidget {
         subtitle: Text(
           subtitle,
           style: GoogleFonts.kanit(
-            fontSize: 11.5,
+            fontSize: 11,
             color: subTextColor,
           ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 13,
+          color: Color(0xFF94A3B8),
         ),
         onTap: onTap,
       ),
