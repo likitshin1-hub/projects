@@ -63,12 +63,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
     ref.read(authProvider.notifier).register(
-          username:
+          fullName:
               '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
           phone: _phoneController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
           confirmPassword: _confirmPasswordController.text,
+          role: 'customer',
         );
   }
 
