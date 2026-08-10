@@ -28,7 +28,7 @@ class AppAssets {
   static const String truckLift = 'assets/images/vehicles/truck_lift.png';
 
   // Badges
-  static const String trustShieldBox = 'assets/images/badges/trust_shield_box.png';
+  static const String trustShieldBox = 'assets/images/placeholder/trust_shield_box.jpg';
 
   // =========================
   // Icons

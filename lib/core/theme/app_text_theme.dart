@@ -88,4 +88,90 @@ class AppTextTheme {
       ),
     );
   }
+
+  static TextTheme get darkTextTheme {
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFF94A3B8);
+
+    return TextTheme(
+      // Display
+      displayLarge: GoogleFonts.kanit(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: textColorPrimary,
+      ),
+
+      displayMedium: GoogleFonts.kanit(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: textColorPrimary,
+      ),
+
+      displaySmall: GoogleFonts.kanit(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: textColorPrimary,
+      ),
+
+      // Headline
+      headlineLarge: GoogleFonts.kanit(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: textColorPrimary,
+      ),
+
+      headlineMedium: GoogleFonts.kanit(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: textColorPrimary,
+      ),
+
+      // Title
+      titleLarge: GoogleFonts.kanit(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: textColorPrimary,
+      ),
+
+      titleMedium: GoogleFonts.kanit(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: textColorPrimary,
+      ),
+
+      titleSmall: GoogleFonts.kanit(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: textColorSecondary,
+      ),
+
+      // Body
+      bodyLarge: GoogleFonts.kanit(fontSize: 16, color: textColorPrimary),
+
+      bodyMedium: GoogleFonts.kanit(fontSize: 14, color: textColorPrimary),
+
+      bodySmall: GoogleFonts.kanit(
+        fontSize: 12,
+        color: textColorSecondary,
+      ),
+
+      // Label / Button
+      labelLarge: GoogleFonts.kanit(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+
+      labelMedium: GoogleFonts.kanit(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: textColorSecondary,
+      ),
+
+      labelSmall: GoogleFonts.kanit(
+        fontSize: 11,
+        color: textColorSecondary,
+      ),
+    );
+  }
 }

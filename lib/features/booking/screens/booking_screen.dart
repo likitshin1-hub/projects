@@ -737,10 +737,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           // Security Trust Banner
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFFDBEAFE),
+                color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFDBEAFE),
                 width: 1,
               ),
             ),
@@ -749,8 +749,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFDBEAFE),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFDBEAFE),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -769,7 +771,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                         style: GoogleFonts.kanit(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1E40AF),
+                          color: isDarkMode ? Colors.white : const Color(0xFF1E40AF),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -777,7 +779,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                         'เราดูแลพัสดุของคุณอย่างปลอดภัย ส่งถึงมือผู้รับตรงเวลาแน่นอน',
                         style: GoogleFonts.kanit(
                           fontSize: 11,
-                          color: const Color(0xFF1E40AF),
+                          color: isDarkMode
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF1E40AF),
                           height: 1.35,
                         ),
                       ),
@@ -786,12 +790,27 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 ),
                 const SizedBox(width: 8),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                   child: Image.asset(
                     AppAssets.trustShieldBox,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.contain,
+                    width: 54,
+                    height: 54,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1C7FF6).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.shield_rounded,
+                          color: Color(0xFF1C7FF6),
+                          size: 28,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

@@ -80,7 +80,7 @@ class AppTheme {
         surface: const Color(0xFF1E293B),
       ),
 
-      textTheme: AppTextTheme.lightTextTheme,
+      textTheme: AppTextTheme.darkTextTheme,
 
       inputDecorationTheme: AppInputTheme.lightInputTheme,
 

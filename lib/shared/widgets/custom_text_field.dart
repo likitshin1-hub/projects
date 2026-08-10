@@ -89,7 +89,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
           widget.label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
