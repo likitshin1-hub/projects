@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../features/auth/providers/auth_provider.dart';
@@ -17,257 +16,189 @@ class AppDrawer extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final isLoggedIn = authState.status == AuthStatus.success && user != null;
-    final isDriver = user?.role == 'driver';
 
     final drawerBg = isDarkMode ? const Color(0xFF0B0F17) : Colors.white;
-    final headerGradient = isDarkMode
-        ? const [Color(0xFF0284C7), Color(0xFF1E293B)]
-        : const [Color(0xFF1C7FF6), Color(0xFF0056C6)];
-    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
-    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final itemBg = isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
     final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Drawer(
       backgroundColor: drawerBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+          topRight: Radius.circular(28),
+          bottomRight: Radius.circular(28),
         ),
       ),
       child: Column(
         children: [
-          // Drawer Header
+          // Drawer Header Matching Screenshot Exactly
           Container(
             width: double.infinity,
-            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 20),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: headerGradient,
+                colors: [
+                  Color(0xFF1C7FF6),
+                  Color(0xFF0056C6),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(24),
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(28),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 54,
-                      height: 54,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        image: DecorationImage(
-                          image: AssetImage(AppAssets.logo),
-                          fit: BoxFit.cover,
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.local_shipping_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isLoggedIn ? user.name : 'TB MOVE HUB',
+                        style: GoogleFonts.kanit(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'บริการขนส่งมืออาชีพ',
+                        style: GoogleFonts.kanit(
+                          fontSize: 12.5,
+                          color: Colors.white.withValues(alpha: 0.85),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isLoggedIn ? user.name : 'TB MOVE HUB',
-                            style: GoogleFonts.kanit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            isLoggedIn
-                                ? (isDriver ? 'พาร์ทเนอร์คนขับ (Driver)' : 'ผู้ใช้บริการ (Customer)')
-                                : 'บริการขนส่งมืออาชีพ',
-                            style: GoogleFonts.kanit(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.85),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
 
-          // Menu List
+          // Drawer Menu List (Exact items & styles as screenshot)
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               children: [
-                // 1. หน้าหลัก (Home)
-                _buildDrawerTile(
-                  context,
-                  icon: Icons.home_rounded,
-                  title: 'หน้าหลัก',
-                  subtitle: 'ศูนย์รวมบริการขนส่งพัสดุและเรียกรถ',
-                  iconColor: const Color(0xFF1C7FF6),
-                  iconBgColor: itemBg,
-                  textColor: textColor,
-                  subTextColor: subTextColor,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go(AppRoutes.home);
-                  },
-                ),
-
-                // 2. เรียกใช้บริการจัดส่ง (Booking)
-                _buildDrawerTile(
-                  context,
-                  icon: Icons.add_box_rounded,
-                  title: 'เรียกใช้บริการจัดส่ง',
-                  subtitle: 'จองรถขนส่งพัสดุและย้ายของ',
-                  iconColor: const Color(0xFF0284C7),
-                  iconBgColor: itemBg,
-                  textColor: textColor,
-                  subTextColor: subTextColor,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push(AppRoutes.booking);
-                  },
-                ),
-
-                // 3. สมัครพาร์ทเนอร์คนขับ / ไรเดอร์ (Rider/Driver Signup - New Menu Feature!)
-                _buildDrawerTile(
-                  context,
-                  icon: Icons.two_wheeler_rounded,
-                  title: 'สมัครพาร์ทเนอร์คนขับ / ไรเดอร์ 🛵',
-                  subtitle: 'ร่วมสร้างรายได้กับเรา ขับง่าย ได้เงินไว',
-                  iconColor: const Color(0xFFF59E0B),
-                  iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
-                  textColor: textColor,
-                  subTextColor: subTextColor,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push(AppRoutes.partnerLanding);
-                  },
-                ),
-
-                // 4. ศูนย์พาร์ทเนอร์คนขับ (แสดงเฉพาะคนขับ)
-                if (isLoggedIn && isDriver) ...[
-                  _buildDrawerTile(
-                    context,
-                    icon: Icons.dashboard_rounded,
-                    title: 'ศูนย์พาร์ทเนอร์คนขับ',
-                    subtitle: 'แดชบอร์ดและจัดการงานจัดส่ง',
-                    iconColor: const Color(0xFF10B981),
-                    iconBgColor: itemBg,
-                    textColor: textColor,
-                    subTextColor: subTextColor,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(AppRoutes.partner);
-                    },
-                  ),
-                ],
-
-                // 5. คูปองของฉัน (Coupons)
-                _buildDrawerTile(
-                  context,
-                  icon: Icons.local_activity_rounded,
+                // 1. คูปองของฉัน
+                _buildDrawerItem(
+                  icon: Icons.confirmation_number_rounded,
                   title: 'คูปองของฉัน',
-                  subtitle: 'เก็บและใช้โค้ดส่วนลดขนส่ง',
-                  iconColor: const Color(0xFF10B981),
-                  iconBgColor: itemBg,
+                  iconColor: const Color(0xFF1C7FF6),
+                  iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
                   textColor: textColor,
-                  subTextColor: subTextColor,
                   onTap: () {
                     Navigator.pop(context);
                     context.push(AppRoutes.coupons);
                   },
                 ),
 
-                // 6. สะสมรีวอร์ด (Rewards)
-                _buildDrawerTile(
-                  context,
+                // 2. สะสมรีวอร์ด
+                _buildDrawerItem(
                   icon: Icons.emoji_events_rounded,
                   title: 'สะสมรีวอร์ด',
-                  subtitle: 'แลกแต้มรับของรางวัลและสิทธิพิเศษ',
                   iconColor: const Color(0xFFFFB300),
-                  iconBgColor: itemBg,
+                  iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
                   textColor: textColor,
-                  subTextColor: subTextColor,
                   onTap: () {
                     Navigator.pop(context);
                     context.push(AppRoutes.rewards);
                   },
                 ),
 
-                // 7. ประวัติการจัดส่ง (History)
-                _buildDrawerTile(
-                  context,
+                // 3. ประวัติการจัดส่ง
+                _buildDrawerItem(
                   icon: Icons.calendar_month_rounded,
                   title: 'ประวัติการจัดส่ง',
-                  subtitle: 'รายการคำสั่งซื้อและสถานะพัสดุ',
-                  iconColor: const Color(0xFF8B5CF6),
-                  iconBgColor: itemBg,
+                  iconColor: const Color(0xFF1C7FF6),
+                  iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
                   textColor: textColor,
-                  subTextColor: subTextColor,
                   onTap: () {
                     Navigator.pop(context);
                     context.push(AppRoutes.history);
                   },
                 ),
 
-                // 8. แก้ไขโปรไฟล์ (Edit Profile)
-                if (isLoggedIn) ...[
-                  _buildDrawerTile(
-                    context,
-                    icon: Icons.person_outline_rounded,
-                    title: 'แก้ไขโปรไฟล์',
-                    subtitle: 'จัดการข้อมูลส่วนตัวและที่อยู่',
-                    iconColor: const Color(0xFFEC4899),
-                    iconBgColor: itemBg,
-                    textColor: textColor,
-                    subTextColor: subTextColor,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(AppRoutes.editProfile);
-                    },
-                  ),
-                ],
-
-                Divider(height: 24, indent: 20, endIndent: 20, color: dividerColor),
-
-                // 9. ตั้งค่าระบบ (Settings & Theme)
-                _buildDrawerTile(
-                  context,
-                  icon: Icons.settings_rounded,
-                  title: 'ตั้งค่าระบบ & เลือกธีม',
-                  subtitle: 'ปรับแต่งโหมดสว่าง / โหมดมืด',
-                  iconColor: const Color(0xFF6366F1),
-                  iconBgColor: itemBg,
+                // 4. ข้อความแชท
+                _buildDrawerItem(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  title: 'ข้อความแชท',
+                  iconColor: const Color(0xFF1C7FF6),
+                  iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
                   textColor: textColor,
-                  subTextColor: subTextColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('${AppRoutes.chat}/driver_1');
+                  },
+                ),
+
+                // 5. แก้ไขโปรไฟล์
+                _buildDrawerItem(
+                  icon: Icons.person_outline_rounded,
+                  title: 'แก้ไขโปรไฟล์',
+                  iconColor: const Color(0xFF1C7FF6),
+                  iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
+                  textColor: textColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.editProfile);
+                  },
+                ),
+
+                // 6. สมัครพาร์ทเนอร์คนขับ / ไรเดอร์
+                _buildDrawerItem(
+                  icon: Icons.two_wheeler_rounded,
+                  title: 'สมัครพาร์ทเนอร์คนขับ / ไรเดอร์ 🛵',
+                  iconColor: const Color(0xFFF59E0B),
+                  iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
+                  textColor: textColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.partnerLanding);
+                  },
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Divider(color: dividerColor),
+                ),
+
+                // 7. ตั้งค่าระบบ
+                _buildDrawerItem(
+                  icon: Icons.settings_rounded,
+                  title: 'ตั้งค่าระบบ',
+                  iconColor: const Color(0xFF64748B),
+                  iconBgColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  textColor: textColor,
                   onTap: () {
                     Navigator.pop(context);
                     context.push(AppRoutes.settings);
                   },
                 ),
 
-                // 10. ความช่วยเหลือ / ติดต่อเรา (Help)
-                _buildDrawerTile(
-                  context,
+                // 8. ความช่วยเหลือ / ติดต่อเรา
+                _buildDrawerItem(
                   icon: Icons.info_outline_rounded,
                   title: 'ความช่วยเหลือ / ติดต่อเรา',
-                  subtitle: 'คำถามที่พบบ่อยและศูนย์ช่วยเหลือ',
                   iconColor: const Color(0xFF64748B),
-                  iconBgColor: itemBg,
+                  iconBgColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                   textColor: textColor,
-                  subTextColor: subTextColor,
                   onTap: () {
                     Navigator.pop(context);
                     context.push(AppRoutes.help);
@@ -277,92 +208,80 @@ class AppDrawer extends ConsumerWidget {
             ),
           ),
 
-          // Drawer Footer (Logout when logged in)
-          if (isLoggedIn) ...[
-            Divider(height: 1, color: dividerColor),
-            InkWell(
-              onTap: () async {
-                Navigator.pop(context);
+          // Drawer Footer with Logout Button
+          Divider(height: 1, color: dividerColor),
+          InkWell(
+            onTap: () async {
+              Navigator.pop(context);
+              if (isLoggedIn) {
                 await ref.read(authProvider.notifier).logout();
                 if (context.mounted) {
                   context.go(AppRoutes.login);
                 }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                width: double.infinity,
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.power_settings_new_rounded,
-                      color: Colors.redAccent,
-                      size: 22,
+              } else {
+                context.push(AppRoutes.login);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              width: double.infinity,
+              child: Row(
+                children: [
+                  Icon(
+                    isLoggedIn ? Icons.power_settings_new_rounded : Icons.login_rounded,
+                    color: isLoggedIn ? Colors.redAccent : const Color(0xFF10B981),
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    isLoggedIn ? 'ออกจากระบบ' : 'เข้าสู่ระบบ / สมัครสมาชิก',
+                    style: GoogleFonts.kanit(
+                      fontSize: 14.5,
+                      color: isLoggedIn ? Colors.redAccent : const Color(0xFF10B981),
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'ออกจากระบบ',
-                      style: GoogleFonts.kanit(
-                        fontSize: 15,
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildDrawerTile(
-    BuildContext context, {
+  Widget _buildDrawerItem({
     required IconData icon,
     required String title,
-    required String subtitle,
+    required VoidCallback onTap,
     required Color iconColor,
     required Color iconBgColor,
     required Color textColor,
-    required Color subTextColor,
-    required VoidCallback onTap,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        leading: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: iconBgColor,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: iconColor, size: 20),
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: iconBgColor,
+          borderRadius: BorderRadius.circular(12),
         ),
-        title: Text(
-          title,
-          style: GoogleFonts.kanit(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: GoogleFonts.kanit(
-            fontSize: 11,
-            color: subTextColor,
-          ),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 13,
-          color: Color(0xFF94A3B8),
-        ),
-        onTap: onTap,
+        child: Icon(icon, color: iconColor, size: 20),
       ),
+      title: Text(
+        title,
+        style: GoogleFonts.kanit(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: textColor,
+        ),
+      ),
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 14,
+        color: Color(0xFF94A3B8),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
     );
   }
 }
