@@ -97,7 +97,7 @@ class DriverRegisterSuccessScreen extends ConsumerWidget {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
-                      image: const DecorationImage(
+                      image: DecorationImage(
                         image: AssetImage(AppAssets.bannerVehicle),
                         fit: BoxFit.contain,
                       ),

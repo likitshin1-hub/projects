@@ -478,7 +478,6 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
         CustomTextField(
           label: 'ที่อยู่ปัจจุบัน',
           hintText: 'กรุณากรอกที่อยู่ปัจจุบันของคุณ...',
-          maxLines: 3,
           controller: _addressController,
         ),
         Align(

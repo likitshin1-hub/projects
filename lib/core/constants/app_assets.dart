@@ -13,6 +13,8 @@ class AppAssets {
 
   static const String deliveryBanner =
       'assets/images/banners/delivery_banner.png';
+  static const String bannerVehicle =
+      'assets/images/banners/delivery_banner.png';
   static const String claimCouponBanner =
       'assets/images/banners/claim_coupon_banner.jpg';
 
