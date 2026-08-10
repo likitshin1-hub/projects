@@ -49,7 +49,10 @@ import '../../features/notifications/screens/notification_detail_screen.dart';
 
 // Partner / Driver
 import '../../features/partner/screens/partner_screen.dart';
+import '../../features/partner/screens/driver_partner_landing_screen.dart';
 import '../../features/partner/screens/register_partner_screen.dart';
+import '../../features/partner/screens/driver_register_success_screen.dart';
+import '../../features/partner/screens/driver_application_status_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
@@ -205,8 +208,20 @@ final appRouter = GoRouter(
       builder: (context, state) => const PartnerScreen(),
     ),
     GoRoute(
+      path: AppRoutes.partnerLanding,
+      builder: (context, state) => const DriverPartnerLandingScreen(),
+    ),
+    GoRoute(
       path: AppRoutes.registerPartner,
       builder: (context, state) => const RegisterPartnerScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.partnerSuccess,
+      builder: (context, state) => const DriverRegisterSuccessScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.partnerStatus,
+      builder: (context, state) => const DriverApplicationStatusScreen(),
     ),
   ],
 );

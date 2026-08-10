@@ -146,7 +146,7 @@ class AppDrawer extends ConsumerWidget {
                     subTextColor: subTextColor,
                     onTap: () {
                       Navigator.pop(context);
-                      context.push(AppRoutes.registerPartner);
+                      context.push(AppRoutes.partnerLanding);
                     },
                   ),
                 ],
