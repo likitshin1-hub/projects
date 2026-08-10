@@ -25,8 +25,10 @@ class BookingRepository {
     }
 
     // Mock distance calculation based on length of string just for variation
-    final double distanceMock =
-        ((pickup.length + dropoff.length) * 2.5).clamp(10.0, 100.0);
+    final double distanceMock = ((pickup.length + dropoff.length) * 2.5).clamp(
+      10.0,
+      100.0,
+    );
 
     return basePrice + (distanceMock * 5); // 5 THB per km mock
   }

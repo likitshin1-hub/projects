@@ -40,9 +40,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authProvider, (prev, next) {
+    ref.listen(authProvider, (previous, next) {
       if (next.status == AuthStatus.success) {
         ref.read(authProvider.notifier).resetState();
+
         context.go(AppRoutes.home);
       } else if (next.status == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(

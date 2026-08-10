@@ -16,6 +16,9 @@ class AppAssets {
   static const String claimCouponBanner =
       'assets/images/banners/claim_coupon_banner.png';
 
+  static const String claimCouponBanner =
+      'assets/images/banners/claim_coupon_banner.jpg';
+
   static const String defaultDriver = 'assets/images/driver/default_driver.png';
 
   static const String noImage = 'assets/images/placeholder/no_image.png';

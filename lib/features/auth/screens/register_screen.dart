@@ -30,6 +30,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
 
+  // ค่าเริ่มต้นของการสมัคร
+  String _role = 'customer';
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -39,6 +42,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _idCardController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+
     super.dispose();
   }
 
@@ -63,16 +67,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
           phone: _phoneController.text.trim(),
           email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          confirmPassword: _confirmPasswordController.text.trim(),
+          password: _passwordController.text,
+          confirmPassword: _confirmPasswordController.text,
         );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authProvider, (prev, next) {
+    ref.listen(authProvider, (prev, next) {
       if (next.status == AuthStatus.success) {
         ref.read(authProvider.notifier).resetState();
+
         context.go(AppRoutes.home);
       } else if (next.status == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(

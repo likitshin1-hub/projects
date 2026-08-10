@@ -1,12 +1,12 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../core/network/api_result.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../services/auth_service.dart';
 
-// ===== ตั้งค่า Mock Mode =====
-// เปลี่ยนเป็น false เมื่อ Backend พร้อมใช้งานจริงครับ
-const bool _useMock = true;
+/// Backend พร้อมใช้งานจริงแล้ว
+const bool _useMock = false;
 
 class AuthRepository {
   final AuthService _authService;
@@ -21,16 +21,26 @@ class AuthRepository {
         _storage = storage ?? const FlutterSecureStorage(),
         _googleSignIn = googleSignIn ?? GoogleSignIn();
 
-  Future<ApiResult<String>> login({
+  AuthRepository({AuthService? authService})
+      : _authService = authService ?? AuthService();
+
+  // =========================
+  // Email Login
+  // =========================
+
+  Future<ApiResult> login({
     required String email,
     required String password,
   }) async {
-    // ===== Mock Mode: ข้าม API ไปยังหน้า Home ได้เลย =====
     if (_useMock) {
-      await Future.delayed(const Duration(milliseconds: 800));
-      try {
-        await _storage.write(key: 'auth_token', value: 'mock_token_login');
-      } catch (_) {}
+      await Future.delayed(
+        const Duration(milliseconds: 800),
+      );
+
+      await SecureStorage.saveAccessToken(
+        'mock_token_login',
+      );
+
       return ApiResult.success('mock_token_login');
     }
 
@@ -39,11 +49,22 @@ class AuthRepository {
         email: email,
         password: password,
       );
+
       final token = response.data['token'] as String? ?? '';
-      await _storage.write(key: 'auth_token', value: token);
+
+      if (token.isEmpty) {
+        return ApiResult.failure(
+          'ไม่พบ access token จากเซิร์ฟเวอร์',
+        );
+      }
+
+      await SecureStorage.saveAccessToken(token);
+
       return ApiResult.success(token);
     } catch (e) {
-      return ApiResult.failure(_handleError(e));
+      return ApiResult.failure(
+        _handleError(e),
+      );
     }
   }
 
@@ -52,22 +73,39 @@ class AuthRepository {
     required String accessToken,
   }) async {
     if (_useMock) {
-      await Future.delayed(const Duration(milliseconds: 800));
-      try {
-        await _storage.write(key: 'auth_token', value: 'mock_token_facebook');
-      } catch (_) {}
-      return ApiResult.success('mock_token_facebook');
+      await Future.delayed(
+        const Duration(milliseconds: 800),
+      );
+
+      await SecureStorage.saveAccessToken(
+        'mock_token_facebook',
+      );
+
+      return ApiResult.success(
+        'mock_token_facebook',
+      );
     }
 
     try {
       final response = await _authService.loginWithFacebook(
         accessToken: accessToken,
       );
+
       final token = response.data['token'] as String? ?? '';
-      await _storage.write(key: 'auth_token', value: token);
+
+      if (token.isEmpty) {
+        return ApiResult.failure(
+          'ไม่พบ access token จากเซิร์ฟเวอร์',
+        );
+      }
+
+      await SecureStorage.saveAccessToken(token);
+
       return ApiResult.success(token);
     } catch (e) {
-      return ApiResult.failure(_handleError(e));
+      return ApiResult.failure(
+        _handleError(e),
+      );
     }
   }
 
@@ -76,53 +114,93 @@ class AuthRepository {
     required String accessToken,
   }) async {
     if (_useMock) {
-      await Future.delayed(const Duration(milliseconds: 800));
-      try {
-        await _storage.write(key: 'auth_token', value: 'mock_token_line');
-      } catch (_) {}
-      return ApiResult.success('mock_token_line');
+      await Future.delayed(
+        const Duration(milliseconds: 800),
+      );
+
+      await SecureStorage.saveAccessToken(
+        'mock_token_line',
+      );
+
+      return ApiResult.success(
+        'mock_token_line',
+      );
     }
 
     try {
       final response = await _authService.loginWithLine(
         accessToken: accessToken,
       );
+
       final token = response.data['token'] as String? ?? '';
-      await _storage.write(key: 'auth_token', value: token);
+
+      if (token.isEmpty) {
+        return ApiResult.failure(
+          'ไม่พบ access token จากเซิร์ฟเวอร์',
+        );
+      }
+
+      await SecureStorage.saveAccessToken(token);
+
       return ApiResult.success(token);
     } catch (e) {
-      return ApiResult.failure(_handleError(e));
+      return ApiResult.failure(
+        _handleError(e),
+      );
     }
   }
 
-  Future<ApiResult<String>> register({
-    required String username,
+  // =========================
+  // Register
+  // =========================
+
+  Future<ApiResult> register({
+    required String role,
+    required String fullName,
     required String phone,
     required String email,
     required String password,
     required String confirmPassword,
   }) async {
     if (_useMock) {
-      await Future.delayed(const Duration(milliseconds: 800));
-      try {
-        await _storage.write(key: 'auth_token', value: 'mock_token_register');
-      } catch (_) {}
-      return ApiResult.success('mock_token_register');
+      await Future.delayed(
+        const Duration(milliseconds: 800),
+      );
+
+      await SecureStorage.saveAccessToken(
+        'mock_token_register',
+      );
+
+      return ApiResult.success(
+        'mock_token_register',
+      );
     }
 
     try {
       final response = await _authService.register(
-        username: username,
+        role: role,
+        fullName: fullName,
         phone: phone,
         email: email,
         password: password,
         confirmPassword: confirmPassword,
       );
+
       final token = response.data['token'] as String? ?? '';
-      await _storage.write(key: 'auth_token', value: token);
+
+      if (token.isEmpty) {
+        return ApiResult.failure(
+          'ไม่พบ access token จากเซิร์ฟเวอร์',
+        );
+      }
+
+      await SecureStorage.saveAccessToken(token);
+
       return ApiResult.success(token);
     } catch (e) {
-      return ApiResult.failure(_handleError(e));
+      return ApiResult.failure(
+        _handleError(e),
+      );
     }
   }
 
@@ -151,6 +229,24 @@ class AuthRepository {
     }
   }
 
+  // =========================
+  // Profile
+  // =========================
+
+  Future<dynamic> profile() async {
+    try {
+      return await _authService.profile();
+    } catch (e) {
+      throw Exception(
+        _handleError(e),
+      );
+    }
+  }
+
+  // =========================
+  // Logout
+  // =========================
+
   Future<void> logout() async {
     try {
       await _googleSignIn.signOut();
@@ -158,9 +254,17 @@ class AuthRepository {
     await _storage.delete(key: 'auth_token');
   }
 
+  // =========================
+  // Get Token
+  // =========================
+
   Future<String?> getToken() async {
-    return _storage.read(key: 'auth_token');
+    return SecureStorage.getAccessToken();
   }
+
+  // =========================
+  // Error Handler
+  // =========================
 
   String _handleError(dynamic e) {
     return e.toString();
