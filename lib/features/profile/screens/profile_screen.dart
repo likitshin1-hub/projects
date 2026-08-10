@@ -173,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 trailing: Switch(
                   value: true,
                   onChanged: (val) {},
-                  activeColor: const Color(0xFF1C7FF6),
+                  activeThumbColor: const Color(0xFF1C7FF6),
                 ),
                 onTap: () {},
               ),

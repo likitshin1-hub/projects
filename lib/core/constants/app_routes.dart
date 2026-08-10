@@ -104,4 +104,10 @@ class AppRoutes {
   // =========================
 
   static const String claimCoupons = '/claim-coupons';
+
+  // =========================
+  // Help & Support
+  // =========================
+
+  static const String help = '/help';
 }

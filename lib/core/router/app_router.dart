@@ -38,6 +38,9 @@ import '../../features/notifications/screens/notifications_list_screen.dart';
 // Chat
 import '../../features/chat/screens/chat_detail_screen.dart';
 
+// Help
+import '../../features/help/screens/help_screen.dart';
+
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   debugLogDiagnostics: true,
@@ -144,6 +147,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.settings,
       builder: (context, state) => const SettingsScreen(),
+    ),
+
+    // Help
+    GoRoute(
+      path: AppRoutes.help,
+      builder: (context, state) => const HelpScreen(),
     ),
   ],
 );

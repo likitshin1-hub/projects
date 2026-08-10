@@ -906,12 +906,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   iconBgColor: const Color(0xFFF1F5F9),
                   onTap: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('เปิดช่องทางติดต่อทีมงาน...', style: GoogleFonts.kanit()),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    context.push(AppRoutes.help);
                   },
                 ),
               ],
