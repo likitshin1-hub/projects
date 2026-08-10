@@ -233,7 +233,7 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
                           ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
-                            value: _selectedVehicle,
+                            initialValue: _selectedVehicle,
                             dropdownColor: cardColor,
                             decoration: InputDecoration(
                               filled: true,

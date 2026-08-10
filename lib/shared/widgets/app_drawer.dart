@@ -79,7 +79,7 @@ class AppDrawer extends ConsumerWidget {
                           Text(
                             isLoggedIn
                                 ? (isDriver ? 'พาร์ทเนอร์คนขับ (Driver)' : 'ผู้ใช้บริการ (Customer)')
-                                ? : 'กรุณาเข้าสู่ระบบเพื่อใช้งานเต็มรูปแบบ',
+                                : 'กรุณาเข้าสู่ระบบเพื่อใช้งานเต็มรูปแบบ',
                             style: GoogleFonts.kanit(
                               fontSize: 12,
                               color: Colors.white.withValues(alpha: 0.85),
