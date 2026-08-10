@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../core/network/api_result.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -20,9 +22,6 @@ class AuthRepository {
   })  : _authService = authService ?? AuthService(),
         _storage = storage ?? const FlutterSecureStorage(),
         _googleSignIn = googleSignIn ?? GoogleSignIn();
-
-  AuthRepository({AuthService? authService})
-      : _authService = authService ?? AuthService();
 
   // =========================
   // Email Login
