@@ -54,10 +54,14 @@ class AppRoutes {
   static const String orderDetail = '/orders/detail';
 
   // =========================
-  // Driver
+  // Driver / Partner
   // =========================
 
   static const String driver = '/driver';
+
+  static const String partner = '/partner';
+
+  static const String registerPartner = '/register-partner';
 
   static const String driverJobs = '/driver/jobs';
 

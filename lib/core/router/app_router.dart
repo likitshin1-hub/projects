@@ -47,6 +47,10 @@ import '../../features/help/screens/help_screen.dart';
 import '../../features/notifications/screens/notifications_list_screen.dart';
 import '../../features/notifications/screens/notification_detail_screen.dart';
 
+// Partner / Driver
+import '../../features/partner/screens/partner_screen.dart';
+import '../../features/partner/screens/register_partner_screen.dart';
+
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   routes: [
@@ -189,6 +193,20 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.notificationDetail,
       builder: (context, state) => const NotificationDetailScreen(),
+    ),
+
+    // Partner / Driver
+    GoRoute(
+      path: AppRoutes.driver,
+      builder: (context, state) => const PartnerScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.partner,
+      builder: (context, state) => const PartnerScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.registerPartner,
+      builder: (context, state) => const RegisterPartnerScreen(),
     ),
   ],
 );

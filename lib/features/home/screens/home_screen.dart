@@ -14,6 +14,7 @@ import '../widgets/bottom_navigation.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../history/screens/delivery_history_page.dart';
+import '../../../shared/widgets/app_drawer.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -997,7 +998,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF5F7FB),
-      drawer: _buildDrawer(),
+      drawer: const AppDrawer(),
       body: activeBody,
       bottomNavigationBar: CustomBottomNavigation(
         currentIndex: _currentIndex,
