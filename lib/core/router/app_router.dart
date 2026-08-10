@@ -12,6 +12,8 @@ import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/verification_screen.dart';
 import '../../features/auth/screens/success_screen.dart';
 import '../../features/auth/screens/terms_screen.dart';
+
+// Home
 import '../../features/home/screens/home_screen.dart';
 
 // Booking
@@ -20,9 +22,30 @@ import '../../features/booking/screens/tracking_screen.dart';
 import '../../features/booking/screens/tracking_detail_screen.dart';
 import '../../features/booking/screens/delivery_success_screen.dart';
 import '../../features/booking/screens/cancel_order_screen.dart';
+
+// Chat
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/chat/screens/call_screen.dart';
+
+// History
 import '../../features/history/screens/delivery_history_page.dart';
+
+// Profile & Settings
+import '../../features/profile/screens/settings_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/edit_profile_screen.dart';
+
+// Coupons & Rewards
+import '../../features/coupons/screens/coupons_screen.dart';
+import '../../features/coupons/screens/claim_coupons_screen.dart';
+import '../../features/rewards/screens/rewards_screen.dart';
+
+// Help
+import '../../features/help/screens/help_screen.dart';
+
+// Notifications
+import '../../features/notifications/screens/notifications_list_screen.dart';
+import '../../features/notifications/screens/notification_detail_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
@@ -35,20 +58,13 @@ final appRouter = GoRouter(
 
     // Auth
     GoRoute(
-      path: AppRoutes.splash,
-      builder: (context, state) => const SplashScreen(),
-    ),
-    GoRoute(
       path: AppRoutes.login,
       builder: (context, state) => const LoginScreen(),
     ),
-
     GoRoute(
       path: AppRoutes.register,
       builder: (context, state) => const RegisterScreen(),
     ),
-
-    // Home
     GoRoute(
       path: AppRoutes.forgotPassword,
       builder: (context, state) => const ForgotPasswordScreen(),
@@ -65,6 +81,8 @@ final appRouter = GoRouter(
       path: AppRoutes.terms,
       builder: (context, state) => const TermsScreen(),
     ),
+
+    // Home
     GoRoute(
       path: AppRoutes.home,
       builder: (context, state) => const HomeScreen(),
@@ -75,7 +93,6 @@ final appRouter = GoRouter(
       path: AppRoutes.booking,
       builder: (context, state) {
         final vehicle = state.extra as String?;
-
         return BookingScreen(
           initialVehicleType: vehicle,
         );
@@ -93,7 +110,6 @@ final appRouter = GoRouter(
       path: '${AppRoutes.tracking}/:id',
       builder: (context, state) {
         final bookingId = state.pathParameters['id'] ?? '';
-
         return TrackingScreen(
           bookingId: bookingId,
         );
@@ -114,6 +130,8 @@ final appRouter = GoRouter(
       path: AppRoutes.cancelOrder,
       builder: (context, state) => const CancelOrderScreen(),
     ),
+
+    // Chat
     GoRoute(
       path: '${AppRoutes.chat}/:id',
       builder: (context, state) {
@@ -128,6 +146,49 @@ final appRouter = GoRouter(
         return CallScreen(driverId: driverId);
       },
     ),
+
+    // Profile & Settings
+    GoRoute(
+      path: AppRoutes.settings,
+      builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.profile,
+      builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.editProfile,
+      builder: (context, state) => const EditProfileScreen(),
+    ),
+
+    // Coupons & Rewards
+    GoRoute(
+      path: AppRoutes.coupons,
+      builder: (context, state) => const CouponsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.claimCoupons,
+      builder: (context, state) => const ClaimCouponsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.rewards,
+      builder: (context, state) => const RewardsScreen(),
+    ),
+
+    // Help
+    GoRoute(
+      path: AppRoutes.help,
+      builder: (context, state) => const HelpScreen(),
+    ),
+
+    // Notifications
+    GoRoute(
+      path: AppRoutes.notification,
+      builder: (context, state) => const NotificationsListScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.notificationDetail,
+      builder: (context, state) => const NotificationDetailScreen(),
+    ),
   ],
 );
-
