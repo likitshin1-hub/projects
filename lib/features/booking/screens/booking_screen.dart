@@ -547,6 +547,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   // STEP 1 FORM: ADDRESS INFORMATION
   // ==========================================
   Widget _buildStep1Form() {
+    final isDarkMode = ref.watch(themeProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       physics: const BouncingScrollPhysics(),
