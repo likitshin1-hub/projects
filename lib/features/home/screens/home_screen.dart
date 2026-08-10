@@ -11,6 +11,7 @@ import '../widgets/home_header.dart';
 import '../widgets/location_selector.dart';
 import '../widgets/service_card.dart';
 import '../widgets/bottom_navigation.dart';
+import '../../profile/screens/profile_screen.dart';
 import '../../history/screens/delivery_history_page.dart';
 import '../../../shared/widgets/app_drawer.dart';
 
