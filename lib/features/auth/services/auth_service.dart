@@ -10,10 +10,10 @@ class AuthService {
   final DioClient _dioClient;
 
   // 💡 Web Client ID จาก Firebase/Google Console
-  static const String webClientId = '79528000892-78qtav0hc3eiilski43nd2tl5upd2pfl.apps.googleusercontent.com';
+  static const String webClientId =
+      '79528000892-78qtav0hc3eiilski43nd2tl5upd2pfl.apps.googleusercontent.com';
 
-  AuthService({DioClient? dioClient})
-      : _dioClient = dioClient ?? DioClient();
+  AuthService({DioClient? dioClient}) : _dioClient = dioClient ?? DioClient();
 
   Future<UserCredential?> signInWithGoogle() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
@@ -28,8 +28,7 @@ class AuthService {
       await googleSignIn.signOut();
     } catch (_) {}
 
-    final GoogleSignInAccount? googleUser =
-        await googleSignIn.signIn();
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
     if (googleUser == null) {
       return null;
@@ -46,10 +45,7 @@ class AuthService {
     return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
-  Future<Response> login({
-    required String email,
-    required String password,
-  }) {
+  Future<Response> login({required String email, required String password}) {
     return _dioClient.post(
       ApiConstants.login,
       data: {'email': email, 'password': password},
@@ -73,7 +69,8 @@ class AuthService {
   }
 
   Future<Response> register({
-    required String username,
+    required String role,
+    required String fullName,
     required String phone,
     required String email,
     required String password,
@@ -82,12 +79,21 @@ class AuthService {
     return _dioClient.post(
       ApiConstants.register,
       data: {
-        'username': username,
+        'role': role,
+        'full_name': fullName,
         'phone': phone,
         'email': email,
         'password': password,
         'password_confirmation': confirmPassword,
       },
     );
+  }
+
+  Future<Response> profile() {
+    return _dioClient.get(ApiConstants.profile);
+  }
+
+  Future<Response> logout() {
+    return _dioClient.post(ApiConstants.logout);
   }
 }

@@ -27,7 +27,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     // 0: ค้นหาคนขับ
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) setState(() => _currentStep = 1);
-    
+
     // 1: คนขับกำลังไปรับ
     await Future.delayed(const Duration(seconds: 3));
     if (mounted) setState(() => _currentStep = 2);
@@ -62,7 +62,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   children: [
                     Icon(Icons.map, size: 64, color: AppColors.border),
                     SizedBox(height: 8),
-                    Text('Google Maps Placeholder', style: TextStyle(color: AppColors.textSecondary)),
+                    Text(
+                      'Google Maps Placeholder',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
                   ],
                 ),
               ),
@@ -76,13 +79,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
               padding: const EdgeInsets.all(AppDimensions.lg),
               decoration: const BoxDecoration(
                 color: AppColors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimensions.cardRadius)),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppDimensions.cardRadius),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black12,
                     blurRadius: 10,
                     offset: Offset(0, -5),
-                  )
+                  ),
                 ],
               ),
               child: Column(
@@ -92,8 +97,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   Text(
                     'รหัสการจอง: ${widget.bookingId}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: AppColors.textSecondary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppDimensions.md),
@@ -104,7 +109,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
                       padding: const EdgeInsets.all(AppDimensions.md),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.border),
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMd,
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -118,19 +125,34 @@ class _TrackingScreenState extends State<TrackingScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('สมชาย ขยันขับ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                Text('กท 1234', style: TextStyle(color: AppColors.textSecondary)),
+                                Text(
+                                  'สมชาย ขยันขับ',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Text(
+                                  'กท 1234',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.phone, color: AppColors.primary),
+                            icon: const Icon(
+                              Icons.phone,
+                              color: AppColors.primary,
+                            ),
                             onPressed: () {},
                           ),
                         ],
                       ),
                     ),
-                  if (_currentStep > 0) const SizedBox(height: AppDimensions.lg),
+                  if (_currentStep > 0)
+                    const SizedBox(height: AppDimensions.lg),
 
                   // Timeline Status
                   Expanded(
@@ -191,7 +213,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
               height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDone ? AppColors.primary : (isActive ? AppColors.primary.withValues(alpha: 0.2) : Colors.transparent),
+                color: isDone
+                    ? AppColors.primary
+                    : (isActive
+                          ? AppColors.primary.withValues(alpha: 0.2)
+                          : Colors.transparent),
                 border: Border.all(color: color, width: 2),
               ),
               child: Icon(
@@ -216,7 +242,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
               title,
               style: TextStyle(
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+                color: isActive
+                    ? AppColors.textPrimary
+                    : AppColors.textSecondary,
                 fontSize: 16,
               ),
             ),

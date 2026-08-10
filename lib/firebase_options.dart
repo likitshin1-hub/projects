@@ -63,8 +63,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '79528000892',
     projectId: 'app018-f7783',
     storageBucket: 'app018-f7783.firebasestorage.app',
-    androidClientId: '79528000892-gpt7ughss1bof3haj5d2436hqqubt9vb.apps.googleusercontent.com',
-    iosClientId: '79528000892-km8stem3abj3nbkglndnm8a9na8vscpd.apps.googleusercontent.com',
+    androidClientId:
+        '79528000892-gpt7ughss1bof3haj5d2436hqqubt9vb.apps.googleusercontent.com',
+    iosClientId:
+        '79528000892-km8stem3abj3nbkglndnm8a9na8vscpd.apps.googleusercontent.com',
     iosBundleId: 'com.example.projects',
   );
 
@@ -74,8 +76,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '79528000892',
     projectId: 'app018-f7783',
     storageBucket: 'app018-f7783.firebasestorage.app',
-    androidClientId: '79528000892-gpt7ughss1bof3haj5d2436hqqubt9vb.apps.googleusercontent.com',
-    iosClientId: '79528000892-km8stem3abj3nbkglndnm8a9na8vscpd.apps.googleusercontent.com',
+    androidClientId:
+        '79528000892-gpt7ughss1bof3haj5d2436hqqubt9vb.apps.googleusercontent.com',
+    iosClientId:
+        '79528000892-km8stem3abj3nbkglndnm8a9na8vscpd.apps.googleusercontent.com',
     iosBundleId: 'com.example.projects',
   );
 

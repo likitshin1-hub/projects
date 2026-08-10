@@ -119,10 +119,7 @@ class BookingNotifier extends Notifier<BookingState> {
         details: state.details,
         price: state.estimatedPrice,
       );
-      state = state.copyWith(
-        status: BookingStatus.success,
-        bookingId: bId,
-      );
+      state = state.copyWith(status: BookingStatus.success, bookingId: bId);
       return true;
     } catch (e) {
       state = state.copyWith(
