@@ -503,11 +503,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -561,14 +561,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             style: GoogleFonts.kanit(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF1F2937),
+              color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
             ),
           ),
           Text(
             'กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนดำเนินการต่อ',
             style: GoogleFonts.kanit(
               fontSize: 13,
-              color: const Color(0xFF6B7280),
+              color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
             ),
           ),
           const SizedBox(height: 20),
@@ -576,11 +576,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           // Address Card
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -623,7 +623,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE8F2FE),
+                                color: isDarkMode
+                                    ? const Color(0xFF1E3A8A)
+                                    : const Color(0xFFE8F2FE),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -631,7 +633,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                 style: GoogleFonts.kanit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1C7FF6),
+                                  color: isDarkMode
+                                      ? const Color(0xFF60A5FA)
+                                      : const Color(0xFF1C7FF6),
                                 ),
                               ),
                             ),
@@ -663,16 +667,20 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           style: GoogleFonts.kanit(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1F2937),
+                            color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
                           ),
                         ),
                         const SizedBox(height: 4),
                         _buildDetailRow(Icons.business_rounded, _pickupAddress1),
                         _buildDetailRow(Icons.location_on_outlined, _pickupAddress2),
                         _buildDetailRow(Icons.access_time_rounded, _pickupTime),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Divider(height: 1, thickness: 1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -681,7 +689,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE8F8EE),
+                                color: isDarkMode
+                                    ? const Color(0xFF064E3B)
+                                    : const Color(0xFFE8F8EE),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -689,7 +699,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                 style: GoogleFonts.kanit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF22C55E),
+                                  color: isDarkMode
+                                      ? const Color(0xFF34D399)
+                                      : const Color(0xFF22C55E),
                                 ),
                               ),
                             ),
@@ -721,7 +733,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           style: GoogleFonts.kanit(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1F2937),
+                            color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -868,6 +880,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   // STEP 2 FORM: PARCEL DETAILS
   // ==========================================
   Widget _buildStep2Form() {
+    final isDarkMode = ref.watch(themeProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       physics: const BouncingScrollPhysics(),
@@ -879,8 +893,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F2FE),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -895,7 +909,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 style: GoogleFonts.kanit(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1F2937),
+                  color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
                 ),
               ),
             ],
@@ -1519,6 +1533,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   Widget _buildStep3Form() {
     final double basePrice = _getVehiclePrice();
     final double totalPrice = (basePrice - _couponDiscount).clamp(0.0, double.infinity);
+    final isDarkMode = ref.watch(themeProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -1531,8 +1546,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F2FE),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1547,7 +1562,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 style: GoogleFonts.kanit(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1F2937),
+                  color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
                 ),
               ),
             ],
@@ -1978,6 +1993,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   // Stepper sub-indicator widget helper
   Widget _buildStep(int stepNumber, String stepLabel, bool isActive) {
+    final isDarkMode = ref.watch(themeProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1985,7 +2001,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF1C7FF6) : const Color(0xFFF1F5F9),
+            color: isActive
+                ? const Color(0xFF1C7FF6)
+                : (isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
@@ -1994,7 +2012,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             style: GoogleFonts.kanit(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: isActive ? Colors.white : const Color(0xFF94A3B8),
+              color: isActive
+                  ? Colors.white
+                  : (isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8)),
             ),
           ),
         ),
@@ -2004,7 +2024,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           style: GoogleFonts.kanit(
             fontSize: 10,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            color: isActive ? const Color(0xFF1C7FF6) : const Color(0xFF94A3B8),
+            color: isActive
+                ? const Color(0xFF1C7FF6)
+                : (isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8)),
           ),
         ),
       ],
@@ -2012,14 +2034,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 
   Widget _buildStepDivider(bool isActive) {
+    final isDarkMode = ref.watch(themeProvider);
     return Container(
       width: 40,
       height: 1.5,
-      color: isActive ? const Color(0xFF1C7FF6) : const Color(0xFFE2E8F0),
+      color: isActive
+          ? const Color(0xFF1C7FF6)
+          : (isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
     );
   }
 
   Widget _buildDetailRow(IconData icon, String text) {
+    final isDarkMode = ref.watch(themeProvider);
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Row(
@@ -2028,7 +2054,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           Icon(
             icon,
             size: 14,
-            color: const Color(0xFF94A3B8),
+            color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -2036,7 +2062,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               text,
               style: GoogleFonts.kanit(
                 fontSize: 12.5,
-                color: const Color(0xFF64748B),
+                color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                 height: 1.3,
               ),
             ),
