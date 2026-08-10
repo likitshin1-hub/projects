@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../models/vehicle_model.dart';
 import '../widgets/home_header.dart';
 import '../widgets/location_selector.dart';
@@ -991,9 +992,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         activeBody = _buildHomeTab();
     }
 
+    final isDarkMode = ref.watch(themeProvider);
+
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF5F7FB),
       drawer: _buildDrawer(),
       body: activeBody,
       bottomNavigationBar: CustomBottomNavigation(

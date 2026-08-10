@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../providers/booking_provider.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
@@ -426,8 +427,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
+    final isDarkMode = ref.watch(themeProvider);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
       body: Column(
         children: [
           // ==========================================

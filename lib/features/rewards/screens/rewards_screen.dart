@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/providers/theme_provider.dart';
 
-class RewardsScreen extends StatelessWidget {
+class RewardsScreen extends ConsumerWidget {
   const RewardsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDarkMode = ref.watch(themeProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
       body: Column(
         children: [
           // ==========================================

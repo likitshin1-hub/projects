@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/providers/theme_provider.dart';
 
-class HelpScreen extends StatefulWidget {
+class HelpScreen extends ConsumerStatefulWidget {
   const HelpScreen({super.key});
 
   @override
-  State<HelpScreen> createState() => _HelpScreenState();
+  ConsumerState<HelpScreen> createState() => _HelpScreenState();
 }
 
-class _HelpScreenState extends State<HelpScreen> {
+class _HelpScreenState extends ConsumerState<HelpScreen> {
   int? _expandedIndex;
 
   final List<Map<String, dynamic>> _faqList = [
@@ -194,7 +196,7 @@ class _HelpScreenState extends State<HelpScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFEBF3FE),
+        backgroundColor: ref.watch(themeProvider) ? const Color(0xFF0B0F17) : const Color(0xFFEBF3FE),
         body: Stack(
           children: [
             // Decorative background graphics

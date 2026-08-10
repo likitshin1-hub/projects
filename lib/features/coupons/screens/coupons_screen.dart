@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/providers/theme_provider.dart';
 
-class CouponsScreen extends StatefulWidget {
+class CouponsScreen extends ConsumerStatefulWidget {
   const CouponsScreen({super.key});
 
   @override
-  State<CouponsScreen> createState() => _CouponsScreenState();
+  ConsumerState<CouponsScreen> createState() => _CouponsScreenState();
 }
 
-class _CouponsScreenState extends State<CouponsScreen> {
+class _CouponsScreenState extends ConsumerState<CouponsScreen> {
   int _activeTab = 0; // 0: คูปองที่ใช้ได้, 1: คูปองที่ใช้แล้ว, 2: หมดอายุ
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDarkMode = ref.watch(themeProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
       body: Column(
         children: [
           // ==========================================

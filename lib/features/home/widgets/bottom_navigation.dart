@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class CustomBottomNavigation extends StatelessWidget {
+import '../../../core/providers/theme_provider.dart';
+
+class CustomBottomNavigation extends ConsumerWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
@@ -16,13 +19,17 @@ class CustomBottomNavigation extends StatelessWidget {
     required IconData icon,
     required String label,
     required bool isActive,
+    required bool isDarkMode,
   }) {
+    final activeColor = isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF1C7FF6);
+    final inactiveColor = isDarkMode ? const Color(0xFF94A3B8) : Colors.grey[600]!;
+
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => onTap(index),
-          splashColor: const Color(0xFF1C7FF6).withValues(alpha: 0.08),
+          splashColor: activeColor.withValues(alpha: 0.08),
           highlightColor: Colors.transparent,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -33,7 +40,7 @@ class CustomBottomNavigation extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Icon(
                   icon,
-                  color: isActive ? const Color(0xFF1C7FF6) : Colors.grey[500],
+                  color: isActive ? activeColor : inactiveColor,
                   size: isActive ? 24 : 22,
                 ),
               ),
@@ -43,7 +50,7 @@ class CustomBottomNavigation extends StatelessWidget {
                 style: GoogleFonts.kanit(
                   fontSize: isActive ? 12 : 11,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                  color: isActive ? const Color(0xFF1C7FF6) : Colors.grey[600],
+                  color: isActive ? activeColor : inactiveColor,
                 ),
                 child: Text(label),
               ),
@@ -55,18 +62,23 @@ class CustomBottomNavigation extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDarkMode = ref.watch(themeProvider);
+    final navBgColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final activeColor = isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF1C7FF6);
+    final inactiveColor = isDarkMode ? const Color(0xFF94A3B8) : Colors.grey[600]!;
+
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: navBgColor,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.06),
             blurRadius: 15,
             offset: const Offset(0, -4),
           ),
@@ -83,6 +95,7 @@ class CustomBottomNavigation extends StatelessWidget {
               icon: Icons.home_rounded,
               label: 'หน้าหลัก',
               isActive: currentIndex == 0,
+              isDarkMode: isDarkMode,
             ),
             // Tab 1: ประวัติการส่ง
             _buildNavItem(
@@ -90,6 +103,7 @@ class CustomBottomNavigation extends StatelessWidget {
               icon: Icons.calendar_month_rounded,
               label: 'ประวัติการส่ง',
               isActive: currentIndex == 1,
+              isDarkMode: isDarkMode,
             ),
             
             // Tab 2: เรียกใช้บริการ (Center plus button)
@@ -103,21 +117,20 @@ class CustomBottomNavigation extends StatelessWidget {
                     Container(
                       width: 48,
                       height: 48,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF1C7FF6),
-                            Color(0xFF0056C6),
-                          ],
+                          colors: isDarkMode
+                              ? const [Color(0xFF0284C7), Color(0xFF2563EB)]
+                              : const [Color(0xFF1C7FF6), Color(0xFF0056C6)],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Color(0xFF1C7FF6),
+                            color: activeColor.withValues(alpha: 0.4),
                             blurRadius: 8,
-                            offset: Offset(0, 3),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -133,7 +146,7 @@ class CustomBottomNavigation extends StatelessWidget {
                       style: GoogleFonts.kanit(
                         fontSize: 11,
                         fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
-                        color: currentIndex == 2 ? const Color(0xFF1C7FF6) : Colors.grey[600],
+                        color: currentIndex == 2 ? activeColor : inactiveColor,
                       ),
                     ),
                   ],
@@ -147,6 +160,7 @@ class CustomBottomNavigation extends StatelessWidget {
               icon: Icons.chat_bubble_outline_rounded,
               label: 'ข้อความ',
               isActive: currentIndex == 3,
+              isDarkMode: isDarkMode,
             ),
             // Tab 4: บัญชีของฉัน
             _buildNavItem(
@@ -154,6 +168,7 @@ class CustomBottomNavigation extends StatelessWidget {
               icon: Icons.person_outline_rounded,
               label: 'บัญชีของฉัน',
               isActive: currentIndex == 4,
+              isDarkMode: isDarkMode,
             ),
           ],
         ),

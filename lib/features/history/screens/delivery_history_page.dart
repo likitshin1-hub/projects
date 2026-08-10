@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/providers/theme_provider.dart';
 
-class DeliveryHistoryPage extends StatefulWidget {
+class DeliveryHistoryPage extends ConsumerStatefulWidget {
   final VoidCallback? onMenuPressed;
 
   const DeliveryHistoryPage({
@@ -12,10 +14,10 @@ class DeliveryHistoryPage extends StatefulWidget {
   });
 
   @override
-  State<DeliveryHistoryPage> createState() => _DeliveryHistoryPageState();
+  ConsumerState<DeliveryHistoryPage> createState() => _DeliveryHistoryPageState();
 }
 
-class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
+class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
   int _selectedTab = 0; // 0: การจัดส่งทั้งหมด, 1: ประวัติการจัดส่ง
   int _selectedSubFilter = 0; // 0: ทั้งหมด, 1: กำลังดำเนินการ, 2: เสร็จสิ้น, 3: ยกเลิก
 
@@ -92,8 +94,10 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
       finalFiltered = tabFiltered.where((item) => item.status == _HistoryStatus.cancelled).toList();
     }
 
+    final isDarkMode = ref.watch(themeProvider);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
       body: Column(
         children: [
           // ==========================================
