@@ -11,8 +11,6 @@ import '../widgets/home_header.dart';
 import '../widgets/location_selector.dart';
 import '../widgets/service_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../../profile/screens/profile_screen.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../../history/screens/delivery_history_page.dart';
 import '../../../shared/widgets/app_drawer.dart';
 
@@ -715,42 +713,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // ============================================================
   // BUILD
   // ============================================================
-  // DRAWER
-  // ============================================================
 
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    Color iconColor = const Color(0xFF1C7FF6),
-    Color iconBgColor = const Color(0xFFE3F2FD),
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconBgColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: iconColor, size: 20),
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.kanit(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFF334155),
-        ),
-      ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios_rounded,
-        size: 14,
-        color: Color(0xFF94A3B8),
-      ),
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-    );
-  }
 
 
 
