@@ -277,38 +277,9 @@ class AppDrawer extends ConsumerWidget {
             ),
           ),
 
-          // Drawer Footer (Login or Logout)
-          Divider(height: 1, color: dividerColor),
-          if (!isLoggedIn)
-            InkWell(
-              onTap: () {
-                Navigator.pop(context);
-                context.push(AppRoutes.login);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                width: double.infinity,
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.login_rounded,
-                      color: Color(0xFF10B981),
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'เข้าสู่ระบบ / สมัครสมาชิก',
-                      style: GoogleFonts.kanit(
-                        fontSize: 15,
-                        color: const Color(0xFF10B981),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
+          // Drawer Footer (Logout when logged in)
+          if (isLoggedIn) ...[
+            Divider(height: 1, color: dividerColor),
             InkWell(
               onTap: () async {
                 Navigator.pop(context);

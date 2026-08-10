@@ -23,11 +23,11 @@ class AppAssets {
   static const String noImage = 'assets/images/placeholder/no_image.png';
 
   // Vehicles
-  static const String motorcycle = 'assets/images/vehicles/motorcycle.png';
-  static const String sedan = 'assets/images/vehicles/sedan.png';
-  static const String pickup = 'assets/images/vehicles/pickup.png';
-  static const String reefer = 'assets/images/vehicles/reefer.png';
-  static const String truckLift = 'assets/images/vehicles/truck_lift.png';
+  static const String motorcycle = 'assets/images/motorcycle.jpg';
+  static const String sedan = 'assets/images/sedan.jpg';
+  static const String pickup = 'assets/images/pickup.jpg';
+  static const String reefer = 'assets/images/reefer.jpg';
+  static const String truckLift = 'assets/images/truck_lift.jpg';
 
   // Badges
   static const String trustShieldBox = 'assets/images/placeholder/trust_shield_box.jpg';
