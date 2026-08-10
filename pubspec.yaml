@@ -69,6 +69,17 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/motorcycle.jpg
+    - assets/images/sedan.jpg
+    - assets/images/pickup.jpg
+    - assets/images/reefer.jpg
+    - assets/images/truck_lift.jpg
+    - assets/images/logo/
+    - assets/images/banners/
+    - assets/images/banners/delivery_banner.png
+    - assets/images/delivery_banner.png
+    - assets/images/driver/
+    - assets/images/placeholder/
     - assets/icons/
     - assets/svg/
     - assets/animations/

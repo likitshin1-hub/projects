@@ -24,10 +24,12 @@ class AppRoutes {
   static const String home = '/home';
 
   // =========================
-  // Booking
+  // Booking & History
   // =========================
 
   static const String booking = '/booking';
+
+  static const String history = '/history';
 
   // =========================
   // Profile
@@ -76,10 +78,30 @@ class AppRoutes {
   // =========================
 
   static const String notification = '/notifications';
-
-  // =========================
-  // Settings
-  // =========================
+  static const String notificationDetail = '/notifications/detail';
 
   static const String settings = '/settings';
+
+  // =========================
+  // Chat
+  // =========================
+  static const String chatDetail = '/chat/detail';
+
+  // =========================
+  // Rewards
+  // =========================
+
+  static const String rewards = '/rewards';
+
+  // =========================
+  // Coupons
+  // =========================
+
+  static const String coupons = '/coupons';
+
+  // =========================
+  // Claim Coupons
+  // =========================
+
+  static const String claimCoupons = '/claim-coupons';
 }

@@ -134,6 +134,14 @@ class AuthRepository {
   }
 
   Future<ApiResult<UserCredential?>> loginWithGoogle() async {
+    // ===== Mock Mode =====
+    if (_useMock) {
+      try {
+        await _storage.write(key: 'auth_token', value: 'google_mock_token');
+      } catch (_) {}
+      return ApiResult.success(null);
+    }
+
     try {
       final UserCredential? userCredential = await _authService.signInWithGoogle();
 
@@ -148,7 +156,6 @@ class AuthRepository {
 
       return ApiResult.success(userCredential);
     } catch (e) {
-      print("Google Sign-In Exception: $e");
       return ApiResult.failure('ไม่สามารถเปิด Google Sign-In ได้: ${_handleError(e)}');
     }
   }

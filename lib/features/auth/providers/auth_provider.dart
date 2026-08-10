@@ -52,13 +52,25 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
     final result = await _repository.login(email: email, password: password);
     if (result.isSuccess) {
-      state = state.copyWith(status: AuthStatus.success);
+      state = state.copyWith(
+        status: AuthStatus.success,
+        user: UserModel(
+          id: 'mock_123',
+          name: 'กิตติพัฒน์ ราษฎร์นิยม',
+          email: email,
+          phone: '091-321-5546',
+        ),
+      );
     } else {
       state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: result.error,
       );
     }
+  }
+
+  void updateUser(UserModel updatedUser) {
+    state = state.copyWith(user: updatedUser);
   }
 
   /// Login ด้วย Facebook SDK จริง
