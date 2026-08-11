@@ -22,7 +22,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   GoogleMapController? _mapController;
   late AnimationController _pulseController;
 
+  bool _useCanvasMap = false;
   double _zoomLevel = 1.0;
+  Offset _mapOffset = Offset.zero;
 
   // Real GPS Coordinates (Chonburi / Bangsaen Route)
   static const LatLng _pickupLocation = LatLng(13.2849, 100.9238);
@@ -93,6 +95,11 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 
   void _recenterMap() {
+    setState(() {
+      _mapOffset = Offset.zero;
+      _zoomLevel = 1.0;
+    });
+
     try {
       _mapController?.animateCamera(
         CameraUpdate.newCameraPosition(
@@ -106,6 +113,34 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 
   Widget _buildMapContent(bool isDarkMode) {
+    if (_useCanvasMap) {
+      return GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            _mapOffset += details.delta;
+          });
+        },
+        child: Transform.translate(
+          offset: _mapOffset,
+          child: Transform.scale(
+            scale: _zoomLevel,
+            child: AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                return CustomPaint(
+                  size: Size.infinite,
+                  painter: _RealisticGoogleMapPainter(
+                    isDarkMode: isDarkMode,
+                    pulseProgress: _pulseController.value,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
     return GoogleMap(
       initialCameraPosition: const CameraPosition(
         target: _driverLocation,
@@ -193,41 +228,50 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
             child: ClipRect(
               child: Stack(
                 children: [
-                  // Safe Map Content Builder
                   _buildMapContent(isDarkMode),
 
-                  // TOP LEFT: GOOGLE MAPS LIVE BADGE
+                  // TOP LEFT: GOOGLE MAPS LIVE BADGE & MODE TOGGLE
                   Positioned(
                     top: 12,
                     left: 14,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: (isDarkMode ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: borderColor),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.08),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.map_rounded, color: Color(0xFF4285F4), size: 15),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Google Maps Official SDK',
-                            style: GoogleFonts.kanit(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                              color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _useCanvasMap = !_useCanvasMap;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: (isDarkMode ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: borderColor),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.08),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.map_rounded, color: Color(0xFF4285F4), size: 15),
+                            const SizedBox(width: 5),
+                            Text(
+                              _useCanvasMap ? 'Google Maps 3D Live' : 'Google Maps Official SDK',
+                              style: GoogleFonts.kanit(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.swap_horiz_rounded, size: 14, color: Color(0xFF1C7FF6)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -246,7 +290,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           isDark: isDarkMode,
                           borderColor: borderColor,
                         ),
-                        if (kIsWeb) ...[
+                        if (_useCanvasMap) ...[
                           const SizedBox(height: 8),
                           _buildMapControlButton(
                             icon: Icons.add_rounded,
