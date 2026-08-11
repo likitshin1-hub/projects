@@ -30,7 +30,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   static const LatLng _expresswayDriverLocation = LatLng(13.5412, 100.7510); // Burapha Withi Expressway (Bang Phli)
   static const LatLng _centralWorldLocation = LatLng(13.7466, 100.5393);
 
-  // High-precision road waypoints following Sukhumvit Rd & Burapha Withi Expressway
+  // Precise street-by-street waypoints following Ploenchit Rd, Rama I Rd & Ratchadamri Rd
   static const List<LatLng> _chonburiToBangkokRoadPoints = [
     LatLng(13.3361, 100.9702), // 📍 จุดรับ: เซ็นทรัล ชลบุรี
     LatLng(13.3420, 100.9715), // ออกสู่ถนนสุขุมวิท ชลบุรี
@@ -42,10 +42,15 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     LatLng(13.6210, 100.6720), // ทางพิเศษบูรพาวิถี (ช่วงด่านบางนา)
     LatLng(13.6740, 100.6050), // เชื่อมต่อทางพิเศษเฉลิมมหานคร (ด่านบางนา)
     LatLng(13.7080, 100.5520), // ผ่านต่างระดับคลองเตย / ด่านท่าเรือ
-    LatLng(13.7290, 100.5510), // ผ่านทางด่วนเพลินจิต
-    LatLng(13.7415, 100.5480), // ลงทางด่วนเพลินจิต เข้าสู่ถนนพระราม 1
-    LatLng(13.7448, 100.5408), // ผ่านแยกราชประสงค์
-    LatLng(13.7466, 100.5393), // 🏁 จุดส่งสินค้า: เซ็นทรัลเวิลด์ กรุงเทพฯ
+    LatLng(13.7250, 100.5508), // บนทางด่วนเฉลิมมหานคร มุ่งหน้าเพลินจิต
+    LatLng(13.7410, 100.5502), // เบี่ยงลงทางด่วนเข้าสู่ถนนเพลินจิต (Ploenchit Expressway Exit)
+    LatLng(13.7425, 100.5475), // ตรงตามถนนเพลินจิต หน้าเซ็นทรัล เอ็มบาสซี (Central Embassy)
+    LatLng(13.7435, 100.5448), // ผ่านซอยหลังสวน (Soi Lang Suan Junction)
+    LatLng(13.7440, 100.5435), // ผ่านสถานี BTS ชิดลม
+    LatLng(13.7445, 100.5410), // เข้าสู่ถนนพระราม 1 หน้า รพ.ตำรวจ (Police Hospital)
+    LatLng(13.7448, 100.5402), // สี่แยกราชประสงค์ (Ratchaprasong Intersection)
+    LatLng(13.7460, 100.5400), // เลี้ยวขวาเข้าถนนราชดำริ (Ratchadamri Road)
+    LatLng(13.7466, 100.5393), // 🏁 จุดส่งสินค้า: เซ็นทรัลเวิลด์ กรุงเทพฯ (CentralWorld)
   ];
 
   final Set<Marker> _markers = {};
@@ -93,7 +98,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       ),
     );
 
-    // Polyline Route Path Line following Burapha Withi Expressway
+    // Polyline Route Path Line following Ploenchit & Rama I Roads exactly
     _polylines.add(
       const Polyline(
         polylineId: PolylineId('route'),
@@ -660,7 +665,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
 
                         _buildSummaryBox(
                           title: 'เส้นทางขับรถ',
-                          value: 'ทางพิเศษบูรพาวิถี (บางนา-ชลบุรี) ➔ ทางด่วนเฉลิมมหานคร ➔ เพลินจิต',
+                          value: 'ทางพิเศษบูรพาวิถี ➔ ทางด่วนเฉลิมมหานคร ➔ เพลินจิต ➔ ราชประสงค์',
                           icon: Icons.alt_route_rounded,
                           isDark: isDarkMode,
                         ),
