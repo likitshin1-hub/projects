@@ -43,30 +43,30 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   void _initMapMarkersAndRoutes() {
     // Pickup Marker (Green)
     _markers.add(
-      const Marker(
-        markerId: MarkerId('pickup'),
+      Marker(
+        markerId: const MarkerId('pickup'),
         position: _pickupLocation,
-        infoWindow: InfoWindow(title: 'จุดรับสินค้า', snippet: 'คลัง TB MOVEHUB'),
+        infoWindow: const InfoWindow(title: 'จุดรับสินค้า', snippet: 'คลัง TB MOVEHUB'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       ),
     );
 
     // Dropoff Marker (Red)
     _markers.add(
-      const Marker(
-        markerId: MarkerId('dropoff'),
+      Marker(
+        markerId: const MarkerId('dropoff'),
         position: _dropoffLocation,
-        infoWindow: InfoWindow(title: 'จุดส่งสินค้า', snippet: 'บ้านบางแสน ชลบุรี'),
+        infoWindow: const InfoWindow(title: 'จุดส่งสินค้า', snippet: 'บ้านบางแสน ชลบุรี'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
       ),
     );
 
     // Driver Marker (Blue)
     _markers.add(
-      const Marker(
-        markerId: MarkerId('driver'),
+      Marker(
+        markerId: const MarkerId('driver'),
         position: _driverLocation,
-        infoWindow: InfoWindow(title: 'คนขับ (สมปอง มีดี)', snippet: 'กำลังเดินทางไปส่งสินค้า'),
+        infoWindow: const InfoWindow(title: 'คนขับ (สมปอง มีดี)', snippet: 'กำลังเดินทางไปส่งสินค้า'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
       ),
     );
