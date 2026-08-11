@@ -23,7 +23,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _idCardController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -39,7 +38,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _lastNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _idCardController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
 
@@ -317,26 +315,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          _buildFieldLabel('เลขบัตรประชาชน (13 หลัก)', primaryTextColor),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _idCardController,
-                            keyboardType: TextInputType.number,
-                            style: GoogleFonts.kanit(fontSize: 14, color: primaryTextColor),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return AppStrings.requiredField;
-                              if (v.length != 13) return 'กรุณากรอกเลขบัตร 13 หลัก';
-                              return null;
-                            },
-                            decoration: _buildInputDecoration(
-                              hint: 'X-XXXX-XXXXX-XX-X',
-                              icon: Icons.credit_card_outlined,
-                              inputBgColor: inputBgColor,
-                              borderColor: cardBorderColor,
-                              secondaryTextColor: secondaryTextColor,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+
 
                           _buildFieldLabel('รหัสผ่าน', primaryTextColor),
                           const SizedBox(height: 6),

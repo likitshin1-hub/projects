@@ -35,8 +35,8 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
   bool _bankBookUploaded = true;
 
   // Step 3 Vehicle Controllers
-  String _selectedVehicleType = 'รถกระบะ';
-  String _selectedBrand = 'TOYOTA';
+  final _vehicleTypeController = TextEditingController(text: 'รถกระบะ');
+  final _brandController = TextEditingController(text: 'TOYOTA');
   final _modelController = TextEditingController(text: 'MissU bibi');
   final _colorController = TextEditingController(text: 'ขาว');
   final _yearController = TextEditingController(text: '2000');
@@ -52,23 +52,6 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
   bool _acceptTerms = false;
   bool _isSubmitting = false;
 
-  final List<String> _vehicleTypes = [
-    'มอเตอร์ไซค์',
-    'รถเก๋ง 4 ประตู',
-    'รถกระบะ',
-    'รถห้องเย็น',
-    'รถบรรทุก 6 ล้อ',
-  ];
-
-  final List<String> _vehicleBrands = [
-    'TOYOTA',
-    'ISUZU',
-    'HONDA',
-    'NISSAN',
-    'MITSUBISHI',
-    'HINO',
-  ];
-
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -78,6 +61,8 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _vehicleTypeController.dispose();
+    _brandController.dispose();
     _modelController.dispose();
     _colorController.dispose();
     _yearController.dispose();
@@ -687,59 +672,17 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
         ),
         const SizedBox(height: 16),
 
-        Text('ประเภทรถ',
-            style: GoogleFonts.kanit(
-                fontSize: 13.5, fontWeight: FontWeight.bold, color: textColor)),
-        const SizedBox(height: 6),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedVehicleType,
-          dropdownColor: cardBg,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: isDark ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-              ),
-            ),
-          ),
-          items: _vehicleTypes.map((v) {
-            return DropdownMenuItem(
-                value: v,
-                child: Text(v, style: GoogleFonts.kanit(color: textColor)));
-          }).toList(),
-          onChanged: (val) {
-            if (val != null) setState(() => _selectedVehicleType = val);
-          },
+        CustomTextField(
+          label: 'ประเภทรถ',
+          hintText: 'กรุณากรอกประเภทรถ เช่น รถกระบะ, มอเตอร์ไซค์, รถเก๋ง...',
+          controller: _vehicleTypeController,
         ),
         const SizedBox(height: 14),
 
-        Text('ยี่ห้อรถ',
-            style: GoogleFonts.kanit(
-                fontSize: 13.5, fontWeight: FontWeight.bold, color: textColor)),
-        const SizedBox(height: 6),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedBrand,
-          dropdownColor: cardBg,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: isDark ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-              ),
-            ),
-          ),
-          items: _vehicleBrands.map((b) {
-            return DropdownMenuItem(
-                value: b,
-                child: Text(b, style: GoogleFonts.kanit(color: textColor)));
-          }).toList(),
-          onChanged: (val) {
-            if (val != null) setState(() => _selectedBrand = val);
-          },
+        CustomTextField(
+          label: 'ยี่ห้อรถ',
+          hintText: 'กรุณากรอกยี่ห้อรถ เช่น TOYOTA, ISUZU, HONDA...',
+          controller: _brandController,
         ),
         const SizedBox(height: 14),
 
@@ -922,9 +865,9 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
           subTextColor: subTextColor,
           isDark: isDark,
           children: [
-            _buildSummaryRow('ประเภทรถ', _selectedVehicleType, textColor, subTextColor),
+            _buildSummaryRow('ประเภทรถ', _vehicleTypeController.text, textColor, subTextColor),
             _buildSummaryRow(
-                'ยี่ห้อ/รุ่นรถ', '$_selectedBrand ${_modelController.text}', textColor, subTextColor),
+                'ยี่ห้อ/รุ่นรถ', '${_brandController.text} ${_modelController.text}', textColor, subTextColor),
             _buildSummaryRow('สีรถ', _colorController.text, textColor, subTextColor),
             _buildSummaryRow('ปีรถ', _yearController.text, textColor, subTextColor),
             _buildSummaryRow('หมายเลขทะเบียน', _plateController.text, textColor, subTextColor),

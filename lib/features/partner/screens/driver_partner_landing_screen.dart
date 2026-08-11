@@ -171,9 +171,9 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
-                                        'เปิดรับสมัครคนขับทั่วไทย 🇹🇭',
+                                        'เปิดรับสมัครคนขับทั่วไทย',
                                         style: GoogleFonts.kanit(
-                                          fontSize: 11.5,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
