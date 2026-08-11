@@ -14,445 +14,410 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(themeProvider);
 
-    final bgColor1 = isDarkMode ? const Color(0xFF090D16) : const Color(0xFF0F172A);
-    final bgColor2 = isDarkMode ? const Color(0xFF0F172A) : const Color(0xFF1E40AF);
-    final bgColor3 = isDarkMode ? const Color(0xFF1E293B) : const Color(0xFF1C7FF6);
-
+    final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
-      backgroundColor: bgColor1,
-      body: Stack(
+      backgroundColor: bgColor,
+      body: Column(
         children: [
-          // Background Gradient with Ambient Glow
+          // Royal Blue Header Banner matching SettingsScreen & HomeScreen
           Container(
-            decoration: BoxDecoration(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 16,
+              right: 16,
+              bottom: 24,
+            ),
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [bgColor1, bgColor2, bgColor3],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ),
-          ),
-
-          // Ambient Glow Orbs
-          Positioned(
-            top: -60,
-            right: -60,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x4D1C7FF6),
+                  blurRadius: 16,
+                  offset: Offset(0, 8),
+                ),
+              ],
             ),
-          ),
-          Positioned(
-            top: 220,
-            left: -80,
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
-              ),
-            ),
-          ),
-
-          SafeArea(
             child: Column(
               children: [
-                // Top Action Bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                // Top Nav Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(AppRoutes.home);
+                        }
+                      },
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.assignment_outlined, color: Colors.white, size: 20),
+                            tooltip: 'เช็คสถานะใบสมัคร',
+                            onPressed: () => context.push(AppRoutes.partnerStatus),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
+                            onPressed: () => context.push(AppRoutes.help),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Brand Pill Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                  ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-                        onPressed: () {
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.go(AppRoutes.home);
-                          }
-                        },
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          image: DecorationImage(
+                            image: AssetImage(AppAssets.logo),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                      Row(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.assignment_outlined, color: Colors.white, size: 20),
-                              tooltip: 'เช็คสถานะใบสมัคร',
-                              onPressed: () => context.push(AppRoutes.partnerStatus),
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
-                              onPressed: () => context.push(AppRoutes.help),
-                            ),
-                          ),
-                        ],
+                      const SizedBox(width: 8),
+                      Text(
+                        'TB MoveHub Partner',
+                        style: GoogleFonts.kanit(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 12),
 
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                // Header Title & Subtitle
+                Text(
+                  'สมัครเป็นพาร์ทเนอร์คนขับ',
+                  style: GoogleFonts.kanit(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'ร่วมสร้างรายได้มั่นคงไปกับ TB MoveHub\nรับงานง่าย รายได้ดี เลือกเวลาทำงานตามต้องการ',
+                  style: GoogleFonts.kanit(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+
+          // Body Scrollable Area
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                children: [
+                  // Hero Feature Showcase Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.06),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Logo Badge & Brand Header
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 28,
-                                height: 28,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  image: DecorationImage(
-                                    image: AssetImage(AppAssets.logo),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'TB MoveHub Partner',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Title Banner
-                        Text(
-                          'สมัครเป็นพาร์ทเนอร์คนขับ',
-                          style: GoogleFonts.kanit(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1.2,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'ร่วมสร้างรายได้มั่นคงไปกับ TB MoveHub\nรับงานง่าย รายได้ดี เลือกเวลาทำงานตามต้องการ',
-                          style: GoogleFonts.kanit(
-                            fontSize: 13.5,
-                            color: Colors.white.withValues(alpha: 0.88),
-                            height: 1.45,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 22),
-
-                        // Premium Hero Showcase Card
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withValues(alpha: 0.22),
-                                Colors.white.withValues(alpha: 0.08),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              width: 1.2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                          decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              colors: [Color(0xFF10B981), Color(0xFF059669)],
-                                            ),
-                                            borderRadius: BorderRadius.circular(10),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: const Color(0xFF10B981).withValues(alpha: 0.4),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 3),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Text(
-                                            '✨ เปิดรับสมัครคนขับทั่วไทย',
-                                            style: GoogleFonts.kanit(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          'สร้างรายได้เติบโต\nก้าวหน้าไปกับเรา',
-                                          style: GoogleFonts.kanit(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                            height: 1.25,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          'รองรับ รถจักรยานยนต์, รถเก๋ง, รถกระบะ และรถบรรทุก',
-                                          style: GoogleFonts.kanit(
-                                            fontSize: 12,
-                                            color: Colors.white.withValues(alpha: 0.85),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // Elegantly Framed Vehicle Artwork
                                   Container(
-                                    width: 105,
-                                    height: 140,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(18),
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.3),
-                                          blurRadius: 15,
-                                          offset: const Offset(0, 6),
+                                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
                                         ),
                                       ],
-                                      border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.4),
-                                        width: 1.5,
+                                    ),
+                                    child: Text(
+                                      '✨ เปิดรับสมัครคนขับทั่วไทย',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
                                       ),
                                     ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Image.asset(
-                                        AppAssets.bannerVehicle,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          color: const Color(0xFF1E3A8A),
-                                          child: const Icon(
-                                            Icons.local_shipping_rounded,
-                                            size: 50,
-                                            color: Colors.white70,
-                                          ),
-                                        ),
-                                      ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'สร้างรายได้เติบโต\nก้าวหน้าไปกับเรา',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                      height: 1.25,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'รองรับ รถจักรยานยนต์, รถเก๋ง, รถกระบะ และรถบรรทุก',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 11.5,
+                                      color: subTextColor,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              // Highlights Stat Bar
-                              Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.25),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    _buildStatItem('สูงสุด 50,000฿', 'รายได้/เดือน'),
-                                    Container(width: 1, height: 24, color: Colors.white24),
-                                    _buildStatItem('จ่ายตรงเวลา', 'รอบจ่ายรายสัปดาห์'),
-                                    Container(width: 1, height: 24, color: Colors.white24),
-                                    _buildStatItem('100% อิสระ', 'เลือกเวลาทำงาน'),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-
-                        // Benefits Section Card (3 Highlight Points)
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.08),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
+                            const SizedBox(width: 12),
+                            // Vehicle Artwork Frame
+                            Container(
+                              width: 100,
+                              height: 130,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'ทำไมต้องร่วมงานกับ TB MoveHub?',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.asset(
+                                  AppAssets.bannerVehicle,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: const Color(0xFF1C7FF6).withValues(alpha: 0.1),
+                                    child: const Icon(
+                                      Icons.local_shipping_rounded,
+                                      size: 45,
+                                      color: Color(0xFF1C7FF6),
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              _buildBenefitRow(
-                                icon: Icons.monetization_on_rounded,
-                                gradientColors: [const Color(0xFF10B981), const Color(0xFF059669)],
-                                iconBg: const Color(0xFFD1FAE5),
-                                title: 'รายได้ดี ผลตอบแทนมั่นคง',
-                                subtitle: 'รับงานได้ต่อเนื่อง ระบบกระจายงานเป็นธรรม จ่ายตรงเวลา',
-                                textColor: textColor,
-                                subTextColor: subTextColor,
-                              ),
-                              const Divider(height: 24),
-                              _buildBenefitRow(
-                                icon: Icons.access_time_filled_rounded,
-                                gradientColors: [const Color(0xFF1C7FF6), const Color(0xFF0284C7)],
-                                iconBg: const Color(0xFFE0F2FE),
-                                title: 'อิสระในการทำงาน',
-                                subtitle: 'เลือกเวลาและพื้นที่รับงานได้ตามต้องการ วางแผนชีวิตเองได้',
-                                textColor: textColor,
-                                subTextColor: subTextColor,
-                              ),
-                              const Divider(height: 24),
-                              _buildBenefitRow(
-                                icon: Icons.support_agent_rounded,
-                                gradientColors: [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)],
-                                iconBg: const Color(0xFFF3E8FF),
-                                title: 'ทีมงานซัพพอร์ตดูแล 24 ชม.',
-                                subtitle: 'มีทีมคอลเซ็นเตอร์คอยช่วยเหลือคุณตลอดการทำงาน อุ่นใจทุกเส้นทาง',
-                                textColor: textColor,
-                                subTextColor: subTextColor,
-                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Stats Highlights Bar
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? const Color(0xFF0F172A)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStatItem('สูงสุด 50,000฿', 'รายได้/เดือน', isDarkMode),
+                              Container(width: 1, height: 24, color: borderColor),
+                              _buildStatItem('จ่ายตรงเวลา', 'รอบจ่ายรายสัปดาห์', isDarkMode),
+                              Container(width: 1, height: 24, color: borderColor),
+                              _buildStatItem('100% อิสระ', 'เลือกเวลาทำงาน', isDarkMode),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Benefits Card ("ทำไมต้องร่วมงานกับ TB MoveHub?")
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.06),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ทำไมต้องร่วมงานกับ TB MoveHub?',
+                          style: GoogleFonts.kanit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildBenefitRow(
+                          icon: Icons.monetization_on_rounded,
+                          gradientColors: [const Color(0xFF10B981), const Color(0xFF059669)],
+                          title: 'รายได้ดี ผลตอบแทนมั่นคง',
+                          subtitle: 'รับงานได้ต่อเนื่อง ระบบกระจายงานเป็นธรรม จ่ายตรงเวลา',
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                        ),
+                        Divider(height: 24, color: borderColor),
+                        _buildBenefitRow(
+                          icon: Icons.access_time_filled_rounded,
+                          gradientColors: [const Color(0xFF1C7FF6), const Color(0xFF0284C7)],
+                          title: 'อิสระในการทำงาน',
+                          subtitle: 'เลือกเวลาและพื้นที่รับงานได้ตามต้องการ วางแผนชีวิตเองได้',
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                        ),
+                        Divider(height: 24, color: borderColor),
+                        _buildBenefitRow(
+                          icon: Icons.support_agent_rounded,
+                          gradientColors: [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)],
+                          title: 'ทีมงานซัพพอร์ตดูแล 24 ชม.',
+                          subtitle: 'มีทีมคอลเซ็นเตอร์คอยช่วยเหลือคุณตลอดการทำงาน อุ่นใจทุกเส้นทาง',
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Bottom Action Bar
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: cardBg,
+              border: Border(
+                top: BorderSide(color: borderColor),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.06),
+                  blurRadius: 15,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                onPressed: () => context.push(AppRoutes.registerPartner),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'สมัครเป็นพาร์ทเนอร์คนขับ',
+                          style: GoogleFonts.kanit(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
                       ],
                     ),
                   ),
                 ),
-
-                // Bottom Call To Action Button Bar
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    border: Border(
-                      top: BorderSide(
-                        color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                      ),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.08),
-                        blurRadius: 15,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      onPressed: () => context.push(AppRoutes.registerPartner),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF1C7FF6), Color(0xFF0256C6)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'สมัครเป็นพาร์ทเนอร์คนขับ',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -460,7 +425,7 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatItem(String mainText, String subText) {
+  Widget _buildStatItem(String mainText, String subText, bool isDarkMode) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -469,14 +434,14 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
           style: GoogleFonts.kanit(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF38BDF8),
+            color: const Color(0xFF1C7FF6),
           ),
         ),
         Text(
           subText,
           style: GoogleFonts.kanit(
             fontSize: 10,
-            color: Colors.white70,
+            color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
           ),
         ),
       ],
@@ -486,7 +451,6 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
   Widget _buildBenefitRow({
     required IconData icon,
     required List<Color> gradientColors,
-    required Color iconBg,
     required String title,
     required String subtitle,
     required Color textColor,
@@ -495,8 +459,8 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
     return Row(
       children: [
         Container(
-          width: 46,
-          height: 46,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: gradientColors),
             borderRadius: BorderRadius.circular(14),
@@ -508,7 +472,7 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
               ),
             ],
           ),
-          child: Icon(icon, color: Colors.white, size: 24),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
         const SizedBox(width: 14),
         Expanded(
