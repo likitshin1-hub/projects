@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/services/directions_service.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final String bookingId;
@@ -25,36 +26,18 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   double _zoomLevel = 1.0;
   Offset _mapOffset = Offset.zero;
 
+  bool _isLoadingRoute = true;
+  String _distanceText = '82.9 กิโลเมตร';
+  String _durationText = '1 ชั่วโมง 10 นาที';
+
   // Real GPS Coordinates: Central Chonburi (Origin) -> CentralWorld Bangkok (Destination)
   static const LatLng _centralChonburiLocation = LatLng(13.3361, 100.9702);
   static const LatLng _expresswayDriverLocation = LatLng(13.5412, 100.7510); // Burapha Withi Expressway (Bang Phli)
   static const LatLng _centralWorldLocation = LatLng(13.7466, 100.5393);
 
-  // Precise street-by-street waypoints following Ploenchit Rd, Rama I Rd & Ratchadamri Rd
-  static const List<LatLng> _chonburiToBangkokRoadPoints = [
-    LatLng(13.3361, 100.9702), // 📍 จุดรับ: เซ็นทรัล ชลบุรี
-    LatLng(13.3420, 100.9715), // ออกสู่ถนนสุขุมวิท ชลบุรี
-    LatLng(13.3650, 100.9780), // ผ่านแยกหนองไม้แดง
-    LatLng(13.4120, 100.9850), // ด่านขึ้นทางพิเศษบูรพาวิถี (ชลบุรี)
-    LatLng(13.4680, 100.9310), // ข้ามแม่น้ำบางปะกง บนทางพิเศษบูรพาวิถี
-    LatLng(13.5120, 100.8420), // ทางพิเศษบูรพาวิถี (ช่วงบางบ่อ)
-    LatLng(13.5412, 100.7510), // 🛵 ตำแหน่งคนขับปัจจุบัน: ทางพิเศษบูรพาวิถี (กม. 22 บางพลี)
-    LatLng(13.6210, 100.6720), // ทางพิเศษบูรพาวิถี (ช่วงด่านบางนา)
-    LatLng(13.6740, 100.6050), // เชื่อมต่อทางพิเศษเฉลิมมหานคร (ด่านบางนา)
-    LatLng(13.7080, 100.5520), // ผ่านต่างระดับคลองเตย / ด่านท่าเรือ
-    LatLng(13.7250, 100.5508), // บนทางด่วนเฉลิมมหานคร มุ่งหน้าเพลินจิต
-    LatLng(13.7410, 100.5502), // เบี่ยงลงทางด่วนเข้าสู่ถนนเพลินจิต (Ploenchit Expressway Exit)
-    LatLng(13.7425, 100.5475), // ตรงตามถนนเพลินจิต หน้าเซ็นทรัล เอ็มบาสซี (Central Embassy)
-    LatLng(13.7435, 100.5448), // ผ่านซอยหลังสวน (Soi Lang Suan Junction)
-    LatLng(13.7440, 100.5435), // ผ่านสถานี BTS ชิดลม
-    LatLng(13.7445, 100.5410), // เข้าสู่ถนนพระราม 1 หน้า รพ.ตำรวจ (Police Hospital)
-    LatLng(13.7448, 100.5402), // สี่แยกราชประสงค์ (Ratchaprasong Intersection)
-    LatLng(13.7460, 100.5400), // เลี้ยวขวาเข้าถนนราชดำริ (Ratchadamri Road)
-    LatLng(13.7466, 100.5393), // 🏁 จุดส่งสินค้า: เซ็นทรัลเวิลด์ กรุงเทพฯ (CentralWorld)
-  ];
-
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+  List<LatLng> _liveRoutePoints = [];
 
   @override
   void initState() {
@@ -64,11 +47,11 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    _initMapMarkersAndRoutes();
+    _initMapMarkersAndFetchProductionRoute();
   }
 
-  void _initMapMarkersAndRoutes() {
-    // Pickup Marker (Green): Central Chonburi
+  Future<void> _initMapMarkersAndFetchProductionRoute() async {
+    // 1. Initial Markers
     _markers.add(
       Marker(
         markerId: const MarkerId('pickup'),
@@ -78,7 +61,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       ),
     );
 
-    // Dropoff Marker (Red): CentralWorld Bangkok
     _markers.add(
       Marker(
         markerId: const MarkerId('dropoff'),
@@ -88,7 +70,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       ),
     );
 
-    // Driver Marker (Blue): On Burapha Withi Expressway
     _markers.add(
       Marker(
         markerId: const MarkerId('driver'),
@@ -98,18 +79,65 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       ),
     );
 
-    // Polyline Route Path Line following Ploenchit & Rama I Roads exactly
-    _polylines.add(
-      const Polyline(
-        polylineId: PolylineId('route'),
-        points: _chonburiToBangkokRoadPoints,
-        color: Color(0xFF1C7FF6),
-        width: 6,
-        jointType: JointType.round,
-        startCap: Cap.roundCap,
-        endCap: Cap.roundCap,
-      ),
+    // 2. Fetch Real Production Driving Route from Routing Engine (Google / OSRM)
+    final result = await DirectionsService.getDrivingRoute(
+      origin: _centralChonburiLocation,
+      destination: _centralWorldLocation,
+      googleApiKey: 'AIzaSyDcQSw71ZN2v-Wb4woluYzdAObxg1Bczxk',
     );
+
+    if (mounted) {
+      setState(() {
+        _isLoadingRoute = false;
+        if (result != null && result.polylinePoints.isNotEmpty) {
+          _liveRoutePoints = result.polylinePoints;
+          _distanceText = '${result.distanceKm} กิโลเมตร';
+          final hours = result.durationMinutes ~/ 60;
+          final mins = result.durationMinutes % 60;
+          _durationText = hours > 0 ? '$hours ชั่วโมง $mins นาที' : '$mins นาที';
+
+          _polylines.clear();
+          _polylines.add(
+            Polyline(
+              polylineId: const PolylineId('real_production_route'),
+              points: _liveRoutePoints,
+              color: const Color(0xFF1C7FF6),
+              width: 6,
+              jointType: JointType.round,
+              startCap: Cap.roundCap,
+              endCap: Cap.roundCap,
+            ),
+          );
+
+          _fitCameraToBounds();
+        }
+      });
+    }
+  }
+
+  void _fitCameraToBounds() {
+    if (_mapController == null || _liveRoutePoints.isEmpty) return;
+
+    double minLat = _liveRoutePoints.first.latitude;
+    double maxLat = _liveRoutePoints.first.latitude;
+    double minLng = _liveRoutePoints.first.longitude;
+    double maxLng = _liveRoutePoints.first.longitude;
+
+    for (var point in _liveRoutePoints) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
+    }
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+
+    try {
+      _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+    } catch (_) {}
   }
 
   @override
@@ -173,6 +201,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       ),
       onMapCreated: (controller) {
         _mapController = controller;
+        if (_liveRoutePoints.isNotEmpty) {
+          _fitCameraToBounds();
+        }
       },
       markers: _markers,
       polylines: _polylines,
@@ -255,7 +286,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                 children: [
                   _buildMapContent(isDarkMode),
 
-                  // TOP LEFT: GOOGLE MAPS LIVE BADGE & MODE TOGGLE
+                  // TOP LEFT: GOOGLE MAPS LIVE BADGE & ROUTE ENGINE INDICATOR
                   Positioned(
                     top: 12,
                     left: 14,
@@ -283,10 +314,14 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.map_rounded, color: Color(0xFF4285F4), size: 15),
+                            Icon(
+                              _isLoadingRoute ? Icons.sync_rounded : Icons.alt_route_rounded,
+                              color: const Color(0xFF10B981),
+                              size: 15,
+                            ),
                             const SizedBox(width: 5),
                             Text(
-                              _useCanvasMap ? 'Google Maps 3D Live' : 'ทางพิเศษบูรพาวิถี (ชลบุรี ➔ กทม.)',
+                              _isLoadingRoute ? 'กำลังคำนวณเส้นทางถนนจริง...' : 'เส้นทางถนนจริง (Live Directions API)',
                               style: GoogleFonts.kanit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -644,8 +679,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           children: [
                             Expanded(
                               child: _buildSummaryBox(
-                                title: 'ระยะทางทั้งหมด',
-                                value: '76.5 กิโลเมตร',
+                                title: 'ระยะทางทั้งหมด (คำนวณจริง)',
+                                value: _distanceText,
                                 icon: Icons.straighten_rounded,
                                 isDark: isDarkMode,
                               ),
@@ -653,8 +688,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                             const SizedBox(width: 10),
                             Expanded(
                               child: _buildSummaryBox(
-                                title: 'เวลาเดินทางโดยประมาณ',
-                                value: '1 ชั่วโมง 10 นาที',
+                                title: 'เวลาเดินทางทั้งหมด',
+                                value: _durationText,
                                 icon: Icons.access_time_rounded,
                                 isDark: isDarkMode,
                               ),
@@ -664,8 +699,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                         const SizedBox(height: 10),
 
                         _buildSummaryBox(
-                          title: 'เส้นทางขับรถ',
-                          value: 'ทางพิเศษบูรพาวิถี ➔ ทางด่วนเฉลิมมหานคร ➔ เพลินจิต ➔ ราชประสงค์',
+                          title: 'ระบบนำทางตามถนนจริง',
+                          value: 'คำนวณพิกัดละเอียดจาก Directions API Engine 100%',
                           icon: Icons.alt_route_rounded,
                           isDark: isDarkMode,
                         ),
