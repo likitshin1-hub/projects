@@ -23,7 +23,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   late AnimationController _pulseController;
 
   double _zoomLevel = 1.0;
-  Offset _mapOffset = Offset.zero;
 
   // Real GPS Coordinates (Chonburi / Bangsaen Route)
   static const LatLng _pickupLocation = LatLng(13.2849, 100.9238);
@@ -94,11 +93,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 
   void _recenterMap() {
-    setState(() {
-      _mapOffset = Offset.zero;
-      _zoomLevel = 1.0;
-    });
-
     try {
       _mapController?.animateCamera(
         CameraUpdate.newCameraPosition(
