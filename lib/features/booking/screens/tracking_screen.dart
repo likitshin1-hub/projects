@@ -112,36 +112,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 
   Widget _buildMapContent(bool isDarkMode) {
-    if (kIsWeb) {
-      // Interactive 3D Live Map View for Web with zero error crashes
-      return GestureDetector(
-        onPanUpdate: (details) {
-          setState(() {
-            _mapOffset += details.delta;
-          });
-        },
-        child: Transform.translate(
-          offset: _mapOffset,
-          child: Transform.scale(
-            scale: _zoomLevel,
-            child: AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: Size.infinite,
-                  painter: _RealisticGoogleMapPainter(
-                    isDarkMode: isDarkMode,
-                    pulseProgress: _pulseController.value,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Native Mobile Google Map
     return GoogleMap(
       initialCameraPosition: const CameraPosition(
         target: _driverLocation,
@@ -154,7 +124,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       polylines: _polylines,
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
+      zoomControlsEnabled: true,
       compassEnabled: true,
       mapType: MapType.normal,
     );
