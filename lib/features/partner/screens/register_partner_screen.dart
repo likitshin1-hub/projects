@@ -7,6 +7,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/partner_application_provider.dart';
 
 class RegisterPartnerScreen extends ConsumerStatefulWidget {
   const RegisterPartnerScreen({super.key});
@@ -19,36 +20,35 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
   int _currentStep = 1;
 
   // Step 1 Controllers
-  final _firstNameController = TextEditingController(text: 'ลิขิต');
-  final _lastNameController = TextEditingController(text: 'ยอดคน');
-  final _idCardController = TextEditingController(text: '150XXXXXXXXX3');
-  final _dobController = TextEditingController(text: '10/09/2000');
-  final _emailController = TextEditingController(text: 'likit.shin@gmail.com');
-  final _phoneController = TextEditingController(text: '062XXXXXX3');
-  final _addressController = TextEditingController(
-      text: '55/66 หมู่ 1 ตำบลนาป่า อำเภอเมือง จังหวัดชลบุรี');
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _idCardController = TextEditingController();
+  final _dobController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
 
   // Step 2 Upload States
-  bool _idCardUploaded = true;
-  bool _driverLicenseUploaded = true;
-  bool _vehicleDocUploaded = true;
-  bool _bankBookUploaded = true;
+  bool _idCardUploaded = false;
+  bool _driverLicenseUploaded = false;
+  bool _vehicleDocUploaded = false;
+  bool _bankBookUploaded = false;
 
   // Step 3 Vehicle Controllers
-  final _vehicleTypeController = TextEditingController(text: 'รถกระบะ');
-  final _brandController = TextEditingController(text: 'TOYOTA');
-  final _modelController = TextEditingController(text: 'MissU bibi');
-  final _colorController = TextEditingController(text: 'ขาว');
-  final _yearController = TextEditingController(text: '2000');
-  final _plateController = TextEditingController(text: 'กต 1515');
+  final _vehicleTypeController = TextEditingController();
+  final _brandController = TextEditingController();
+  final _modelController = TextEditingController();
+  final _colorController = TextEditingController();
+  final _yearController = TextEditingController();
+  final _plateController = TextEditingController();
 
-  bool _photoFrontUploaded = true;
-  bool _photoBackUploaded = true;
-  bool _photoLeftUploaded = true;
-  bool _photoRightUploaded = true;
+  bool _photoFrontUploaded = false;
+  bool _photoBackUploaded = false;
+  bool _photoLeftUploaded = false;
+  bool _photoRightUploaded = false;
 
   // Step 4 Checkboxes
-  bool _certifyTruth = true;
+  bool _certifyTruth = false;
   bool _acceptTerms = false;
   bool _isSubmitting = false;
 
@@ -91,11 +91,38 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
   }
 
   void _submitForm() async {
-    if (!_certifyTruth || !_acceptTerms) return;
-
     setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
+
+    int photoCount = 0;
+    if (_photoFrontUploaded) photoCount++;
+    if (_photoBackUploaded) photoCount++;
+    if (_photoLeftUploaded) photoCount++;
+    if (_photoRightUploaded) photoCount++;
+
+    final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim();
+
+    ref.read(partnerApplicationProvider.notifier).submitApplication(
+      PartnerApplicationModel(
+        fullName: fullName.isEmpty ? 'ไม่ระบุชื่อ' : fullName,
+        phone: _phoneController.text.trim(),
+        email: _emailController.text.trim(),
+        address: _addressController.text.trim(),
+        vehicleType: _vehicleTypeController.text.trim(),
+        brand: _brandController.text.trim(),
+        model: _modelController.text.trim(),
+        color: _colorController.text.trim(),
+        plate: _plateController.text.trim(),
+        idCardUploaded: _idCardUploaded,
+        driverLicenseUploaded: _driverLicenseUploaded,
+        vehicleDocUploaded: _vehicleDocUploaded,
+        bankBookUploaded: _bankBookUploaded,
+        photosUploadedCount: photoCount,
+        submittedAt: DateTime.now(),
+      ),
+    );
+
     setState(() => _isSubmitting = false);
 
     // Update user role to driver
@@ -995,6 +1022,9 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
 
   Widget _buildSummaryRow(
       String label, String value, Color textColor, Color subTextColor) {
+    final displayValue = value.trim().isEmpty ? 'ยังไม่ได้ระบุ' : value;
+    final isNotEntered = value.trim().isEmpty;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -1007,11 +1037,12 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
           ),
           Expanded(
             child: Text(
-              value,
+              displayValue,
               style: GoogleFonts.kanit(
                 fontSize: 12.5,
-                fontWeight: FontWeight.w500,
-                color: textColor,
+                fontWeight: isNotEntered ? FontWeight.normal : FontWeight.w500,
+                color: isNotEntered ? subTextColor : textColor,
+                fontStyle: isNotEntered ? FontStyle.italic : FontStyle.normal,
               ),
             ),
           ),
@@ -1032,15 +1063,20 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
           Row(
             children: [
               Text(
-                extraText ?? 'อัปโหลดแล้ว ',
+                isDone
+                    ? (extraText ?? 'อัปโหลดแล้ว ')
+                    : 'ยังไม่ได้อัปโหลด ',
                 style: GoogleFonts.kanit(
                   fontSize: 12,
-                  color: const Color(0xFF10B981),
+                  color: isDone ? const Color(0xFF10B981) : Colors.redAccent,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const Icon(Icons.check_circle_rounded,
-                  color: Color(0xFF10B981), size: 16),
+              Icon(
+                isDone ? Icons.check_circle_rounded : Icons.cancel_outlined,
+                color: isDone ? const Color(0xFF10B981) : Colors.redAccent,
+                size: 16,
+              ),
             ],
           ),
         ],
