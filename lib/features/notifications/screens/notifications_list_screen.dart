@@ -133,34 +133,29 @@ class NotificationsListScreen extends ConsumerWidget {
             ],
           ),
 
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+          const SizedBox(height: 44),
+
+          // DATE CHIP TAG
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'วันนี้',
+                    style: GoogleFonts.kanit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : const Color(0xFF475569),
                     ),
-                  ],
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.calendar_month_rounded,
-                      size: 16,
-                      color: Color(0xFF1C7FF6),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'วันนี้',
-                      style: GoogleFonts.kanit(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
 
