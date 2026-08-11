@@ -182,97 +182,55 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
                       ],
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [Color(0xFF10B981), Color(0xFF059669)],
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      '✨ เปิดรับสมัครคนขับทั่วไทย',
-                                      style: GoogleFonts.kanit(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'สร้างรายได้เติบโต\nก้าวหน้าไปกับเรา',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                      height: 1.25,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'รองรับ รถจักรยานยนต์, รถเก๋ง, รถกระบะ และรถบรรทุก',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 11.5,
-                                      color: subTextColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF10B981), Color(0xFF059669)],
                             ),
-                            const SizedBox(width: 12),
-                            // Vehicle Artwork Frame
-                            Container(
-                              width: 100,
-                              height: 130,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(color: borderColor),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.15),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.asset(
-                                  AppAssets.bannerVehicle,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: const Color(0xFF1C7FF6).withValues(alpha: 0.1),
-                                    child: const Icon(
-                                      Icons.local_shipping_rounded,
-                                      size: 45,
-                                      color: Color(0xFF1C7FF6),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '✨ เปิดรับสมัครคนขับทั่วไทย',
+                            style: GoogleFonts.kanit(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                          ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'สร้างรายได้เติบโต ก้าวหน้าไปกับเรา',
+                          style: GoogleFonts.kanit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                            height: 1.25,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'รองรับ รถจักรยานยนต์, รถเก๋ง, รถกระบะ และรถบรรทุกขนส่งสินค้าทุกประเภท',
+                          style: GoogleFonts.kanit(
+                            fontSize: 12,
+                            color: subTextColor,
+                          ),
                         ),
                         const SizedBox(height: 16),
 
                         // Stats Highlights Bar
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                           decoration: BoxDecoration(
                             color: isDarkMode
                                 ? const Color(0xFF0F172A)
