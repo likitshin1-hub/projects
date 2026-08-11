@@ -33,7 +33,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY_HERE"/>
+            android:value="AIzaSyDcQSw71ZN2v-Wb4woluYzdAObxg1Bczxk"/>
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
