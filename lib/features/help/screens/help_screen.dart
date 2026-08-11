@@ -319,7 +319,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                   // FAQ List
                   Expanded(
                     child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 145),
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 200),
                       itemCount: _faqList.length,
                       itemBuilder: (context, index) {
                         final item = _faqList[index];
@@ -451,160 +451,250 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               right: 16,
               bottom: 16,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFF0F2B66).withValues(alpha: 0.12),
-                      blurRadius: 20,
+                      blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
                   ],
                   border: Border.all(color: const Color(0xFFDCE9FE), width: 1.5),
                 ),
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Agent Avatar Icon
-                    Stack(
-                      clipBehavior: Clip.none,
+                    // Top Info Row
+                    Row(
                       children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                        // Agent Avatar Icon
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.headset_mic_rounded,
+                                color: Colors.white,
+                                size: 26,
+                              ),
                             ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.support_agent_rounded,
-                            color: Colors.white,
-                            size: 30,
-                          ),
+                            Positioned(
+                              right: -1,
+                              bottom: -1,
+                              child: Container(
+                                width: 13,
+                                height: 13,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF22C55E),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Positioned(
-                          right: -2,
-                          bottom: -2,
-                          child: Container(
-                            width: 14,
-                            height: 14,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF22C55E),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
+                        const SizedBox(width: 14),
+
+                        // Title & Subtitle
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ยังไม่พบคำตอบที่ต้องการ?',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F172A),
+                                  height: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'ทีมงานพร้อมดูแลและช่วยเหลือตลอด 24 ชม.',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 13,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(width: 14),
 
-                    // Content & Buttons
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFEBF3FE),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.headset_mic_rounded,
-                                  color: Color(0xFF0052CC),
-                                  size: 15,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'ยังไม่พบคำตอบที่ต้องการ',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF003A99),
+                    const SizedBox(height: 16),
+
+                    // Large Action Buttons Row (Equal height & proportions)
+                    Row(
+                      children: [
+                        // โทรหาเรา (Call Us Button -> Navigates to Call Center Screen)
+                        Expanded(
+                          child: SizedBox(
+                            height: 58,
+                            child: Material(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(20),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(20),
+                                onTap: () {
+                                  context.push('${AppRoutes.call}/call_center');
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: const Color(0xFF2563EB),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFDBEAFE),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.phone_in_talk_rounded,
+                                          color: Color(0xFF1D4ED8),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Flexible(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'โทรหาเรา',
+                                              style: GoogleFonts.kanit(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold,
+                                                color: const Color(0xFF1D4ED8),
+                                                height: 1.1,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Call Center',
+                                              style: GoogleFonts.kanit(
+                                                fontSize: 11.5,
+                                                color: const Color(0xFF2563EB),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'ติดต่อทีมงานได้เลย',
-                            style: GoogleFonts.kanit(
-                              fontSize: 13,
-                              color: const Color(0xFF2563EB),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                        ),
 
-                          // Buttons Row
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    side: const BorderSide(
-                                      color: Color(0xFF0052CC),
-                                      width: 1.2,
-                                    ),
-                                  ),
-                                  onPressed: _showCallDialog,
-                                  child: Text(
-                                    'โทรหาเรา',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF0052CC),
-                                    ),
-                                  ),
+                        const SizedBox(width: 12),
+
+                        // แชทกับเรา (Chat with Us Button)
+                        Expanded(
+                          child: SizedBox(
+                            height: 58,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF0052CC), Color(0xFF1D4ED8)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF0052CC),
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    elevation: 0,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  onPressed: () {
-                                    context.push(AppRoutes.chatDetail);
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(20),
+                                  onTap: () {
+                                    context.push('${AppRoutes.chat}/call_center');
                                   },
-                                  child: Text(
-                                    'แชทกับเรา',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: 36,
+                                          height: 36,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white24,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.chat_bubble_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Flexible(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'แชทกับเรา',
+                                                style: GoogleFonts.kanit(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  height: 1.1,
+                                                ),
+                                              ),
+                                              Text(
+                                                'ตอบกลับทันที',
+                                                style: GoogleFonts.kanit(
+                                                  fontSize: 11.5,
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
