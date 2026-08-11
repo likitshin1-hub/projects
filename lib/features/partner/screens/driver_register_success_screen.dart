@@ -206,7 +206,7 @@ class DriverRegisterSuccessScreen extends ConsumerWidget {
                   ),
                 ),
                 onPressed: () {
-                  context.go(AppRoutes.partnerStatus);
+                  context.go(AppRoutes.home);
                 },
                 child: Ink(
                   decoration: BoxDecoration(
@@ -225,7 +225,7 @@ class DriverRegisterSuccessScreen extends ConsumerWidget {
                   child: Container(
                     alignment: Alignment.center,
                     child: Text(
-                      'ติดตามสถานะใบสมัคร',
+                      'กลับสู่หน้าหลัก',
                       style: GoogleFonts.kanit(
                         fontSize: 16.5,
                         fontWeight: FontWeight.bold,

@@ -67,8 +67,6 @@ class AppRoutes {
 
   static const String partnerSuccess = '/partner-success';
 
-  static const String partnerStatus = '/partner-status';
-
   static const String driverJobs = '/driver/jobs';
 
   static const String jobDetail = '/driver/job-detail';

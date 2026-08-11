@@ -67,31 +67,15 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
                         }
                       },
                     ),
-                    Row(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.assignment_outlined, color: Colors.white, size: 20),
-                            tooltip: 'เช็คสถานะใบสมัคร',
-                            onPressed: () => context.push(AppRoutes.partnerStatus),
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
-                            onPressed: () => context.push(AppRoutes.help),
-                          ),
-                        ),
-                      ],
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
+                        onPressed: () => context.push(AppRoutes.help),
+                      ),
                     ),
                   ],
                 ),
