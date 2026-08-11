@@ -70,10 +70,74 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
     super.dispose();
   }
 
+  void _showWarningSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.kanit(fontSize: 14)),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
   void _nextStep() {
+    if (_currentStep == 1) {
+      if (_firstNameController.text.trim().isEmpty) {
+        _showWarningSnackBar('กรุณากรอกชื่อก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+      if (_lastNameController.text.trim().isEmpty) {
+        _showWarningSnackBar('กรุณากรอกนามสกุลก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+      if (_phoneController.text.trim().isEmpty) {
+        _showWarningSnackBar('กรุณากรอกเบอร์โทรศัพท์ก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+    } else if (_currentStep == 2) {
+      if (!_idCardUploaded) {
+        _showWarningSnackBar('กรุณาอัปโหลดบัตรประชาชนก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+      if (!_driverLicenseUploaded) {
+        _showWarningSnackBar('กรุณาอัปโหลดใบขับขี่ก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+      if (!_vehicleDocUploaded) {
+        _showWarningSnackBar('กรุณาอัปโหลดเอกสารของรถก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+      if (!_bankBookUploaded) {
+        _showWarningSnackBar('กรุณาอัปโหลดหน้าสมุดบัญชีธนาคารก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+    } else if (_currentStep == 3) {
+      if (_vehicleTypeController.text.trim().isEmpty) {
+        _showWarningSnackBar('กรุณากรอกประเภทรถก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+      if (_brandController.text.trim().isEmpty) {
+        _showWarningSnackBar('กรุณากรอกยี่ห้อรถก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+      if (_plateController.text.trim().isEmpty) {
+        _showWarningSnackBar('กรุณากรอกหมายเลขทะเบียนรถก่อนไปขั้นตอนถัดไป');
+        return;
+      }
+    }
+
     if (_currentStep < 4) {
       setState(() => _currentStep++);
     } else {
+      if (!_certifyTruth) {
+        _showWarningSnackBar('กรุณารับรองว่าข้อมูลทั้งหมดเป็นความจริงก่อนส่งใบสมัคร');
+        return;
+      }
+      if (!_acceptTerms) {
+        _showWarningSnackBar('กรุณายอมรับเงื่อนไขการเป็นพาร์ทเนอร์ก่อนส่งใบสมัคร');
+        return;
+      }
       _submitForm();
     }
   }
