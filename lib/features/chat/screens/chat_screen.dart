@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/theme_provider.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends ConsumerWidget {
   final String driverId;
   const ChatScreen({super.key, required this.driverId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDarkMode = ref.watch(themeProvider);
+
+    final bgColor = isDarkMode ? const Color(0xFF0B0F17) : Colors.white;
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.grey[100]!;
+    final borderColor = isDarkMode ? const Color(0xFF334155) : Colors.grey[300]!;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : Colors.grey;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: bgColor,
+        foregroundColor: textColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => context.pop(),
         ),
         title: Row(
@@ -30,9 +40,9 @@ class ChatScreen extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'ทนงทวย ตีหอย',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
                 ),
                 Row(
                   children: [
@@ -45,8 +55,10 @@ class ChatScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Text('ออนไลน์',
-                        style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text(
+                      'ออนไลน์',
+                      style: TextStyle(color: subTextColor, fontSize: 12),
+                    ),
                   ],
                 ),
               ],
@@ -55,7 +67,7 @@ class ChatScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: Icon(Icons.more_vert, color: textColor),
             onPressed: () {},
           )
         ],
@@ -70,7 +82,7 @@ class ChatScreen extends StatelessWidget {
               width: 200,
               height: 200,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
             ),
@@ -82,12 +94,12 @@ class ChatScreen extends StatelessWidget {
               width: 150,
               height: 150,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
             ),
           ),
-          
+
           Column(
             children: [
               Expanded(
@@ -99,9 +111,9 @@ class ChatScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,11 +146,13 @@ class ChatScreen extends StatelessWidget {
                             horizontal: 12, vertical: 4),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[200],
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Text('วันนี้',
-                            style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        child: Text(
+                          'วันนี้',
+                          style: TextStyle(fontSize: 10, color: subTextColor),
+                        ),
                       ),
                     ),
 
@@ -156,17 +170,18 @@ class ChatScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
+                            color: cardBg,
                             borderRadius: const BorderRadius.only(
                               topRight: Radius.circular(16),
                               bottomRight: Radius.circular(16),
                               bottomLeft: Radius.circular(16),
                             ),
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const Text(
-                              'สวัสดีค่ะ 👋\nยินดีให้บริการค่ะ คุณต้องการให้\nเราช่วยเรื่องใดคะ ?',
-                              style: TextStyle(fontSize: 14)),
+                          child: Text(
+                            'สวัสดีค่ะ 👋\nยินดีให้บริการค่ะ คุณต้องการให้\nเราช่วยเรื่องใดคะ ?',
+                            style: TextStyle(fontSize: 14, color: textColor),
+                          ),
                         ),
                       ],
                     ),
@@ -185,25 +200,26 @@ class ChatScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardBg,
                             borderRadius: const BorderRadius.only(
                               topRight: Radius.circular(16),
                               bottomRight: Radius.circular(16),
                               bottomLeft: Radius.circular(16),
                             ),
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: borderColor),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
-                            children: const [
+                            children: [
                               Text(
                                 'สวัสดีครับ\nพัสดุกำลังจัดส่งนะครับ\nให้ช่วยอะไรไหมครับ',
-                                style: TextStyle(fontSize: 14),
+                                style: TextStyle(fontSize: 14, color: textColor),
                               ),
-                              SizedBox(height: 4),
-                              Text('10:32',
-                                  style: TextStyle(
-                                      color: Colors.grey, fontSize: 10)),
+                              const SizedBox(height: 4),
+                              Text(
+                                '10:32',
+                                style: TextStyle(color: subTextColor, fontSize: 10),
+                              ),
                             ],
                           ),
                         ),
@@ -217,25 +233,27 @@ class ChatScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: const Color(0xFF1C7FF6).withValues(alpha: 0.25),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(16),
                             bottomLeft: Radius.circular(16),
                             bottomRight: Radius.circular(16),
                           ),
+                          border: Border.all(color: const Color(0xFF1C7FF6).withValues(alpha: 0.4)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.end,
-                          children: const [
+                          children: [
                             Text(
                               'พัสดุถึงไหนแล้วค่ะ',
-                              style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                              style: TextStyle(fontSize: 14, color: textColor),
                             ),
-                            SizedBox(width: 8),
-                            Text('10:42',
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 10)),
+                            const SizedBox(width: 8),
+                            Text(
+                              '10:42',
+                              style: TextStyle(color: subTextColor, fontSize: 10),
+                            ),
                           ],
                         ),
                       ),
@@ -248,8 +266,8 @@ class ChatScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
+                  color: cardBg,
+                  border: Border(top: BorderSide(color: borderColor)),
                 ),
                 child: SafeArea(
                   child: Row(
@@ -258,16 +276,17 @@ class ChatScreen extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
+                            color: bgColor,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const TextField(
+                          child: TextField(
+                            style: TextStyle(color: textColor),
                             decoration: InputDecoration(
                               hintText: 'พิมพ์ข้อความ',
-                              hintStyle: TextStyle(color: Colors.grey),
+                              hintStyle: TextStyle(color: subTextColor),
                               border: InputBorder.none,
-                              suffixIcon: Icon(Icons.mic, color: Colors.grey),
+                              suffixIcon: Icon(Icons.mic, color: subTextColor),
                             ),
                           ),
                         ),
@@ -277,11 +296,10 @@ class ChatScreen extends StatelessWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: const Color(0xFF1C7FF6),
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary),
                         ),
-                        child: const Icon(Icons.send, color: AppColors.primary),
+                        child: const Icon(Icons.send, color: Colors.white),
                       ),
                     ],
                   ),

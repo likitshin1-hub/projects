@@ -207,11 +207,14 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -253,13 +256,15 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                               _subFilters[index],
                               style: GoogleFonts.kanit(
                                 fontSize: 12.5,
-                                color: isSelected ? Colors.white : const Color(0xFF64748B),
+                                color: isSelected
+                                    ? Colors.white
+                                    : (isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
                             selected: isSelected,
                             selectedColor: const Color(0xFF1C7FF6),
-                            backgroundColor: const Color(0xFFF1F5F9),
+                            backgroundColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),
                             ),
@@ -281,17 +286,17 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.filter_list_rounded,
                       size: 16,
-                      color: Color(0xFF64748B),
+                      color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'ตัวกรอง',
                       style: GoogleFonts.kanit(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -326,7 +331,10 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
   // SEGMENTED MAIN TAB BAR ITEM HELPER
   // ==========================================
   Widget _buildMainTabItem(int index, String label, IconData icon) {
+    final isDarkMode = ref.watch(themeProvider);
     final bool isActive = _selectedTab == index;
+    final unselectedColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -351,7 +359,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
               Icon(
                 icon,
                 size: 18,
-                color: isActive ? const Color(0xFF1C7FF6) : const Color(0xFF64748B),
+                color: isActive ? const Color(0xFF1C7FF6) : unselectedColor,
               ),
               const SizedBox(width: 8),
               Text(
@@ -359,7 +367,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                 style: GoogleFonts.kanit(
                   fontSize: 13.5,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                  color: isActive ? const Color(0xFF1C7FF6) : const Color(0xFF64748B),
+                  color: isActive ? const Color(0xFF1C7FF6) : unselectedColor,
                 ),
               ),
             ],
@@ -373,6 +381,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
   // INDIVIDUAL LOGISTICS ORDER CARD HELPER
   // ==========================================
   Widget _buildHistoryOrderCard(_HistoryItemData item) {
+    final isDarkMode = ref.watch(themeProvider);
     Color sideColor;
     Color iconColor;
     Color iconBg;
@@ -385,40 +394,46 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
       case _HistoryStatus.inProgress:
         sideColor = const Color(0xFF1C7FF6);
         iconColor = const Color(0xFF1C7FF6);
-        iconBg = const Color(0xFFE8F2FE);
+        iconBg = isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE);
         icon = Icons.local_shipping_outlined;
         statusLabel = 'กำลังดำเนินการ';
-        statusTextCol = const Color(0xFF1C7FF6);
-        statusBg = const Color(0xFFE8F2FE);
+        statusTextCol = const Color(0xFF38BDF8);
+        statusBg = isDarkMode ? const Color(0xFF0369A1).withValues(alpha: 0.3) : const Color(0xFFE8F2FE);
         break;
       case _HistoryStatus.completed:
         sideColor = const Color(0xFF22C55E);
         iconColor = const Color(0xFF22C55E);
-        iconBg = const Color(0xFFE8F8EE);
+        iconBg = isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFE8F8EE);
         icon = Icons.check_rounded;
         statusLabel = 'เสร็จสิ้น';
-        statusTextCol = const Color(0xFF22C55E);
-        statusBg = const Color(0xFFE8F8EE);
+        statusTextCol = const Color(0xFF4ADE80);
+        statusBg = isDarkMode ? const Color(0xFF047857).withValues(alpha: 0.3) : const Color(0xFFE8F8EE);
         break;
       case _HistoryStatus.cancelled:
         sideColor = const Color(0xFFEF4444);
         iconColor = const Color(0xFFEF4444);
-        iconBg = const Color(0xFFFEE2E2);
+        iconBg = isDarkMode ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2);
         icon = Icons.close_rounded;
         statusLabel = 'ยกเลิก';
-        statusTextCol = const Color(0xFFEF4444);
-        statusBg = const Color(0xFFFEE2E2);
+        statusTextCol = const Color(0xFFF87171);
+        statusBg = isDarkMode ? const Color(0xFFB91C1C).withValues(alpha: 0.3) : const Color(0xFFFEE2E2);
         break;
     }
+
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF4B5563);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -460,7 +475,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                       style: GoogleFonts.kanit(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1F2937),
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -468,7 +483,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                       item.route,
                       style: GoogleFonts.kanit(
                         fontSize: 12,
-                        color: const Color(0xFF4B5563),
+                        color: subTextColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

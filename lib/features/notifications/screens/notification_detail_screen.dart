@@ -6,17 +6,25 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../booking/providers/booking_provider.dart';
 
+import '../../../core/providers/theme_provider.dart';
+
 class NotificationDetailScreen extends ConsumerWidget {
   const NotificationDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDarkMode = ref.watch(themeProvider);
     final bookingState = ref.watch(bookingProvider);
     final String bookingId = bookingState.bookingId ?? 'B2553';
 
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
       body: Column(
         children: [
           // ==========================================
@@ -106,11 +114,12 @@ class NotificationDetailScreen extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: cardBg,
                       borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
                           blurRadius: 15,
                           offset: const Offset(0, 8),
                         ),
@@ -147,7 +156,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                               style: GoogleFonts.kanit(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1F2937),
+                                color: textColor,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -203,10 +212,10 @@ class NotificationDetailScreen extends ConsumerWidget {
                               bottom: 12,
                               right: 12,
                               child: Container(
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
+                                decoration: BoxDecoration(
+                                  color: cardBg,
                                   shape: BoxShape.circle,
-                                  boxShadow: [
+                                  boxShadow: const [
                                     BoxShadow(
                                       color: Colors.black12,
                                       blurRadius: 4,
@@ -265,7 +274,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                           style: GoogleFonts.kanit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E3A8A),
+                            color: isDarkMode ? const Color(0xFF60A5FA) : const Color(0xFF1E3A8A),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -274,7 +283,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.kanit(
                             fontSize: 13.5,
-                            color: const Color(0xFF6B7280),
+                            color: subTextColor,
                             height: 1.45,
                           ),
                         ),
@@ -287,11 +296,12 @@ class NotificationDetailScreen extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: cardBg,
                       borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
                           blurRadius: 15,
                           offset: const Offset(0, 8),
                         ),
@@ -315,7 +325,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                               style: GoogleFonts.kanit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1F2937),
+                                color: textColor,
                               ),
                             ),
                           ],
@@ -424,17 +434,17 @@ class NotificationDetailScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 icon,
                 size: 18,
-                color: const Color(0xFF1C7FF6),
+                color: Color(0xFF1C7FF6),
               ),
               const SizedBox(width: 10),
               Text(
                 title,
                 style: GoogleFonts.kanit(
                   fontSize: 13.5,
-                  color: const Color(0xFF6B7280),
+                  color: subTextColor,
                 ),
               ),
               const Spacer(),
@@ -443,7 +453,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                 style: GoogleFonts.kanit(
                   fontSize: 14,
                   fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-                  color: const Color(0xFF1F2937),
+                  color: textColor,
                 ),
               ),
             ],
@@ -451,7 +461,7 @@ class NotificationDetailScreen extends ConsumerWidget {
           const SizedBox(height: 6),
           Divider(
             height: 1,
-            color: Colors.grey.shade100,
+            color: isDarkMode ? const Color(0xFF334155) : Colors.grey.shade100,
           ),
         ],
       ),

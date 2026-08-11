@@ -350,7 +350,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // ==========================================
         Container(
           height: 60,
-          color: const Color(0xFFF8FAFF),
+          color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -372,7 +372,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: isActive ? const Color(0xFF1C7FF6) : const Color(0xFFF1F5F9),
+                      color: isActive
+                          ? const Color(0xFF1C7FF6)
+                          : (isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     alignment: Alignment.center,
@@ -381,7 +383,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       style: GoogleFonts.kanit(
                         fontSize: 13.5,
                         fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                        color: isActive ? Colors.white : const Color(0xFF64748B),
+                        color: isActive
+                            ? Colors.white
+                            : (isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       ),
                     ),
                   ),
@@ -396,7 +400,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // ==========================================
         Expanded(
           child: Container(
-            color: Colors.white,
+            color: isDarkMode ? const Color(0xFF0B0F17) : Colors.white,
             child: ListView(
               physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.zero,
@@ -436,7 +440,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     );
                   },
                 ),
-                const Divider(height: 1, indent: 80, color: Color(0xFFF1F5F9)),
+                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
 
                 // Chat Item 2: คนขับ : สมชาย
                 _buildChatListItem(
@@ -478,7 +482,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     context.push(AppRoutes.chatDetail);
                   },
                 ),
-                const Divider(height: 1, indent: 80, color: Color(0xFFF1F5F9)),
+                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
 
                 // Chat Item 3: ออเดอร์ #TB2405081234
                 _buildChatListItem(
@@ -509,7 +513,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     );
                   },
                 ),
-                const Divider(height: 1, indent: 80, color: Color(0xFFF1F5F9)),
+                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
 
                 // Chat Item 4: ทีมงานลูกค้าสัมพันธ์
                 _buildChatListItem(
@@ -540,7 +544,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     );
                   },
                 ),
-                const Divider(height: 1, indent: 80, color: Color(0xFFF1F5F9)),
+                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
 
                 // Chat Item 5: โปรโมชั่น & ข่าวสาร
                 _buildChatListItem(
@@ -572,7 +576,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     );
                   },
                 ),
-                const Divider(height: 1, indent: 80, color: Color(0xFFF1F5F9)),
+                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
 
                 // Chat Item 6: คนขับ : วิทยา
                 _buildChatListItem(
@@ -624,6 +628,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     bool hasRedDot = false,
     required VoidCallback onTap,
   }) {
+    final isDarkMode = ref.watch(themeProvider);
     final bool isUnread = badgeCount > 0 || hasRedDot;
 
     return ListTile(
@@ -640,7 +645,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               style: GoogleFonts.kanit(
                 fontSize: 15,
                 fontWeight: isUnread ? FontWeight.bold : FontWeight.w500,
-                color: const Color(0xFF1F2937),
+                color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
               ),
             ),
           ),
@@ -663,7 +668,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           style: GoogleFonts.kanit(
             fontSize: 13,
             fontWeight: isUnread ? FontWeight.w500 : FontWeight.normal,
-            color: isUnread ? const Color(0xFF374151) : const Color(0xFF6B7280),
+            color: isDarkMode
+                ? (isUnread ? Colors.white70 : const Color(0xFF94A3B8))
+                : (isUnread ? const Color(0xFF374151) : const Color(0xFF6B7280)),
           ),
         ),
       ),
@@ -675,7 +682,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             time,
             style: GoogleFonts.kanit(
               fontSize: 11,
-              color: const Color(0xFF9CA3AF),
+              color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
             ),
           ),
           const SizedBox(height: 6),

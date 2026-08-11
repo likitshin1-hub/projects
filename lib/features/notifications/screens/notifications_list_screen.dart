@@ -13,6 +13,8 @@ class NotificationsListScreen extends ConsumerWidget {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
 
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
+
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
       body: Column(
@@ -105,11 +107,14 @@ class NotificationsListScreen extends ConsumerWidget {
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -151,11 +156,14 @@ class NotificationsListScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -175,7 +183,7 @@ class NotificationsListScreen extends ConsumerWidget {
                       style: GoogleFonts.kanit(
                         fontSize: 12.5,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1F2937),
+                        color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
                       ),
                     ),
                   ],
@@ -206,7 +214,7 @@ class NotificationsListScreen extends ConsumerWidget {
                     text: TextSpan(
                       style: GoogleFonts.kanit(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: subTextColor,
                         height: 1.35,
                       ),
                       children: const [
@@ -233,7 +241,7 @@ class NotificationsListScreen extends ConsumerWidget {
                     text: TextSpan(
                       style: GoogleFonts.kanit(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: subTextColor,
                         height: 1.35,
                       ),
                       children: const [
@@ -276,7 +284,7 @@ class NotificationsListScreen extends ConsumerWidget {
                     text: TextSpan(
                       style: GoogleFonts.kanit(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: subTextColor,
                         height: 1.35,
                       ),
                       children: const [
@@ -334,14 +342,20 @@ class NotificationsListScreen extends ConsumerWidget {
     required Widget customSubtitle,
     required VoidCallback onTap,
   }) {
+    final isDarkMode = ref.watch(themeProvider);
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -366,7 +380,7 @@ class NotificationsListScreen extends ConsumerWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: iconBgColor,
+                  color: isDarkMode ? sideColor.withValues(alpha: 0.2) : iconBgColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: iconColor, size: 24),
@@ -386,7 +400,7 @@ class NotificationsListScreen extends ConsumerWidget {
                         style: GoogleFonts.kanit(
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1F2937),
+                          color: textColor,
                         ),
                       ),
                       const SizedBox(height: 4),
