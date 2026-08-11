@@ -649,10 +649,15 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: isUploaded
+            ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.25) : const Color(0xFFF0FDF4))
+            : cardBg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          color: isUploaded
+              ? const Color(0xFF10B981)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          width: isUploaded ? 1.5 : 1.0,
         ),
       ),
       child: Column(
@@ -663,11 +668,16 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE0F2FE),
+                  color: isUploaded
+                      ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                      : (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE0F2FE)),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.badge_rounded,
-                    color: Color(0xFF1C7FF6), size: 22),
+                child: Icon(
+                  isUploaded ? Icons.verified_rounded : Icons.badge_rounded,
+                  color: isUploaded ? const Color(0xFF10B981) : const Color(0xFF1C7FF6),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -679,7 +689,9 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
                       style: GoogleFonts.kanit(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: textColor,
+                        color: isUploaded
+                            ? (isDark ? const Color(0xFF34D399) : const Color(0xFF065F46))
+                            : textColor,
                       ),
                     ),
                     Text(
@@ -690,19 +702,26 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
                 ),
               ),
               if (isUploaded)
-                Row(
-                  children: [
-                    Text(
-                      'อัปโหลดแล้ว ',
-                      style: GoogleFonts.kanit(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF10B981),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'อัปโหลดแล้ว ',
+                        style: GoogleFonts.kanit(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF10B981),
+                        ),
                       ),
-                    ),
-                    const Icon(Icons.check_circle_rounded,
-                        color: Color(0xFF10B981), size: 18),
-                  ],
+                      const Icon(Icons.check_circle_rounded,
+                          color: Color(0xFF10B981), size: 16),
+                    ],
+                  ),
                 ),
             ],
           ),
@@ -710,26 +729,40 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
           InkWell(
             onTap: onUpload,
             borderRadius: BorderRadius.circular(12),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F7FF),
+                color: isUploaded
+                    ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.35) : const Color(0xFFECFDF5))
+                    : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F7FF)),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF1C7FF6).withValues(alpha: 0.5),
-                  style: BorderStyle.solid,
+                  color: isUploaded
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFF1C7FF6).withValues(alpha: 0.5),
+                  width: isUploaded ? 1.5 : 1.0,
                 ),
               ),
-              child: Center(
-                child: Text(
-                  '+ อัปโหลดไฟล์',
-                  style: GoogleFonts.kanit(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1C7FF6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isUploaded ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+                    color: isUploaded ? const Color(0xFF10B981) : const Color(0xFF1C7FF6),
+                    size: 18,
                   ),
-                ),
+                  const SizedBox(width: 6),
+                  Text(
+                    isUploaded ? 'อัปโหลดเรียบร้อยแล้ว (คลิกเพื่อเปลี่ยนรูป)' : '+ อัปโหลดไฟล์',
+                    style: GoogleFonts.kanit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: isUploaded ? const Color(0xFF10B981) : const Color(0xFF1C7FF6),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -849,33 +882,76 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F7FF),
+          color: isUploaded
+              ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFECFDF5))
+              : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F7FF)),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+            color: isUploaded
+                ? const Color(0xFF10B981)
+                : const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+            width: isUploaded ? 2.0 : 1.0,
           ),
+          boxShadow: isUploaded
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            if (isUploaded) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 2),
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF10B981),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 14,
+                ),
+              ),
+            ],
             Text(
               label,
               style: GoogleFonts.kanit(
-                fontSize: 13,
+                fontSize: 13.5,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: isUploaded
+                    ? (isDark ? const Color(0xFF34D399) : const Color(0xFF065F46))
+                    : (isDark ? Colors.white : const Color(0xFF0F172A)),
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              '+ อัปโหลดไฟล์',
-              style: GoogleFonts.kanit(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1C7FF6),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isUploaded ? Icons.check_circle_rounded : Icons.add_rounded,
+                  size: 14,
+                  color: isUploaded ? const Color(0xFF10B981) : const Color(0xFF1C7FF6),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  isUploaded ? 'อัปโหลดแล้ว ✅' : '+ อัปโหลดไฟล์',
+                  style: GoogleFonts.kanit(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: isUploaded ? const Color(0xFF10B981) : const Color(0xFF1C7FF6),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
