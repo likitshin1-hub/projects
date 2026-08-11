@@ -19,15 +19,15 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  final _firstNameController = TextEditingController(text: 'ลิขิต');
+  final _lastNameController = TextEditingController(text: 'ยอดคน');
+  final _emailController = TextEditingController(text: 'tbmovehub@gmail.com');
+  final _phoneController = TextEditingController(text: '0812345678');
+  final _passwordController = TextEditingController(text: '12345678');
+  final _confirmPasswordController = TextEditingController(text: '12345678');
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _acceptTerms = false;
+  bool _acceptTerms = true;
 
   // ค่าเริ่มต้นของการสมัคร
   String _role = 'customer';
@@ -45,28 +45,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   void _onRegister() {
-    if (!_formKey.currentState!.validate()) return;
-    if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'กรุณายอมรับเงื่อนไขการให้บริการก่อนสมัครสมาชิก',
-            style: GoogleFonts.kanit(),
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        ),
-      );
-      return;
-    }
+    final firstName = _firstNameController.text.trim().isEmpty ? 'ลิขิต' : _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim().isEmpty ? 'ยอดคน' : _lastNameController.text.trim();
+    final phone = _phoneController.text.trim().isEmpty ? '0812345678' : _phoneController.text.trim();
+    final email = _emailController.text.trim().isEmpty ? 'tbmovehub@gmail.com' : _emailController.text.trim();
+    final password = _passwordController.text.isEmpty ? '12345678' : _passwordController.text;
+
     ref.read(authProvider.notifier).register(
-          fullName:
-              '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
-          phone: _phoneController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          confirmPassword: _confirmPasswordController.text,
+          fullName: '$firstName $lastName',
+          phone: phone,
+          email: email,
+          password: password,
+          confirmPassword: password,
           role: 'customer',
         );
   }

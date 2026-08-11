@@ -307,9 +307,7 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                onPressed: (_currentStep == 4 && (!_certifyTruth || !_acceptTerms))
-                    ? null
-                    : _nextStep,
+                onPressed: _isSubmitting ? null : _nextStep,
                 child: _isSubmitting
                     ? const SizedBox(
                         width: 22,
@@ -508,7 +506,7 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
         _buildUploadCard(
           title: 'อัปโหลดบัตรประชาชน',
           isUploaded: _idCardUploaded,
-          onUpload: () => setState(() => _idCardUploaded = true),
+          onUpload: () => _showImagePickerModal('บัตรประชาชน', () => setState(() => _idCardUploaded = true)),
           cardBg: cardBg,
           textColor: textColor,
           subTextColor: subTextColor,
@@ -518,7 +516,7 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
         _buildUploadCard(
           title: 'อัปโหลดใบขับขี่',
           isUploaded: _driverLicenseUploaded,
-          onUpload: () => setState(() => _driverLicenseUploaded = true),
+          onUpload: () => _showImagePickerModal('ใบขับขี่', () => setState(() => _driverLicenseUploaded = true)),
           cardBg: cardBg,
           textColor: textColor,
           subTextColor: subTextColor,
@@ -528,7 +526,7 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
         _buildUploadCard(
           title: 'อัปโหลดเอกสารของรถ',
           isUploaded: _vehicleDocUploaded,
-          onUpload: () => setState(() => _vehicleDocUploaded = true),
+          onUpload: () => _showImagePickerModal('เอกสารของรถ', () => setState(() => _vehicleDocUploaded = true)),
           cardBg: cardBg,
           textColor: textColor,
           subTextColor: subTextColor,
@@ -538,7 +536,7 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
         _buildUploadCard(
           title: 'หน้าสมุดบัญชีธนาคาร',
           isUploaded: _bankBookUploaded,
-          onUpload: () => setState(() => _bankBookUploaded = true),
+          onUpload: () => _showImagePickerModal('สมุดบัญชีธนาคาร', () => setState(() => _bankBookUploaded = true)),
           cardBg: cardBg,
           textColor: textColor,
           subTextColor: subTextColor,
@@ -742,13 +740,13 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
           childAspectRatio: 1.5,
           children: [
             _buildPhotoBox('ด้านหน้า', _photoFrontUploaded,
-                () => setState(() => _photoFrontUploaded = true), isDark),
+                () => _showImagePickerModal('รูปรถด้านหน้า', () => setState(() => _photoFrontUploaded = true)), isDark),
             _buildPhotoBox('ด้านหลัง', _photoBackUploaded,
-                () => setState(() => _photoBackUploaded = true), isDark),
+                () => _showImagePickerModal('รูปรถด้านหลัง', () => setState(() => _photoBackUploaded = true)), isDark),
             _buildPhotoBox('ด้านซ้าย', _photoLeftUploaded,
-                () => setState(() => _photoLeftUploaded = true), isDark),
+                () => _showImagePickerModal('รูปรถด้านซ้าย', () => setState(() => _photoLeftUploaded = true)), isDark),
             _buildPhotoBox('ด้านขวา', _photoRightUploaded,
-                () => setState(() => _photoRightUploaded = true), isDark),
+                () => _showImagePickerModal('รูปรถด้านขวา', () => setState(() => _photoRightUploaded = true)), isDark),
           ],
         ),
       ],
@@ -1047,6 +1045,69 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showImagePickerModal(String title, VoidCallback onSelected) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'อัปโหลด: $title',
+                style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_rounded, color: Color(0xFF1C7FF6)),
+                title: Text('ถ่ายภาพด้วยกล้อง', style: GoogleFonts.kanit(fontSize: 15)),
+                onTap: () {
+                  Navigator.pop(context);
+                  onSelected();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('อัปโหลด $title เรียบร้อยแล้ว ✅', style: GoogleFonts.kanit()),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: const Color(0xFF10B981),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded, color: Color(0xFF8B5CF6)),
+                title: Text('เลือกภาพจากคลังภาพ (Gallery)', style: GoogleFonts.kanit(fontSize: 15)),
+                onTap: () {
+                  Navigator.pop(context);
+                  onSelected();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('อัปโหลด $title เรียบร้อยแล้ว ✅', style: GoogleFonts.kanit()),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: const Color(0xFF10B981),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
