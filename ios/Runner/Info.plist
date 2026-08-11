@@ -60,5 +60,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>แอปพลิเคชันนี้ต้องการเข้าถึงคลังภาพของคุณเพื่อเลือกรูปภาพพัสดุ</string>
+	<key>NSCameraUsageDescription</key>
+	<string>แอปพลิเคชันนี้ต้องการเข้าถึงกล้องของคุณเพื่อถ่ายภาพพัสดุ</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>แอปพลิเคชันนี้ต้องการเข้าถึงไมโครโฟนของคุณเพื่อบันทึกวิดีโอ</string>
 </dict>
 </plist>

@@ -16,10 +16,12 @@ class TrackingDetailScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              )
+            : null,
         title: const Text(
           'ติดตามพัสดุ',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),

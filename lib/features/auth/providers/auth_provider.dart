@@ -78,7 +78,7 @@ class AuthNotifier extends Notifier<AuthState> {
           id: 'mock_123',
           name: 'กิตติพัฒน์ ราษฎร์นิยม',
           email: email,
-          phone: '091-321-5546',
+          phone: '097-117-9446',
         ),
       );
     } else {

@@ -99,8 +99,11 @@ final appRouter = GoRouter(
       path: AppRoutes.booking,
       builder: (context, state) {
         final vehicle = state.extra as String?;
+        final stepStr = state.uri.queryParameters['step'];
+        final step = stepStr != null ? int.tryParse(stepStr) : null;
         return BookingScreen(
           initialVehicleType: vehicle,
+          initialStep: step,
         );
       },
     ),

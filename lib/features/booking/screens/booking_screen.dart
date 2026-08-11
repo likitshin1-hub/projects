@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
@@ -10,8 +12,9 @@ import '../providers/booking_provider.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
   final String? initialVehicleType;
+  final int? initialStep;
 
-  const BookingScreen({super.key, this.initialVehicleType});
+  const BookingScreen({super.key, this.initialVehicleType, this.initialStep});
 
   @override
   ConsumerState<BookingScreen> createState() => _BookingScreenState();
@@ -37,7 +40,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   int _parcelWeight = 2;
   String _parcelSize = '20 x 30 x 20';
   late final TextEditingController _descriptionController;
-  bool _hasPhoto = false;
+  Uint8List? _parcelImageBytes;
+  final ImagePicker _picker = ImagePicker();
 
   // Step 3 state variables
   int _paymentMethodIndex = 0; // 0: COD, 1: โอนเงิน, 2: Wallet ในระบบ
@@ -49,6 +53,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialStep != null) {
+      _currentStep = widget.initialStep!;
+    }
     _selectedVehicle = widget.initialVehicleType ?? 'รถกระบะ';
     _descriptionController = TextEditingController(text: 'เครื่องใช้ไฟฟ้า (หม้อทอดไร้น้ำมัน)');
 
@@ -341,6 +348,78 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     );
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _parcelImageBytes = bytes;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('เพิ่มรูปภาพพัสดุแล้ว', style: GoogleFonts.kanit()),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
+  void _showImageOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library_rounded, color: Color(0xFF1C7FF6)),
+                  title: Text('เปลี่ยนรูปภาพ', style: GoogleFonts.kanit(fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_rounded, color: Colors.red),
+                  title: Text('ลบรูปภาพ', style: GoogleFonts.kanit(color: Colors.red, fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _parcelImageBytes = null;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('ลบรูปภาพพัสดุแล้ว', style: GoogleFonts.kanit()),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // Edit Weight dialog
   void _editWeightDialog() {
     final ctrl = TextEditingController(text: _parcelWeight.toString());
@@ -419,7 +498,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     _syncToProvider();
     final success = await ref.read(bookingProvider.notifier).submitBooking();
     if (success && mounted) {
-      context.pushReplacement(AppRoutes.notification);
+      context.pushReplacement(AppRoutes.notificationDetail);
     }
   }
 
@@ -876,6 +955,40 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     );
   }
 
+  String _getParcelEmoji() {
+    switch (_parcelType) {
+      case 'กล่อง':
+        return '📦';
+      case 'ซองเอกสาร':
+        return '✉️';
+      case 'เครื่องใช้ไฟฟ้า':
+        return '🔌';
+      case 'อาหาร / ผลไม้':
+        return '🍎';
+      case 'เฟอร์นิเจอร์':
+        return '🛋️';
+      default:
+        return '🏷️';
+    }
+  }
+
+  Color _getParcelBgColor() {
+    switch (_parcelType) {
+      case 'กล่อง':
+        return const Color(0xFFFFF3E0); // Light orange
+      case 'ซองเอกสาร':
+        return const Color(0xFFE3F2FD); // Light blue
+      case 'เครื่องใช้ไฟฟ้า':
+        return const Color(0xFFFFEBEE); // Light red
+      case 'อาหาร / ผลไม้':
+        return const Color(0xFFE8F5E9); // Light green
+      case 'เฟอร์นิเจอร์':
+        return const Color(0xFFEFEBE9); // Light brown
+      default:
+        return const Color(0xFFF3E5F5); // Light purple
+    }
+  }
+
   // ==========================================
   // STEP 2 FORM: PARCEL DETAILS
   // ==========================================
@@ -946,10 +1059,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
+                      color: _getParcelBgColor(),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('📦', style: TextStyle(fontSize: 24)),
+                    child: Text(_getParcelEmoji(), style: const TextStyle(fontSize: 24)),
                   ),
                   const SizedBox(width: 14),
                   Text(
@@ -1216,18 +1329,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           const SizedBox(height: 8),
           GestureDetector(
             onTap: () {
-              setState(() {
-                _hasPhoto = !_hasPhoto; // Toggle photo simulation
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _hasPhoto ? 'เพิ่มรูปภาพพัสดุแล้ว' : 'ลบรูปภาพพัสดุแล้ว',
-                    style: GoogleFonts.kanit(),
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              if (_parcelImageBytes == null) {
+                _pickImage();
+              } else {
+                _showImageOptions();
+              }
             },
             child: Container(
               width: 100,
@@ -1241,11 +1347,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   width: 1.2,
                 ),
               ),
-              child: _hasPhoto
+              child: _parcelImageBytes != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(15),
-                      child: Image.asset(
-                        AppAssets.trustShieldBox,
+                      child: Image.memory(
+                        _parcelImageBytes!,
                         fit: BoxFit.cover,
                       ),
                     )

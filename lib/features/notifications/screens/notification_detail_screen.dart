@@ -66,7 +66,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                   },
                 ),
                 Text(
-                  'แจ้งเตือน',
+                  'รายละเอียดการส่ง',
                   style: GoogleFonts.kanit(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

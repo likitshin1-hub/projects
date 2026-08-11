@@ -13,6 +13,7 @@ import '../widgets/service_card.dart';
 import '../widgets/bottom_navigation.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../history/screens/delivery_history_page.dart';
+import '../../booking/screens/tracking_list_screen.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../partner/providers/partner_application_provider.dart';
 
@@ -25,7 +26,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _currentIndex = 0;
+  int _currentIndex = 2;
   String _selectedLocation = 'ชลบุรี';
   String _selectedChatCategory = 'ทั้งหมด';
 
@@ -34,12 +35,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // ============================================================
 
   void _onTabSelected(int index) {
-    // ปุ่ม "เรียกใช้บริการ"
-    if (index == 2) {
-      context.push(AppRoutes.booking);
-      return;
-    }
-
     if (!mounted) return;
 
     setState(() {
@@ -736,7 +731,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     switch (_currentIndex) {
       case 0:
-        activeBody = _buildHomeTab();
+        activeBody = const TrackingListScreen();
         break;
 
       case 1:
@@ -745,6 +740,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             _scaffoldKey.currentState?.openDrawer();
           },
         );
+        break;
+
+      case 2:
+        activeBody = _buildHomeTab();
         break;
 
       case 3:
@@ -757,7 +756,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             if (!mounted) return;
 
             setState(() {
-              _currentIndex = 0;
+              _currentIndex = 2;
             });
           },
         );

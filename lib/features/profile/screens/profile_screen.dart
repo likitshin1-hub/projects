@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBackPressed;
@@ -154,52 +155,73 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildMenuItem({
+  Widget _buildMenuItemCard({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
     required bool isDarkMode,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: isDarkMode
-                      ? const Color(0xFF334155)
-                      : const Color(0xFF1C7FF6).withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  color: const Color(0xFF1C7FF6),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.kanit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+    final cardBgColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final iconBgColor = isDarkMode
+        ? const Color(0xFF334155)
+        : const Color(0xFF1C7FF6).withValues(alpha: 0.08);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBgColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: iconBgColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: const Color(0xFF1C7FF6),
+                      size: 22,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: GoogleFonts.kanit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 16,
+                    color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -209,6 +231,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeProvider);
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final cardBgColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
@@ -275,97 +299,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
             // Transform contents column up to overlap the wavy appbar
             Transform.translate(
-              offset: const Offset(0, -35),
+              offset: const Offset(0, -45),
               child: Column(
                 children: [
-                  // Interactive Avatar Circle with Scale Effect
-                  GestureDetector(
-                    onTapDown: (_) => _avatarController.forward(),
-                    onTapUp: (_) => _avatarController.reverse(),
-                    onTapCancel: () => _avatarController.reverse(),
-                    onTap: () => _showChangePhotoSheet(isDarkMode),
-                    child: ScaleTransition(
-                      scale: _avatarScale,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: 110,
-                            height: 110,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: cardBgColor,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.1),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              image: DecorationImage(
-                                image: AssetImage('assets/images/logo/tbmovehub_logo.png'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 2,
-                            bottom: 2,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF1C7FF6),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Name & Phone
-                  Text(
-                    'กิตติพัฒน์ ราษฎร์นิยม',
-                    style: GoogleFonts.kanit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '091-321-5546',
-                    style: GoogleFonts.kanit(
-                      fontSize: 14,
-                      color: subTextColor,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Settings / Account Card Menu List
+                  // Profile Main Card (Avatar, Name, Phone, Email)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                       decoration: BoxDecoration(
                         color: cardBgColor,
                         borderRadius: BorderRadius.circular(24),
@@ -379,50 +321,148 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ),
                       child: Column(
                         children: [
-                          // Item 1: แก้ไขข้อมูลส่วนตัว
-                          _buildMenuItem(
-                            icon: Icons.person_rounded,
-                            title: 'แก้ไขข้อมูลส่วนตัว',
-                            onTap: () => context.push(AppRoutes.editProfile),
-                            isDarkMode: isDarkMode,
+                          // Interactive Avatar Circle with Scale Effect
+                          GestureDetector(
+                            onTapDown: (_) => _avatarController.forward(),
+                            onTapUp: (_) => _avatarController.reverse(),
+                            onTapCancel: () => _avatarController.reverse(),
+                            onTap: () => _showChangePhotoSheet(isDarkMode),
+                            child: ScaleTransition(
+                              scale: _avatarScale,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Container(
+                                    width: 108,
+                                    height: 108,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: cardBgColor,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.08),
+                                          blurRadius: 15,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Gradient Profile Avatar
+                                  Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.person_rounded,
+                                      color: Colors.white,
+                                      size: 70,
+                                    ),
+                                  ),
+                                  // Pencil Edit Badge
+                                  Positioned(
+                                    right: 4,
+                                    bottom: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF1C7FF6),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 2),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 4,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.edit_rounded,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          Divider(height: 1, indent: 20, endIndent: 20, color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                          // Item 2: การตั้งค่า (Settings)
-                          _buildMenuItem(
-                            icon: Icons.settings_rounded,
-                            title: 'การตั้งค่าระบบ & เลือกธีม',
-                            onTap: () => context.push(AppRoutes.settings),
-                            isDarkMode: isDarkMode,
+                          const SizedBox(height: 16),
+
+                          // Name
+                          Text(
+                            user?.name ?? 'กิตติพัฒน์ ราษฎร์นิยม',
+                            style: GoogleFonts.kanit(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
                           ),
-                          Divider(height: 1, indent: 20, endIndent: 20, color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                          // Item 3: คูปองของฉัน
-                          _buildMenuItem(
-                            icon: Icons.local_activity_rounded,
-                            title: 'คูปองของฉัน',
-                            onTap: () => context.push(AppRoutes.coupons),
-                            isDarkMode: isDarkMode,
+                          const SizedBox(height: 6),
+
+                          // Phone
+                          Text(
+                            user?.phone ?? '097-117-9446',
+                            style: GoogleFonts.kanit(
+                              fontSize: 14,
+                              color: subTextColor,
+                            ),
                           ),
-                          Divider(height: 1, indent: 20, endIndent: 20, color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                          // Item 4: การแจ้งเตือน
-                          _buildMenuItem(
-                            icon: Icons.notifications_rounded,
-                            title: 'การแจ้งเตือน',
-                            onTap: () => context.push(AppRoutes.notification),
-                            isDarkMode: isDarkMode,
-                          ),
-                          Divider(height: 1, indent: 20, endIndent: 20, color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                          // Item 5: ความปลอดภัย
-                          _buildMenuItem(
-                            icon: Icons.shield_rounded,
-                            title: 'ความปลอดภัย',
-                            onTap: () => _showSecurityDialog(isDarkMode),
-                            isDarkMode: isDarkMode,
+                          const SizedBox(height: 4),
+
+                          // Email
+                          Text(
+                            user?.email ?? 'kuslkitiphathn@gmail.com',
+                            style: GoogleFonts.kanit(
+                              fontSize: 14,
+                              color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
+
+                  // Menu Items (Separate cards)
+                  _buildMenuItemCard(
+                    icon: Icons.person_rounded,
+                    title: 'แก้ไขข้อมูลส่วนตัว',
+                    onTap: () => context.push(AppRoutes.editProfile),
+                    isDarkMode: isDarkMode,
+                  ),
+                  _buildMenuItemCard(
+                    icon: Icons.badge_outlined,
+                    title: 'ประวัติการขนส่ง',
+                    onTap: () => context.push(AppRoutes.history),
+                    isDarkMode: isDarkMode,
+                  ),
+                  _buildMenuItemCard(
+                    icon: Icons.confirmation_number_outlined,
+                    title: 'คูปองของฉัน',
+                    onTap: () => context.push(AppRoutes.coupons),
+                    isDarkMode: isDarkMode,
+                  ),
+                  _buildMenuItemCard(
+                    icon: Icons.notifications_active_outlined,
+                    title: 'การแจ้งเตือน',
+                    onTap: () => context.push(AppRoutes.notification),
+                    isDarkMode: isDarkMode,
+                  ),
+                  _buildMenuItemCard(
+                    icon: Icons.shield_outlined,
+                    title: 'ความปลอดภัย',
+                    onTap: () => _showSecurityDialog(isDarkMode),
+                    isDarkMode: isDarkMode,
+                  ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
