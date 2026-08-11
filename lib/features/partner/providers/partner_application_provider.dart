@@ -1,4 +1,12 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+enum ApplicationStatus {
+  submitted,
+  documentReview,
+  preApproved,
+  approved,
+}
 
 class PartnerApplicationModel {
   final String fullName;
@@ -16,6 +24,8 @@ class PartnerApplicationModel {
   final bool bankBookUploaded;
   final int photosUploadedCount;
   final DateTime submittedAt;
+  final ApplicationStatus status;
+  final String currentStatusText;
 
   const PartnerApplicationModel({
     required this.fullName,
@@ -33,18 +43,95 @@ class PartnerApplicationModel {
     required this.bankBookUploaded,
     required this.photosUploadedCount,
     required this.submittedAt,
+    this.status = ApplicationStatus.submitted,
+    this.currentStatusText = 'ยื่นใบสมัครเรียบร้อยแล้ว อยู่ระหว่างตรวจสอบเอกสาร',
+  });
+
+  PartnerApplicationModel copyWith({
+    String? fullName,
+    String? phone,
+    String? email,
+    String? address,
+    String? vehicleType,
+    String? brand,
+    String? model,
+    String? color,
+    String? plate,
+    bool? idCardUploaded,
+    bool? driverLicenseUploaded,
+    bool? vehicleDocUploaded,
+    bool? bankBookUploaded,
+    int? photosUploadedCount,
+    DateTime? submittedAt,
+    ApplicationStatus? status,
+    String? currentStatusText,
+  }) {
+    return PartnerApplicationModel(
+      fullName: fullName ?? this.fullName,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      address: address ?? this.address,
+      vehicleType: vehicleType ?? this.vehicleType,
+      brand: brand ?? this.brand,
+      model: model ?? this.model,
+      color: color ?? this.color,
+      plate: plate ?? this.plate,
+      idCardUploaded: idCardUploaded ?? this.idCardUploaded,
+      driverLicenseUploaded: driverLicenseUploaded ?? this.driverLicenseUploaded,
+      vehicleDocUploaded: vehicleDocUploaded ?? this.vehicleDocUploaded,
+      bankBookUploaded: bankBookUploaded ?? this.bankBookUploaded,
+      photosUploadedCount: photosUploadedCount ?? this.photosUploadedCount,
+      submittedAt: submittedAt ?? this.submittedAt,
+      status: status ?? this.status,
+      currentStatusText: currentStatusText ?? this.currentStatusText,
+    );
+  }
+}
+
+class SystemNotification {
+  final String id;
+  final String title;
+  final String body;
+  final DateTime timestamp;
+  final bool isRead;
+
+  SystemNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.timestamp,
+    this.isRead = false,
   });
 }
 
 class PartnerApplicationNotifier extends Notifier<PartnerApplicationModel?> {
+  Timer? _statusTimer;
+
   @override
   PartnerApplicationModel? build() => null;
 
   void submitApplication(PartnerApplicationModel app) {
-    state = app;
+    state = app.copyWith(
+      status: ApplicationStatus.submitted,
+      currentStatusText: 'ยื่นใบสมัครเรียบร้อยแล้ว อยู่ระหว่างตรวจสอบเอกสาร',
+    );
+
+    // Cancel existing timer if any
+    _statusTimer?.cancel();
+
+    // Periodic status updates (Simulate rounds of status updates)
+    _statusTimer = Timer(const Duration(seconds: 15), () {
+      if (state != null) {
+        state = state!.copyWith(
+          status: ApplicationStatus.documentReview,
+          currentStatusText: 'ทีมงานกำลังตรวจสอบเอกสารและข้อมูลรถของคุณอย่างละเอียดยิบ',
+        );
+      }
+    });
   }
 
   void clear() {
+    _statusTimer?.cancel();
     state = null;
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class LocationSelector extends StatefulWidget {
+import '../../../core/providers/theme_provider.dart';
+
+class LocationSelector extends ConsumerStatefulWidget {
   final String initialLocation;
   final ValueChanged<String>? onLocationChanged;
 
@@ -12,10 +15,10 @@ class LocationSelector extends StatefulWidget {
   });
 
   @override
-  State<LocationSelector> createState() => _LocationSelectorState();
+  ConsumerState<LocationSelector> createState() => _LocationSelectorState();
 }
 
-class _LocationSelectorState extends State<LocationSelector> {
+class _LocationSelectorState extends ConsumerState<LocationSelector> {
   late String _selectedLocation;
 
   final List<String> _provinces = const [
@@ -45,6 +48,13 @@ class _LocationSelectorState extends State<LocationSelector> {
 
         return StatefulBuilder(
           builder: (context, setStateDialog) {
+            final isDarkMode = ref.watch(themeProvider);
+            final dialogBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+            final searchBg = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
+            final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+            final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+            final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
             final filteredProvinces = _provinces
                 .where(
                   (province) => province.contains(searchQuery),
@@ -52,6 +62,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                 .toList();
 
             return Dialog(
+              backgroundColor: dialogBg,
               insetPadding: const EdgeInsets.symmetric(
                 horizontal: 24,
                 vertical: 24,
@@ -70,9 +81,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // =========================
                       // TITLE
-                      // =========================
                       Row(
                         children: [
                           const Icon(
@@ -87,7 +96,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                               style: GoogleFonts.kanit(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1F2937),
+                                color: textColor,
                               ),
                             ),
                           ),
@@ -95,9 +104,9 @@ class _LocationSelectorState extends State<LocationSelector> {
                             onPressed: () {
                               Navigator.of(dialogContext).pop();
                             },
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close_rounded,
-                              color: Color(0xFF64748B),
+                              color: subTextColor,
                             ),
                           ),
                         ],
@@ -105,9 +114,7 @@ class _LocationSelectorState extends State<LocationSelector> {
 
                       const SizedBox(height: 12),
 
-                      // =========================
-                      // SEARCH
-                      // =========================
+                      // SEARCH FIELD
                       TextField(
                         onChanged: (value) {
                           setStateDialog(() {
@@ -116,35 +123,31 @@ class _LocationSelectorState extends State<LocationSelector> {
                         },
                         style: GoogleFonts.kanit(
                           fontSize: 14,
-                          color: const Color(0xFF1F2937),
+                          color: textColor,
                         ),
                         decoration: InputDecoration(
                           hintText: 'ค้นหาจังหวัด...',
                           hintStyle: GoogleFonts.kanit(
                             fontSize: 14,
-                            color: const Color(0xFF94A3B8),
+                            color: subTextColor,
                           ),
                           prefixIcon: const Icon(
                             Icons.search_rounded,
                             color: Color(0xFF1C7FF6),
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: searchBg,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 12,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
-                            ),
+                            borderSide: BorderSide(color: borderColor),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
-                            ),
+                            borderSide: BorderSide(color: borderColor),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -158,9 +161,7 @@ class _LocationSelectorState extends State<LocationSelector> {
 
                       const SizedBox(height: 12),
 
-                      // =========================
                       // PROVINCE LIST
-                      // =========================
                       SizedBox(
                         height: 280,
                         child: filteredProvinces.isEmpty
@@ -169,7 +170,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                                   'ไม่พบจังหวัด',
                                   style: GoogleFonts.kanit(
                                     fontSize: 15,
-                                    color: const Color(0xFF64748B),
+                                    color: subTextColor,
                                   ),
                                 ),
                               )
@@ -177,21 +178,17 @@ class _LocationSelectorState extends State<LocationSelector> {
                                 padding: EdgeInsets.zero,
                                 itemCount: filteredProvinces.length,
                                 separatorBuilder: (context, index) {
-                                  return const Divider(
+                                  return Divider(
                                     height: 1,
-                                    color: Color(0xFFE2E8F0),
+                                    color: borderColor,
                                   );
                                 },
                                 itemBuilder: (context, index) {
-                                  final province =
-                                      filteredProvinces[index];
-
-                                  final isSelected =
-                                      province == _selectedLocation;
+                                  final province = filteredProvinces[index];
+                                  final isSelected = province == _selectedLocation;
 
                                   return ListTile(
-                                    contentPadding:
-                                        const EdgeInsets.symmetric(
+                                    contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 8,
                                       vertical: 2,
                                     ),
@@ -204,7 +201,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                                             : FontWeight.normal,
                                         color: isSelected
                                             ? const Color(0xFF1C7FF6)
-                                            : const Color(0xFF1F2937),
+                                            : textColor,
                                       ),
                                     ),
                                     trailing: isSelected
@@ -212,9 +209,9 @@ class _LocationSelectorState extends State<LocationSelector> {
                                             Icons.check_circle_rounded,
                                             color: Color(0xFF1C7FF6),
                                           )
-                                        : const Icon(
+                                        : Icon(
                                             Icons.chevron_right_rounded,
-                                            color: Color(0xFFCBD5E1),
+                                            color: subTextColor,
                                           ),
                                     onTap: () {
                                       setState(() {
@@ -244,6 +241,10 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
+    final buttonBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF334155);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -254,7 +255,7 @@ class _LocationSelectorState extends State<LocationSelector> {
           height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: buttonBg,
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
               color: const Color(0xFF1C7FF6),
@@ -262,7 +263,7 @@ class _LocationSelectorState extends State<LocationSelector> {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1C7FF6).withValues(alpha: 0.10),
+                color: const Color(0xFF1C7FF6).withValues(alpha: isDarkMode ? 0.2 : 0.10),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -285,7 +286,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.kanit(
                     fontSize: 16,
-                    color: const Color(0xFF334155),
+                    color: textColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

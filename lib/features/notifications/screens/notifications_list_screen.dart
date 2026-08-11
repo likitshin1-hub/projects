@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/theme_provider.dart';
 
+import '../../partner/providers/partner_application_provider.dart';
+
 class NotificationsListScreen extends ConsumerWidget {
   const NotificationsListScreen({super.key});
 
@@ -12,6 +14,7 @@ class NotificationsListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
+    final partnerApp = ref.watch(partnerApplicationProvider);
 
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
 
@@ -37,75 +40,41 @@ class NotificationsListScreen extends ConsumerWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(32),
-                    bottomRight: Radius.circular(32),
-                  ),
                 ),
-                padding: EdgeInsets.fromLTRB(12, statusBarHeight + 8, 12, 0),
-                child: Column(
+                padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            if (context.canPop()) {
-                              context.pop();
-                            } else {
-                              context.go(AppRoutes.home);
-                            }
-                          },
-                        ),
-                        Text(
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                      onPressed: () => context.pop(),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
                           'แจ้งเตือน',
                           style: GoogleFonts.kanit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                        // Right notification bell with active red badge dot
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            const Icon(
-                              Icons.notifications_none_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            Positioned(
-                              top: 1,
-                              right: 1,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
+                    const SizedBox(width: 48),
                   ],
                 ),
               ),
 
-              // Segmented Tab Overlapping Card
+              // TOP SUMMARY FLOATING CARD
               Positioned(
-                bottom: -28,
                 left: 20,
                 right: 20,
+                bottom: -32,
                 child: Container(
-                  height: 56,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
                     color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -114,27 +83,47 @@ class NotificationsListScreen extends ConsumerWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.06),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.notifications_none_rounded,
-                        color: Color(0xFF1C7FF6),
-                        size: 20,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F2FE),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_active_rounded,
+                          color: Color(0xFF1C7FF6),
+                          size: 24,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'แจ้งเตือนทั้งหมด',
-                        style: GoogleFonts.kanit(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1C7FF6),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'แจ้งเตือนทั้งหมด',
+                              style: GoogleFonts.kanit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                              ),
+                            ),
+                            Text(
+                              partnerApp != null ? 'มี 4 รายการใหม่ที่คุณยังไม่อ่าน' : 'มี 3 รายการใหม่ที่คุณยังไม่อ่าน',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12.5,
+                                color: subTextColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -144,23 +133,6 @@ class NotificationsListScreen extends ConsumerWidget {
             ],
           ),
 
-          const SizedBox(height: 44), // Gap for the overlapping card
-
-          // ==========================================
-          // SUB-FILTER CHIP ("วันนี้")
-          // ==========================================
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
@@ -200,6 +172,49 @@ class NotificationsListScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               physics: const BouncingScrollPhysics(),
               children: [
+                if (partnerApp != null) ...[
+                  // Card 0: สถานะการสมัครพาร์ทเนอร์คนขับ (Dynamic Periodic System Notification)
+                  _buildNotificationCard(
+                    context,
+                    ref,
+                    sideColor: const Color(0xFF10B981),
+                    iconBgColor: const Color(0xFFECFDF5),
+                    iconColor: const Color(0xFF10B981),
+                    icon: Icons.badge_rounded,
+                    title: 'สถานะใบสมัครพาร์ทเนอร์คนขับ',
+                    time: 'เมื่อครู่',
+                    dotColor: const Color(0xFF10B981),
+                    customSubtitle: RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.kanit(
+                          fontSize: 13,
+                          color: subTextColor,
+                          height: 1.35,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text: 'อัปเดตระบบตรวจสอบ: ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(text: partnerApp.currentStatusText),
+                        ],
+                      ),
+                    ),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'สถานะใบสมัครปัจจุบัน: ${partnerApp.currentStatusText}',
+                            style: GoogleFonts.kanit(),
+                          ),
+                          backgroundColor: const Color(0xFF10B981),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+
                 // Card 1: คำสั่งซื้อจัดส่งแล้ว (Blue theme)
                 _buildNotificationCard(
                   context,

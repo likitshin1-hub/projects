@@ -14,6 +14,7 @@ import '../widgets/bottom_navigation.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../history/screens/delivery_history_page.dart';
 import '../../../shared/widgets/app_drawer.dart';
+import '../../partner/providers/partner_application_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -429,16 +430,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   name: 'TBMOVEHUB Support',
                   isVerified: true,
-                  message: 'สวัสดีครับ 👋 มีอะไรให้เราช่วยไหมครับ?',
-                  time: '09:30',
-                  badgeCount: 2,
+                  message: ref.watch(partnerApplicationProvider) != null
+                      ? '📢 [อัปเดตใบสมัครคนขับ]: ${ref.watch(partnerApplicationProvider)!.currentStatusText}'
+                      : 'สวัสดีครับ 👋 มีอะไรให้เราช่วยไหมครับ?',
+                  time: ref.watch(partnerApplicationProvider) != null ? 'เมื่อครู่' : '09:30',
+                  badgeCount: ref.watch(partnerApplicationProvider) != null ? 3 : 2,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('กำลังเชื่อมต่อฝ่ายบริการลูกค้า...', style: GoogleFonts.kanit()),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    context.push(AppRoutes.chat);
                   },
                 ),
                 Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),

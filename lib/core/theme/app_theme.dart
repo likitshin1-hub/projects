@@ -82,7 +82,7 @@ class AppTheme {
 
       textTheme: AppTextTheme.darkTextTheme,
 
-      inputDecorationTheme: AppInputTheme.lightInputTheme,
+      inputDecorationTheme: AppInputTheme.darkInputTheme,
 
       appBarTheme: const AppBarTheme(
         elevation: 0,

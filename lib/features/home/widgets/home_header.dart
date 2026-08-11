@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../partner/providers/partner_application_provider.dart';
 
-class HomeHeader extends StatelessWidget {
+class HomeHeader extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
 
   const HomeHeader({
@@ -12,8 +14,10 @@ class HomeHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final partnerApp = ref.watch(partnerApplicationProvider);
+    final notificationCount = partnerApp != null ? 4 : 3;
 
     return Container(
       width: double.infinity,
@@ -23,8 +27,8 @@ class HomeHeader extends StatelessWidget {
         right: 20,
         bottom: 32,
       ),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           colors: [
             Color(0xFF1C7FF6),
             Color(0xFF0056C6),
@@ -32,7 +36,7 @@ class HomeHeader extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
@@ -93,7 +97,7 @@ class HomeHeader extends StatelessWidget {
                           minHeight: 14,
                         ),
                         child: Text(
-                          '3',
+                          '$notificationCount',
                           style: GoogleFonts.kanit(
                             fontSize: 8,
                             color: Colors.white,
