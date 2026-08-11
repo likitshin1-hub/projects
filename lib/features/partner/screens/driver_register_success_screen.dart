@@ -17,8 +17,6 @@ class DriverRegisterSuccessScreen extends ConsumerWidget {
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
-    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
       backgroundColor: bgColor,
