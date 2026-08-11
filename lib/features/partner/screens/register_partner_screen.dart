@@ -103,24 +103,22 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
 
     final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim();
 
-    ref.read(partnerApplicationProvider.notifier).submitApplication(
-      PartnerApplicationModel(
-        fullName: fullName.isEmpty ? 'ไม่ระบุชื่อ' : fullName,
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        address: _addressController.text.trim(),
-        vehicleType: _vehicleTypeController.text.trim(),
-        brand: _brandController.text.trim(),
-        model: _modelController.text.trim(),
-        color: _colorController.text.trim(),
-        plate: _plateController.text.trim(),
-        idCardUploaded: _idCardUploaded,
-        driverLicenseUploaded: _driverLicenseUploaded,
-        vehicleDocUploaded: _vehicleDocUploaded,
-        bankBookUploaded: _bankBookUploaded,
-        photosUploadedCount: photoCount,
-        submittedAt: DateTime.now(),
-      ),
+    ref.read(partnerApplicationProvider.notifier).state = PartnerApplicationModel(
+      fullName: fullName.isEmpty ? 'ไม่ระบุชื่อ' : fullName,
+      phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(),
+      address: _addressController.text.trim(),
+      vehicleType: _vehicleTypeController.text.trim(),
+      brand: _brandController.text.trim(),
+      model: _modelController.text.trim(),
+      color: _colorController.text.trim(),
+      plate: _plateController.text.trim(),
+      idCardUploaded: _idCardUploaded,
+      driverLicenseUploaded: _driverLicenseUploaded,
+      vehicleDocUploaded: _vehicleDocUploaded,
+      bankBookUploaded: _bankBookUploaded,
+      photosUploadedCount: photoCount,
+      submittedAt: DateTime.now(),
     );
 
     setState(() => _isSubmitting = false);

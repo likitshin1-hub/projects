@@ -36,19 +36,5 @@ class PartnerApplicationModel {
   });
 }
 
-class PartnerApplicationNotifier extends StateNotifier<PartnerApplicationModel?> {
-  PartnerApplicationNotifier() : super(null);
-
-  void submitApplication(PartnerApplicationModel app) {
-    state = app;
-  }
-
-  void clearApplication() {
-    state = null;
-  }
-}
-
 final partnerApplicationProvider =
-    StateNotifierProvider<PartnerApplicationNotifier, PartnerApplicationModel?>(
-  (ref) => PartnerApplicationNotifier(),
-);
+    StateProvider<PartnerApplicationModel?>((ref) => null);
