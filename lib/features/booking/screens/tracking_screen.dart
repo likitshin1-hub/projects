@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/theme_provider.dart';
@@ -17,9 +18,16 @@ class TrackingScreen extends ConsumerStatefulWidget {
 
 class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTickerProviderStateMixin {
   final int _currentStep = 2; // 0=รับออเดอร์, 1=กำลังไปรับ, 2=กำลังส่ง, 3=สำเร็จ
-  double _zoomLevel = 1.0;
-  Offset _mapOffset = Offset.zero;
+  GoogleMapController? _mapController;
   late AnimationController _pulseController;
+
+  // Real GPS Coordinates (Chonburi / Bangsaen Route)
+  static const LatLng _pickupLocation = LatLng(13.2849, 100.9238);
+  static const LatLng _driverLocation = LatLng(13.2895, 100.9285);
+  static const LatLng _dropoffLocation = LatLng(13.2970, 100.9350);
+
+  final Set<Marker> _markers = {};
+  final Set<Polyline> _polylines = {};
 
   @override
   void initState() {
@@ -28,19 +36,68 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
+
+    _initMapMarkersAndRoutes();
+  }
+
+  void _initMapMarkersAndRoutes() {
+    // Pickup Marker (Green)
+    _markers.add(
+      const Marker(
+        markerId: MarkerId('pickup'),
+        position: _pickupLocation,
+        infoWindow: InfoWindow(title: 'จุดรับสินค้า', snippet: 'คลัง TB MOVEHUB'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      ),
+    );
+
+    // Dropoff Marker (Red)
+    _markers.add(
+      const Marker(
+        markerId: MarkerId('dropoff'),
+        position: _dropoffLocation,
+        infoWindow: InfoWindow(title: 'จุดส่งสินค้า', snippet: 'บ้านบางแสน ชลบุรี'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      ),
+    );
+
+    // Driver Marker (Blue)
+    _markers.add(
+      const Marker(
+        markerId: MarkerId('driver'),
+        position: _driverLocation,
+        infoWindow: InfoWindow(title: 'คนขับ (สมปอง มีดี)', snippet: 'กำลังเดินทางไปส่งสินค้า'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      ),
+    );
+
+    // Polyline Route Path Line
+    _polylines.add(
+      const Polyline(
+        polylineId: PolylineId('route'),
+        points: [_pickupLocation, _driverLocation, _dropoffLocation],
+        color: Color(0xFF1C7FF6),
+        width: 6,
+      ),
+    );
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
-  void _resetMapPosition() {
-    setState(() {
-      _mapOffset = Offset.zero;
-      _zoomLevel = 1.0;
-    });
+  void _recenterMap() {
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        const CameraPosition(
+          target: _driverLocation,
+          zoom: 15.0,
+        ),
+      ),
+    );
   }
 
   @override
@@ -105,41 +162,32 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
           ),
 
           // ==========================================
-          // 2. REALISTIC GOOGLE MAPS SECTION (TOP HALF)
+          // 2. REAL GOOGLE MAPS SECTION (TOP HALF)
           // ==========================================
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.38,
             child: ClipRect(
               child: Stack(
                 children: [
-                  // Interactive Map Canvas
-                  GestureDetector(
-                    onPanUpdate: (details) {
-                      setState(() {
-                        _mapOffset += details.delta;
-                      });
-                    },
-                    child: Transform.translate(
-                      offset: _mapOffset,
-                      child: Transform.scale(
-                        scale: _zoomLevel,
-                        child: AnimatedBuilder(
-                          animation: _pulseController,
-                          builder: (context, child) {
-                            return CustomPaint(
-                              size: Size.infinite,
-                              painter: _RealisticGoogleMapPainter(
-                                isDarkMode: isDarkMode,
-                                pulseProgress: _pulseController.value,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                  // Native / Web Google Map Widget with Fallback
+                  GoogleMap(
+                    initialCameraPosition: const CameraPosition(
+                      target: _driverLocation,
+                      zoom: 14.5,
                     ),
+                    onMapCreated: (controller) {
+                      _mapController = controller;
+                    },
+                    markers: _markers,
+                    polylines: _polylines,
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                    compassEnabled: true,
+                    mapType: MapType.normal,
                   ),
 
-                  // TOP LEFT: GOOGLE MAPS WATERMARK BADGE
+                  // TOP LEFT: GOOGLE MAPS LIVE BADGE
                   Positioned(
                     top: 12,
                     left: 14,
@@ -163,7 +211,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           const Icon(Icons.map_rounded, color: Color(0xFF4285F4), size: 15),
                           const SizedBox(width: 5),
                           Text(
-                            'Google Maps 3D Live',
+                            'Google Maps Official SDK',
                             style: GoogleFonts.kanit(
                               fontSize: 11.5,
                               fontWeight: FontWeight.bold,
@@ -175,45 +223,30 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                     ),
                   ),
 
-                  // BOTTOM RIGHT: MAP CONTROLS (Zoom +, Zoom -, Re-center)
+                  // BOTTOM RIGHT: MAP RE-CENTER BUTTON
                   Positioned(
                     bottom: 12,
                     right: 14,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildMapControlButton(
-                          icon: Icons.my_location_rounded,
-                          color: const Color(0xFF1C7FF6),
-                          onTap: _resetMapPosition,
-                          isDark: isDarkMode,
-                          borderColor: borderColor,
+                    child: InkWell(
+                      onTap: _recenterMap,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: borderColor),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.1),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        _buildMapControlButton(
-                          icon: Icons.add_rounded,
-                          color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
-                          onTap: () {
-                            setState(() {
-                              _zoomLevel = (_zoomLevel + 0.15).clamp(0.8, 2.0);
-                            });
-                          },
-                          isDark: isDarkMode,
-                          borderColor: borderColor,
-                        ),
-                        const SizedBox(height: 6),
-                        _buildMapControlButton(
-                          icon: Icons.remove_rounded,
-                          color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
-                          onTap: () {
-                            setState(() {
-                              _zoomLevel = (_zoomLevel - 0.15).clamp(0.8, 2.0);
-                            });
-                          },
-                          isDark: isDarkMode,
-                          borderColor: borderColor,
-                        ),
-                      ],
+                        child: const Icon(Icons.my_location_rounded, color: Color(0xFF1C7FF6), size: 22),
+                      ),
                     ),
                   ),
                 ],
@@ -221,7 +254,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
             ),
           ),
 
-          // Divider Bar
+          // Divider Line
           Container(
             height: 3,
             color: const Color(0xFF1C7FF6),
@@ -236,9 +269,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  // ------------------------------------------
                   // CARD 1: DRIVER INFO CARD
-                  // ------------------------------------------
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -255,7 +286,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                     ),
                     child: Row(
                       children: [
-                        // Avatar with status ring
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
@@ -291,7 +321,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                         ),
                         const SizedBox(width: 14),
 
-                        // Driver info text
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +378,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           ),
                         ),
 
-                        // Chat / Call Action buttons
                         Row(
                           children: [
                             InkWell(
@@ -388,9 +416,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                   ),
                   const SizedBox(height: 12),
 
-                  // ------------------------------------------
                   // CARD 2: TRACKING TIMELINE STATUS CARD
-                  // ------------------------------------------
                   InkWell(
                     onTap: () => context.push('${AppRoutes.trackingDetail}/$displayBookingId'),
                     borderRadius: BorderRadius.circular(22),
@@ -453,7 +479,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           ),
                           const SizedBox(height: 16),
 
-                          // Steps progress bar
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -472,9 +497,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                   ),
                   const SizedBox(height: 12),
 
-                  // ------------------------------------------
                   // CARD 3: ORDER DETAILS SUMMARY CARD
-                  // ------------------------------------------
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -542,9 +565,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                   ),
                   const SizedBox(height: 14),
 
-                  // ------------------------------------------
                   // CARD 4: FULL DETAILS BUTTON
-                  // ------------------------------------------
                   SizedBox(
                     width: double.infinity,
                     height: 52,
@@ -581,36 +602,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMapControlButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-    required bool isDark,
-    required Color borderColor,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(icon, color: color, size: 20),
       ),
     );
   }
@@ -723,247 +714,5 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
         ),
       ),
     );
-  }
-}
-
-// Custom Painter for Realistic Google Maps Rendering
-class _RealisticGoogleMapPainter extends CustomPainter {
-  final bool isDarkMode;
-  final double pulseProgress;
-
-  _RealisticGoogleMapPainter({
-    required this.isDarkMode,
-    required this.pulseProgress,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // 1. Base Map Background Tile Color
-    final baseLandColor = isDarkMode ? const Color(0xFF191A1A) : const Color(0xFFF4F3F0);
-    canvas.drawRect(Offset.zero & size, Paint()..color = baseLandColor);
-
-    // 2. Draw Parks / Greenery Areas
-    final parkPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF1D2B24) : const Color(0xFFC8E6C9).withValues(alpha: 0.7)
-      ..style = PaintingStyle.fill;
-
-    final parkPath1 = Path()
-      ..addOval(Rect.fromLTWH(size.width * 0.05, size.height * 0.1, 140, 90));
-    final parkPath2 = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.65, size.height * 0.55, 120, 110),
-        const Radius.circular(16),
-      ));
-    canvas.drawPath(parkPath1, parkPaint);
-    canvas.drawPath(parkPath2, parkPaint);
-
-    // 3. Draw Water River Stream
-    final waterPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF121E2C) : const Color(0xFFAAD3DF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 24
-      ..strokeCap = StrokeCap.round;
-
-    final riverPath = Path();
-    riverPath.moveTo(-20, size.height * 0.85);
-    riverPath.cubicTo(
-      size.width * 0.3, size.height * 0.95,
-      size.width * 0.5, size.height * 0.65,
-      size.width + 20, size.height * 0.75,
-    );
-    canvas.drawPath(riverPath, waterPaint);
-
-    // 4. Draw Minor & Major Roads (Google Maps Road Styling)
-    final minorRoadPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF2C2D2E) : Colors.white
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke;
-
-    final majorRoadPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF38393A) : const Color(0xFFFFD54F)
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke;
-
-    // Secondary streets
-    canvas.drawLine(Offset(0, size.height * 0.25), Offset(size.width, size.height * 0.25), minorRoadPaint);
-    canvas.drawLine(Offset(0, size.height * 0.5), Offset(size.width, size.height * 0.5), minorRoadPaint);
-    canvas.drawLine(Offset(size.width * 0.3, 0), Offset(size.width * 0.3, size.height), minorRoadPaint);
-    canvas.drawLine(Offset(size.width * 0.7, 0), Offset(size.width * 0.7, size.height), minorRoadPaint);
-
-    // Highway / Main Road
-    final highwayPath = Path();
-    highwayPath.moveTo(size.width * 0.1, 0);
-    highwayPath.lineTo(size.width * 0.85, size.height);
-    canvas.drawPath(highwayPath, majorRoadPaint);
-
-    // 5. Draw GPS Navigation Route Line (Vibrant Blue Google Route)
-    final routeGlowPaint = Paint()
-      ..color = const Color(0xFF4285F4).withValues(alpha: 0.35)
-      ..strokeWidth = 14
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final routePathPaint = Paint()
-      ..color = const Color(0xFF1A73E8)
-      ..strokeWidth = 6.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final routePath = Path();
-    final startPt = Offset(size.width * 0.18, size.height * 0.78);
-    final driverPt = Offset(size.width * 0.42, size.height * 0.52);
-    final midPt = Offset(size.width * 0.62, size.height * 0.42);
-    final destPt = Offset(size.width * 0.82, size.height * 0.22);
-
-    routePath.moveTo(startPt.dx, startPt.dy);
-    routePath.lineTo(driverPt.dx, driverPt.dy);
-    routePath.lineTo(midPt.dx, midPt.dy);
-    routePath.lineTo(destPt.dx, destPt.dy);
-
-    canvas.drawPath(routePath, routeGlowPaint);
-    canvas.drawPath(routePath, routePathPaint);
-
-    // 6. Draw Pickup Pin (Green)
-    _drawLocationPin(
-      canvas,
-      startPt,
-      const Color(0xFF22C55E),
-      'จุดรับ',
-      Icons.store_rounded,
-      isDarkMode,
-    );
-
-    // 7. Draw Dropoff Pin (Red)
-    _drawLocationPin(
-      canvas,
-      destPt,
-      const Color(0xFFEF4444),
-      'จุดส่ง (บ้านบางแสน)',
-      Icons.location_on_rounded,
-      isDarkMode,
-    );
-
-    // 8. Draw Live Driver Vehicle Pin with Pulse Ring
-    final pulseRadius = 14 + (pulseProgress * 16);
-    final pulseOpacity = (1.0 - pulseProgress).clamp(0.0, 1.0);
-    final pulsePaint = Paint()
-      ..color = const Color(0xFF1C7FF6).withValues(alpha: pulseOpacity * 0.5)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(driverPt, pulseRadius, pulsePaint);
-
-    // Driver vehicle circle marker
-    final vehicleBgPaint = Paint()..color = const Color(0xFF1C7FF6);
-    final vehicleBorderPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(driverPt, 16, vehicleBgPaint);
-    canvas.drawCircle(driverPt, 16, vehicleBorderPaint);
-
-    // Draw driver popup bubble above marker
-    _drawDriverBubble(canvas, Offset(driverPt.dx, driverPt.dy - 28), isDarkMode);
-  }
-
-  void _drawLocationPin(
-    Canvas canvas,
-    Offset position,
-    Color color,
-    String label,
-    IconData icon,
-    bool isDark,
-  ) {
-    // Pin Shadow
-    final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.25)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawCircle(Offset(position.dx, position.dy + 2), 10, shadowPaint);
-
-    // Pin Body
-    final pinPaint = Paint()..color = color;
-    final pinBorder = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(position, 10, pinPaint);
-    canvas.drawCircle(position, 10, pinBorder);
-
-    // Label Text Box above Pin
-    final textSpan = TextSpan(
-      text: label,
-      style: GoogleFonts.kanit(
-        fontSize: 10.5,
-        fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white : const Color(0xFF1F2937),
-      ),
-    );
-
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final bgRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: Offset(position.dx, position.dy - 22),
-        width: textPainter.width + 12,
-        height: textPainter.height + 6,
-      ),
-      const Radius.circular(8),
-    );
-
-    final bgPaint = Paint()..color = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderPaint = Paint()
-      ..color = color
-      ..strokeWidth = 1.2
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawRRect(bgRect, bgPaint);
-    canvas.drawRRect(bgRect, borderPaint);
-
-    textPainter.paint(
-      canvas,
-      Offset(position.dx - (textPainter.width / 2), position.dy - 22 - (textPainter.height / 2)),
-    );
-  }
-
-  void _drawDriverBubble(Canvas canvas, Offset position, bool isDark) {
-    final textSpan = TextSpan(
-      text: '🛵 คนขับกำลังไป (15 นาที)',
-      style: GoogleFonts.kanit(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-    );
-
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final bgRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: position,
-        width: textPainter.width + 16,
-        height: textPainter.height + 8,
-      ),
-      const Radius.circular(10),
-    );
-
-    final bgPaint = Paint()..color = const Color(0xFF1C7FF6);
-    canvas.drawRRect(bgRect, bgPaint);
-
-    textPainter.paint(
-      canvas,
-      Offset(position.dx - (textPainter.width / 2), position.dy - (textPainter.height / 2)),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _RealisticGoogleMapPainter oldDelegate) {
-    return oldDelegate.isDarkMode != isDarkMode || oldDelegate.pulseProgress != pulseProgress;
   }
 }
