@@ -30,6 +30,18 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   static const LatLng _driverLocation = LatLng(13.2895, 100.9285);
   static const LatLng _dropoffLocation = LatLng(13.2970, 100.9350);
 
+  // Detailed Waypoints following actual roads and street intersections
+  static const List<LatLng> _actualRoadPoints = [
+    LatLng(13.2849, 100.9238), // 📍 จุดรับ: ถนนลงหาดบางแสน
+    LatLng(13.2850, 100.9260), // ตรงไปตามถนนลงหาดบางแสน
+    LatLng(13.2868, 100.9261), // เลี้ยวเข้าถนนหน้าโรงพยาบาล ม.บูรพา
+    LatLng(13.2885, 100.9270), // ผ่านสถาบันวิทยาศาสตร์ทางทะเล
+    LatLng(13.2895, 100.9285), // 🛵 ตำแหน่งคนขับปัจจุบัน (สี่แยกไฟแดง)
+    LatLng(13.2915, 100.9308), // ตรงไปตามถนนสุขุมวิท-บางแสน
+    LatLng(13.2942, 100.9332), // เลี้ยวเข้าซอยบางแสนสาย 1
+    LatLng(13.2970, 100.9350), // 🏁 จุดส่งสินค้า: บ้านบางแสน
+  ];
+
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
 
@@ -50,7 +62,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       Marker(
         markerId: const MarkerId('pickup'),
         position: _pickupLocation,
-        infoWindow: const InfoWindow(title: 'จุดรับสินค้า', snippet: 'คลัง TB MOVEHUB'),
+        infoWindow: const InfoWindow(title: 'จุดรับสินค้า', snippet: 'คลัง TB MOVEHUB (ถนนลงหาดบางแสน)'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       ),
     );
@@ -75,13 +87,16 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       ),
     );
 
-    // Polyline Route Path Line
+    // Polyline Route Path Line following real streets & curves
     _polylines.add(
       const Polyline(
         polylineId: PolylineId('route'),
-        points: [_pickupLocation, _driverLocation, _dropoffLocation],
+        points: _actualRoadPoints,
         color: Color(0xFF1C7FF6),
         width: 6,
+        jointType: JointType.round,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
       ),
     );
   }
