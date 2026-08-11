@@ -261,6 +261,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildMessagesTab() {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDarkMode = ref.watch(themeProvider);
 
     final categories = ['ทั้งหมด', 'การขนส่ง', 'คนขับ', 'ฝ่ายบริการ', 'โปรโมชั่น'];
 

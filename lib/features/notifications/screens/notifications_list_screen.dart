@@ -203,6 +203,7 @@ class NotificationsListScreen extends ConsumerWidget {
                 // Card 1: คำสั่งซื้อจัดส่งแล้ว (Blue theme)
                 _buildNotificationCard(
                   context,
+                  ref,
                   sideColor: const Color(0xFF1C7FF6),
                   iconBgColor: const Color(0xFFE8F2FE),
                   iconColor: const Color(0xFF1C7FF6),
@@ -230,6 +231,7 @@ class NotificationsListScreen extends ConsumerWidget {
                 // Card 2: ชำระเงินสำเร็จ (Green theme)
                 _buildNotificationCard(
                   context,
+                  ref,
                   sideColor: const Color(0xFF22C55E),
                   iconBgColor: const Color(0xFFE8F8EE),
                   iconColor: const Color(0xFF22C55E),
@@ -273,6 +275,7 @@ class NotificationsListScreen extends ConsumerWidget {
                 // Card 3: แจ้งเตือนโปรโมชั่น (Orange theme)
                 _buildNotificationCard(
                   context,
+                  ref,
                   sideColor: const Color(0xFFFFB300),
                   iconBgColor: const Color(0xFFFFF8E1),
                   iconColor: const Color(0xFFFFB300),
@@ -331,7 +334,8 @@ class NotificationsListScreen extends ConsumerWidget {
   // NOTIFICATION LIST CARD HELPER
   // ==========================================
   Widget _buildNotificationCard(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required Color sideColor,
     required Color iconBgColor,
     required Color iconColor,

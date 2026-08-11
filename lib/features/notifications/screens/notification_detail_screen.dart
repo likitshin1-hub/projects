@@ -334,22 +334,26 @@ class NotificationDetailScreen extends ConsumerWidget {
 
                         // Info rows
                         _buildInfoRow(
+                          ref,
                           icon: Icons.inventory_2_rounded,
                           title: 'หมายเลขพัสดุ',
                           value: 'TH21549666541A',
                           isBold: true,
                         ),
                         _buildInfoRow(
+                          ref,
                           icon: Icons.calendar_today_rounded,
                           title: 'วันที่จัดส่ง',
                           value: '18 พ.ค. 2569 15:30น.',
                         ),
                         _buildInfoRow(
+                          ref,
                           icon: Icons.local_shipping_rounded,
                           title: 'จัดส่งโดย',
                           value: 'TB MOVEHUB',
                         ),
                         _buildInfoRow(
+                          ref,
                           icon: Icons.badge_rounded,
                           title: 'หมายเลขของเดอร์', // Typo matching the mockup exactly
                           value: bookingId,
@@ -422,22 +426,27 @@ class NotificationDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow({
+  Widget _buildInfoRow(
+    WidgetRef ref, {
     required IconData icon,
     required String title,
     required String value,
     bool isBold = false,
   }) {
+    final isDarkMode = ref.watch(themeProvider);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 icon,
                 size: 18,
-                color: Color(0xFF1C7FF6),
+                color: const Color(0xFF1C7FF6),
               ),
               const SizedBox(width: 10),
               Text(
