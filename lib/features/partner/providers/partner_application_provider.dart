@@ -36,5 +36,20 @@ class PartnerApplicationModel {
   });
 }
 
+class PartnerApplicationNotifier extends Notifier<PartnerApplicationModel?> {
+  @override
+  PartnerApplicationModel? build() => null;
+
+  void submitApplication(PartnerApplicationModel app) {
+    state = app;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
 final partnerApplicationProvider =
-    StateProvider<PartnerApplicationModel?>((ref) => null);
+    NotifierProvider<PartnerApplicationNotifier, PartnerApplicationModel?>(
+  PartnerApplicationNotifier.new,
+);
