@@ -8,6 +8,7 @@ import '../../../core/providers/theme_provider.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/partner_application_provider.dart';
+import '../repositories/partner_repository.dart';
 
 class RegisterPartnerScreen extends ConsumerStatefulWidget {
   const RegisterPartnerScreen({super.key});
@@ -156,7 +157,19 @@ class _RegisterPartnerScreenState extends ConsumerState<RegisterPartnerScreen> {
 
   void _submitForm() async {
     setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+
+    // Call PartnerRepository to send API request to Laravel MySQL API
+    final partnerRepo = PartnerRepository();
+    await partnerRepo.applyPartner(
+      nationalId: _idCardController.text.trim(),
+      licenseNumber: 'DL-${_idCardController.text.trim()}',
+      vehicleType: _vehicleTypeController.text.trim(),
+      brand: _brandController.text.trim(),
+      model: _modelController.text.trim(),
+      color: _colorController.text.trim(),
+      licensePlate: _plateController.text.trim(),
+    );
+
     if (!mounted) return;
 
     int photoCount = 0;

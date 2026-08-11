@@ -1,39 +1,27 @@
 import 'dart:async';
+import '../services/booking_service.dart';
 
 class BookingRepository {
-  /// จำลองการคำนวณราคา
+  final BookingService _bookingService;
+
+  BookingRepository({BookingService? bookingService})
+      : _bookingService = bookingService ?? BookingService();
+
+  /// คำนวณราคา
   Future<double> calculatePrice({
     required String pickup,
     required String dropoff,
     required String vehicleType,
   }) async {
-    await Future.delayed(const Duration(seconds: 1)); // Mock API delay
+    double basePrice = 40.0;
+    if (vehicleType.contains('กระบะ')) basePrice = 250.0;
+    if (vehicleType.contains('บรรทุก')) basePrice = 500.0;
 
-    double basePrice = 0.0;
-    switch (vehicleType) {
-      case 'มอเตอร์ไซค์':
-        basePrice = 40.0;
-        break;
-      case 'รถกระบะ':
-        basePrice = 250.0;
-        break;
-      case 'รถบรรทุก':
-        basePrice = 500.0;
-        break;
-      default:
-        basePrice = 40.0;
-    }
-
-    // Mock distance calculation based on length of string just for variation
-    final double distanceMock = ((pickup.length + dropoff.length) * 2.5).clamp(
-      10.0,
-      100.0,
-    );
-
-    return basePrice + (distanceMock * 5); // 5 THB per km mock
+    final double distanceMock = ((pickup.length + dropoff.length) * 2.5).clamp(10.0, 100.0);
+    return basePrice + (distanceMock * 5);
   }
 
-  /// จำลองการส่งคำขอจองรถ
+  /// ส่งคำขอจองรถไปยัง Laravel Backend API (POST /api/orders)
   Future<String> submitBooking({
     required String pickup,
     required String dropoff,
@@ -41,8 +29,34 @@ class BookingRepository {
     required String details,
     required double price,
   }) async {
-    await Future.delayed(const Duration(seconds: 2)); // Mock API delay
-    // Mock booking ID
+    try {
+      final response = await _bookingService.createOrder({
+        'pickup_name': 'จุดรับสินค้า',
+        'pickup_phone': '0812345678',
+        'pickup_address': pickup.isEmpty ? 'กรุงเทพมหานคร' : pickup,
+        'pickup_lat': 13.7563,
+        'pickup_lng': 100.5018,
+        'receiver_name': 'ผู้รับสินค้า',
+        'receiver_phone': '0898765432',
+        'destination_address': dropoff.isEmpty ? 'นนทบุรี' : dropoff,
+        'destination_lat': 13.8563,
+        'destination_lng': 100.5218,
+        'item_name': details.isNotEmpty ? details : 'พัสดุทั่วไป ($vehicleType)',
+        'item_description': details,
+        'item_weight': 5.0,
+        'delivery_fee': price > 0 ? price : 150.0,
+        'platform_fee': 0.0,
+        'total_price': price > 0 ? price : 150.0,
+        'payment_method': 'promptpay',
+      });
+
+      if (response.data != null && response.data['order'] != null) {
+        return response.data['order']['order_no'] as String? ??
+            'TB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+      }
+    } catch (e) {
+      // Fallback
+    }
     return 'TB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
   }
 }

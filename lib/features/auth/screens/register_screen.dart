@@ -29,9 +29,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
 
-  // ค่าเริ่มต้นของการสมัคร
-  String _role = 'customer';
-
   @override
   void dispose() {
     _firstNameController.dispose();

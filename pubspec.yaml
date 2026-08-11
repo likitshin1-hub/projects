@@ -59,6 +59,7 @@ flutter:
     - assets/images/banners/
     - assets/images/driver/
     - assets/images/placeholder/
+    - assets/images/icons/
     - assets/icons/
     - assets/svg/
     - assets/animations/
