@@ -25,21 +25,27 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   double _zoomLevel = 1.0;
   Offset _mapOffset = Offset.zero;
 
-  // Real GPS Coordinates (Chonburi / Bangsaen Route)
-  static const LatLng _pickupLocation = LatLng(13.2849, 100.9238);
-  static const LatLng _driverLocation = LatLng(13.2895, 100.9285);
-  static const LatLng _dropoffLocation = LatLng(13.2970, 100.9350);
+  // Real GPS Coordinates: Central Chonburi (Origin) -> CentralWorld Bangkok (Destination)
+  static const LatLng _centralChonburiLocation = LatLng(13.3361, 100.9702);
+  static const LatLng _expresswayDriverLocation = LatLng(13.5412, 100.7510); // Burapha Withi Expressway (Bang Phli)
+  static const LatLng _centralWorldLocation = LatLng(13.7466, 100.5393);
 
-  // Detailed Waypoints following actual roads and street intersections
-  static const List<LatLng> _actualRoadPoints = [
-    LatLng(13.2849, 100.9238), // 📍 จุดรับ: ถนนลงหาดบางแสน
-    LatLng(13.2850, 100.9260), // ตรงไปตามถนนลงหาดบางแสน
-    LatLng(13.2868, 100.9261), // เลี้ยวเข้าถนนหน้าโรงพยาบาล ม.บูรพา
-    LatLng(13.2885, 100.9270), // ผ่านสถาบันวิทยาศาสตร์ทางทะเล
-    LatLng(13.2895, 100.9285), // 🛵 ตำแหน่งคนขับปัจจุบัน (สี่แยกไฟแดง)
-    LatLng(13.2915, 100.9308), // ตรงไปตามถนนสุขุมวิท-บางแสน
-    LatLng(13.2942, 100.9332), // เลี้ยวเข้าซอยบางแสนสาย 1
-    LatLng(13.2970, 100.9350), // 🏁 จุดส่งสินค้า: บ้านบางแสน
+  // High-precision road waypoints following Sukhumvit Rd & Burapha Withi Expressway
+  static const List<LatLng> _chonburiToBangkokRoadPoints = [
+    LatLng(13.3361, 100.9702), // 📍 จุดรับ: เซ็นทรัล ชลบุรี
+    LatLng(13.3420, 100.9715), // ออกสู่ถนนสุขุมวิท ชลบุรี
+    LatLng(13.3650, 100.9780), // ผ่านแยกหนองไม้แดง
+    LatLng(13.4120, 100.9850), // ด่านขึ้นทางพิเศษบูรพาวิถี (ชลบุรี)
+    LatLng(13.4680, 100.9310), // ข้ามแม่น้ำบางปะกง บนทางพิเศษบูรพาวิถี
+    LatLng(13.5120, 100.8420), // ทางพิเศษบูรพาวิถี (ช่วงบางบ่อ)
+    LatLng(13.5412, 100.7510), // 🛵 ตำแหน่งคนขับปัจจุบัน: ทางพิเศษบูรพาวิถี (กม. 22 บางพลี)
+    LatLng(13.6210, 100.6720), // ทางพิเศษบูรพาวิถี (ช่วงด่านบางนา)
+    LatLng(13.6740, 100.6050), // เชื่อมต่อทางพิเศษเฉลิมมหานคร (ด่านบางนา)
+    LatLng(13.7080, 100.5520), // ผ่านต่างระดับคลองเตย / ด่านท่าเรือ
+    LatLng(13.7290, 100.5510), // ผ่านทางด่วนเพลินจิต
+    LatLng(13.7415, 100.5480), // ลงทางด่วนเพลินจิต เข้าสู่ถนนพระราม 1
+    LatLng(13.7448, 100.5408), // ผ่านแยกราชประสงค์
+    LatLng(13.7466, 100.5393), // 🏁 จุดส่งสินค้า: เซ็นทรัลเวิลด์ กรุงเทพฯ
   ];
 
   final Set<Marker> _markers = {};
@@ -57,41 +63,41 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 
   void _initMapMarkersAndRoutes() {
-    // Pickup Marker (Green)
+    // Pickup Marker (Green): Central Chonburi
     _markers.add(
       Marker(
         markerId: const MarkerId('pickup'),
-        position: _pickupLocation,
-        infoWindow: const InfoWindow(title: 'จุดรับสินค้า', snippet: 'คลัง TB MOVEHUB (ถนนลงหาดบางแสน)'),
+        position: _centralChonburiLocation,
+        infoWindow: const InfoWindow(title: 'จุดรับสินค้า', snippet: 'เซ็นทรัล ชลบุรี (Central Chonburi)'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       ),
     );
 
-    // Dropoff Marker (Red)
+    // Dropoff Marker (Red): CentralWorld Bangkok
     _markers.add(
       Marker(
         markerId: const MarkerId('dropoff'),
-        position: _dropoffLocation,
-        infoWindow: const InfoWindow(title: 'จุดส่งสินค้า', snippet: 'บ้านบางแสน ชลบุรี'),
+        position: _centralWorldLocation,
+        infoWindow: const InfoWindow(title: 'จุดส่งสินค้า', snippet: 'เซ็นทรัลเวิลด์ กรุงเทพฯ (CentralWorld)'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
       ),
     );
 
-    // Driver Marker (Blue)
+    // Driver Marker (Blue): On Burapha Withi Expressway
     _markers.add(
       Marker(
         markerId: const MarkerId('driver'),
-        position: _driverLocation,
-        infoWindow: const InfoWindow(title: 'คนขับ (สมปอง มีดี)', snippet: 'กำลังเดินทางไปส่งสินค้า'),
+        position: _expresswayDriverLocation,
+        infoWindow: const InfoWindow(title: 'คนขับ (สมปอง มีดี)', snippet: 'กำลังขับบนทางพิเศษบูรพาวิถี (มุ่งหน้ากรุงเทพฯ)'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
       ),
     );
 
-    // Polyline Route Path Line following real streets & curves
+    // Polyline Route Path Line following Burapha Withi Expressway
     _polylines.add(
       const Polyline(
         polylineId: PolylineId('route'),
-        points: _actualRoadPoints,
+        points: _chonburiToBangkokRoadPoints,
         color: Color(0xFF1C7FF6),
         width: 6,
         jointType: JointType.round,
@@ -118,8 +124,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       _mapController?.animateCamera(
         CameraUpdate.newCameraPosition(
           const CameraPosition(
-            target: _driverLocation,
-            zoom: 15.0,
+            target: _expresswayDriverLocation,
+            zoom: 11.5,
           ),
         ),
       );
@@ -157,8 +163,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
 
     return GoogleMap(
       initialCameraPosition: const CameraPosition(
-        target: _driverLocation,
-        zoom: 14.5,
+        target: _expresswayDriverLocation,
+        zoom: 10.5,
       ),
       onMapCreated: (controller) {
         _mapController = controller;
@@ -217,7 +223,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                 ),
                 Expanded(
                   child: Text(
-                    'ติดตามพัสดุแบบเรียลไทม์',
+                    'ติดตามพัสดุข้ามจังหวัด',
                     style: GoogleFonts.kanit(
                       fontSize: 19,
                       fontWeight: FontWeight.bold,
@@ -275,7 +281,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                             const Icon(Icons.map_rounded, color: Color(0xFF4285F4), size: 15),
                             const SizedBox(width: 5),
                             Text(
-                              _useCanvasMap ? 'Google Maps 3D Live' : 'Google Maps Official SDK',
+                              _useCanvasMap ? 'Google Maps 3D Live' : 'ทางพิเศษบูรพาวิถี (ชลบุรี ➔ กทม.)',
                               style: GoogleFonts.kanit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -429,7 +435,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Honda Wave 125i สีดำ (ทะเบียน 1กข-9999)',
+                                'Isuzu D-Max ตู้ทึบ (ทะเบียน 1กข-9999 ชลบุรี)',
                                 style: GoogleFonts.kanit(
                                   fontSize: 12,
                                   color: subTextColor,
@@ -528,14 +534,14 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'สถานะการจัดส่งพัสดุ',
+                                    'สถานะการจัดส่งพัสดุข้ามจังหวัด',
                                     style: GoogleFonts.kanit(
                                       fontSize: 12.5,
                                       color: subTextColor,
                                     ),
                                   ),
                                   Text(
-                                    'คนขับกำลังเดินทางไปรับสินค้า',
+                                    'อยู่บนทางพิเศษบูรพาวิถี (กม.22 บางพลี)',
                                     style: GoogleFonts.kanit(
                                       fontSize: 15.5,
                                       fontWeight: FontWeight.bold,
@@ -551,7 +557,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  'ประมาณ 15 นาที',
+                                  'ประมาณ 35 นาที',
                                   style: GoogleFonts.kanit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -568,9 +574,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                             children: [
                               _buildTimelineStep(0, Icons.assignment_turned_in_rounded, 'รับออเดอร์', isDarkMode),
                               _buildTimelineLine(0, isDarkMode),
-                              _buildTimelineStep(1, Icons.directions_bike_rounded, 'กำลังไปรับ', isDarkMode),
+                              _buildTimelineStep(1, Icons.directions_bike_rounded, 'รับพัสดุแล้ว', isDarkMode),
                               _buildTimelineLine(1, isDarkMode),
-                              _buildTimelineStep(2, Icons.local_shipping_rounded, 'กำลังส่ง', isDarkMode),
+                              _buildTimelineStep(2, Icons.local_shipping_rounded, 'บนทางด่วน', isDarkMode),
                               _buildTimelineLine(2, isDarkMode),
                               _buildTimelineStep(3, Icons.check_circle_rounded, 'สำเร็จ', isDarkMode),
                             ],
@@ -604,7 +610,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                             const Icon(Icons.receipt_long_rounded, color: Color(0xFF1C7FF6), size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'รายละเอียดออเดอร์',
+                              'รายละเอียดการเดินทางข้ามจังหวัด',
                               style: GoogleFonts.kanit(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -619,18 +625,32 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           children: [
                             Expanded(
                               child: _buildSummaryBox(
-                                title: 'รหัสออเดอร์',
-                                value: displayBookingId,
-                                icon: Icons.tag_rounded,
+                                title: 'ต้นทาง ➔ ปลายทาง',
+                                value: 'เซ็นทรัล ชลบุรี ➔ เซ็นทรัลเวิลด์',
+                                icon: Icons.map_rounded,
+                                isDark: isDarkMode,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildSummaryBox(
+                                title: 'ระยะทางทั้งหมด',
+                                value: '76.5 กิโลเมตร',
+                                icon: Icons.straighten_rounded,
                                 isDark: isDarkMode,
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: _buildSummaryBox(
-                                title: 'วันที่ / เวลา',
-                                value: '18 พ.ค. | 15:20น.',
-                                icon: Icons.calendar_today_rounded,
+                                title: 'เวลาเดินทางโดยประมาณ',
+                                value: '1 ชั่วโมง 10 นาที',
+                                icon: Icons.access_time_rounded,
                                 isDark: isDarkMode,
                               ),
                             ),
@@ -639,9 +659,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                         const SizedBox(height: 10),
 
                         _buildSummaryBox(
-                          title: 'ระยะทาง / น้ำหนักสินค้า',
-                          value: '3.8 กิโลเมตร  •  1.2 กิโลกรัม',
-                          icon: Icons.straighten_rounded,
+                          title: 'เส้นทางขับรถ',
+                          value: 'ทางพิเศษบูรพาวิถี (บางนา-ชลบุรี) ➔ ทางด่วนเฉลิมมหานคร ➔ เพลินจิต',
+                          icon: Icons.alt_route_rounded,
                           isDark: isDarkMode,
                         ),
                       ],
@@ -934,7 +954,7 @@ class _RealisticGoogleMapPainter extends CustomPainter {
       canvas,
       startPt,
       const Color(0xFF22C55E),
-      'จุดรับ',
+      'เซ็นทรัล ชลบุรี',
       Icons.store_rounded,
       isDarkMode,
     );
@@ -944,7 +964,7 @@ class _RealisticGoogleMapPainter extends CustomPainter {
       canvas,
       destPt,
       const Color(0xFFEF4444),
-      'จุดส่ง (บ้านบางแสน)',
+      'เซ็นทรัลเวิลด์ กรุงเทพฯ',
       Icons.location_on_rounded,
       isDarkMode,
     );
@@ -1036,7 +1056,7 @@ class _RealisticGoogleMapPainter extends CustomPainter {
 
   void _drawDriverBubble(Canvas canvas, Offset position, bool isDark) {
     final textSpan = TextSpan(
-      text: '🛵 คนขับกำลังไป (15 นาที)',
+      text: '🚚 ทางพิเศษบูรพาวิถี (35 นาที)',
       style: GoogleFonts.kanit(
         fontSize: 11,
         fontWeight: FontWeight.bold,
