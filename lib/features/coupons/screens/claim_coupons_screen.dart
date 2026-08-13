@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/providers/language_provider.dart';
+import '../../../core/providers/theme_provider.dart';
 
-class ClaimCouponsScreen extends StatefulWidget {
+class ClaimCouponsScreen extends ConsumerStatefulWidget {
   const ClaimCouponsScreen({super.key});
 
   @override
-  State<ClaimCouponsScreen> createState() => _ClaimCouponsScreenState();
+  ConsumerState<ClaimCouponsScreen> createState() => _ClaimCouponsScreenState();
 }
 
-class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
+class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
   int _selectedCategoryIndex = 0; // 0: ทั้งหมด, 1: คูปองส่วนลด, 2: คูปองส่งฟรี, 3: คูปองพิเศษ
-
-  final List<String> _categories = [
-    'ทั้งหมด (5)',
-    'คูปองส่วนลด',
-    'คูปองส่งฟรี',
-    'คูปองพิเศษ',
-  ];
 
   final List<IconData> _categoryIcons = [
     Icons.local_activity_rounded,
@@ -37,16 +33,28 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentLang = ref.watch(languageProvider);
+    final isDarkMode = ref.watch(themeProvider);
+    final isEn = currentLang == AppLanguage.en;
+
+    final categories = isEn
+        ? ['All (5)', 'Discounts', 'Free Shipping', 'Special']
+        : ['ทั้งหมด (5)', 'คูปองส่วนลด', 'คูปองส่งฟรี', 'คูปองพิเศษ'];
+
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final pageBg = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: pageBg,
       // Clean white AppBar
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Color(0xFF1F2937),
+            color: textColor,
             size: 20,
           ),
           onPressed: () {
@@ -56,9 +64,9 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
           },
         ),
         title: Text(
-          'เก็บคูปอง',
+          isEn ? 'Claim Coupons' : 'เก็บคูปอง',
           style: GoogleFonts.kanit(
-            color: const Color(0xFF1F2937),
+            color: textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -70,15 +78,15 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
             onPressed: () {
               context.push(AppRoutes.coupons);
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.access_time_rounded,
               size: 18,
-              color: Color(0xFF1F2937),
+              color: textColor,
             ),
             label: Text(
-              'ประวัติ',
+              isEn ? 'History' : 'ประวัติ',
               style: GoogleFonts.kanit(
-                color: const Color(0xFF1F2937),
+                color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -154,7 +162,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'รวมคูปองสุดคุ้ม',
+                                isEn ? 'Best Value Coupons' : 'รวมคูปองสุดคุ้ม',
                                 style: GoogleFonts.kanit(
                                   fontSize: 13,
                                   color: Colors.white.withValues(alpha: 0.9),
@@ -163,9 +171,11 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'ให้การขนส่งของคุณ\nคุ้มค่าทุกการใช้งาน',
+                                isEn
+                                    ? 'Make Every Delivery\nWorth Standard Value'
+                                    : 'ให้การขนส่งของคุณ\nคุ้มค่าทุกการใช้งาน',
                                 style: GoogleFonts.kanit(
-                                  fontSize: 22,
+                                  fontSize: 21,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                   height: 1.25,
@@ -173,7 +183,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'เก็บคูปองไว้ ใช้ลดค่าขนส่งได้ทันที',
+                                isEn ? 'Claim vouchers & save on shipping instantly' : 'เก็บคูปองไว้ ใช้ลดค่าขนส่งได้ทันที',
                                 style: GoogleFonts.kanit(
                                   fontSize: 10,
                                   color: Colors.white.withValues(alpha: 0.8),
@@ -196,7 +206,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
-                    itemCount: _categories.length,
+                    itemCount: categories.length,
                     itemBuilder: (context, index) {
                       final bool isSelected = _selectedCategoryIndex == index;
                       final Color activeColor = _categoryColors[index];
@@ -210,18 +220,18 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                             color: isSelected ? Colors.white : activeColor,
                           ),
                           label: Text(
-                            _categories[index],
+                            categories[index],
                             style: GoogleFonts.kanit(
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? Colors.white : const Color(0xFF4B5563),
+                              color: isSelected ? Colors.white : (isDarkMode ? Colors.white70 : const Color(0xFF4B5563)),
                             ),
                           ),
                           selected: isSelected,
                           selectedColor: activeColor,
-                          backgroundColor: Colors.white,
+                          backgroundColor: cardBg,
                           side: BorderSide(
-                            color: isSelected ? Colors.transparent : Colors.grey.shade200,
+                            color: isSelected ? Colors.transparent : (isDarkMode ? const Color(0xFF334155) : Colors.grey.shade200),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
@@ -247,26 +257,26 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'คูปองที่เก็บได้',
+                      isEn ? 'Available Coupons' : 'คูปองที่เก็บได้',
                       style: GoogleFonts.kanit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1F2937),
+                        color: textColor,
                       ),
                     ),
                     Row(
                       children: [
                         Text(
-                          'เรียงตาม ล่าสุด',
+                          isEn ? 'Sort by Latest' : 'เรียงตาม ล่าสุด',
                           style: GoogleFonts.kanit(
                             fontSize: 12,
-                            color: const Color(0xFF6B7280),
+                            color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 16,
-                          color: Color(0xFF6B7280),
+                          color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
                         ),
                       ],
                     ),
@@ -277,7 +287,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                 // ==========================================
                 // LIST OF COUPONS
                 // ==========================================
-                _buildCouponList(),
+                _buildCouponList(isEn, isDarkMode, cardBg, textColor),
               ],
             ),
           ),
@@ -286,76 +296,76 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
     );
   }
 
-  Widget _buildCouponList() {
+  Widget _buildCouponList(bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
     // Generate filtered list
     final allCoupons = [
       _ClaimCouponData(
-        amount: '50',
-        minSpend: 'ขั้นต่ำ 300 บาท',
-        title: 'ส่วนลด 50 บาท',
-        desc: 'ใช้ได้กับบริการขนส่งทุกประเภท',
-        expiry: 'หมดอายุ 31 ส.ค. 2568',
-        badge: 'คูปองส่วนลด',
+        amount: isEn ? '50' : '50',
+        minSpend: isEn ? 'Min. 300 THB' : 'ขั้นต่ำ 300 บาท',
+        title: isEn ? '50 THB Discount' : 'ส่วนลด 50 บาท',
+        desc: isEn ? 'Valid for all delivery types' : 'ใช้ได้กับบริการขนส่งทุกประเภท',
+        expiry: isEn ? 'Expires 31 Aug 2025' : 'หมดอายุ 31 ส.ค. 2568',
+        badge: isEn ? 'Discount' : 'คูปองส่วนลด',
         categoryIndex: 1, // คูปองส่วนลด
         leftColor: const Color(0xFF1C7FF6),
-        badgeBg: const Color(0xFFE8F2FE),
+        badgeBg: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
         badgeTextCol: const Color(0xFF1C7FF6),
         btnBg: const Color(0xFF1C7FF6),
         illustrationIcon: Icons.local_shipping_outlined,
       ),
       _ClaimCouponData(
-        amount: '20',
-        minSpend: 'ขั้นต่ำ 150 บาท',
-        title: 'ส่วนลด 20 บาท',
-        desc: 'ใช้ได้กับบริการขนส่งทุกประเภท',
-        expiry: 'หมดอายุ 15 ส.ค. 2568',
-        badge: 'คูปองส่วนลด',
+        amount: isEn ? '20' : '20',
+        minSpend: isEn ? 'Min. 150 THB' : 'ขั้นต่ำ 150 บาท',
+        title: isEn ? '20 THB Discount' : 'ส่วนลด 20 บาท',
+        desc: isEn ? 'Valid for all delivery types' : 'ใช้ได้กับบริการขนส่งทุกประเภท',
+        expiry: isEn ? 'Expires 15 Aug 2025' : 'หมดอายุ 15 ส.ค. 2568',
+        badge: isEn ? 'Discount' : 'คูปองส่วนลด',
         categoryIndex: 1, // คูปองส่วนลด
         leftColor: const Color(0xFF22C55E),
-        badgeBg: const Color(0xFFE8F8EE),
+        badgeBg: isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFE8F8EE),
         badgeTextCol: const Color(0xFF22C55E),
         btnBg: const Color(0xFF22C55E),
         illustrationIcon: Icons.motorcycle_rounded,
       ),
       _ClaimCouponData(
-        amount: 'ฟรี',
-        minSpend: 'ไม่มีขั้นต่ำ',
-        title: 'ส่งฟรีทั่วไทย',
-        desc: 'รับส่วนลดค่าส่งสูงสุด 40 บาท',
-        expiry: 'หมดอายุ 10 ส.ค. 2568',
-        badge: 'คูปองส่งฟรี',
+        amount: isEn ? 'Free' : 'ฟรี',
+        minSpend: isEn ? 'No minimum' : 'ไม่มีขั้นต่ำ',
+        title: isEn ? 'Free Shipping Nationwide' : 'ส่งฟรีทั่วไทย',
+        desc: isEn ? 'Max shipping discount 40 THB' : 'รับส่วนลดค่าส่งสูงสุด 40 บาท',
+        expiry: isEn ? 'Expires 10 Aug 2025' : 'หมดอายุ 10 ส.ค. 2568',
+        badge: isEn ? 'Free Shipping' : 'คูปองส่งฟรี',
         categoryIndex: 2, // คูปองส่งฟรี
         leftColor: const Color(0xFF8B5CF6),
-        badgeBg: const Color(0xFFF3E8FF),
+        badgeBg: isDarkMode ? const Color(0xFF581C87) : const Color(0xFFF3E8FF),
         badgeTextCol: const Color(0xFF8B5CF6),
         btnBg: const Color(0xFF8B5CF6),
         illustrationIcon: Icons.local_shipping_outlined,
         isFreeShip: true,
       ),
       _ClaimCouponData(
-        amount: '30',
-        minSpend: 'ขั้นต่ำ 250 บาท',
-        title: 'ส่วนลด 30 บาท',
-        desc: 'สำหรับลูกค้าใหม่เท่านั้น',
-        expiry: 'หมดอายุ 5 ส.ค. 2568',
-        badge: 'คูปองพิเศษ',
+        amount: isEn ? '30' : '30',
+        minSpend: isEn ? 'Min. 250 THB' : 'ขั้นต่ำ 250 บาท',
+        title: isEn ? '30 THB Discount' : 'ส่วนลด 30 บาท',
+        desc: isEn ? 'New customers only' : 'สำหรับลูกค้าใหม่เท่านั้น',
+        expiry: isEn ? 'Expires 5 Aug 2025' : 'หมดอายุ 5 ส.ค. 2568',
+        badge: isEn ? 'Special Coupon' : 'คูปองพิเศษ',
         categoryIndex: 3, // คูปองพิเศษ
         leftColor: const Color(0xFFF97316),
-        badgeBg: const Color(0xFFFFEDD5),
+        badgeBg: isDarkMode ? const Color(0xFF7C2D12) : const Color(0xFFFFEDD5),
         badgeTextCol: const Color(0xFFF97316),
         btnBg: const Color(0xFFF97316),
         illustrationIcon: Icons.card_giftcard_rounded,
       ),
       _ClaimCouponData(
-        amount: '15',
-        minSpend: 'ขั้นต่ำ 100 บาท',
-        title: 'ส่วนลด 15 บาท',
-        desc: 'ใช้ได้กับบริการขนส่งทุกประเภท',
-        expiry: 'หมดอายุ 1 ส.ค. 2568',
-        badge: 'คูปองส่วนลด',
+        amount: isEn ? '15' : '15',
+        minSpend: isEn ? 'Min. 100 THB' : 'ขั้นต่ำ 100 บาท',
+        title: isEn ? '15 THB Discount' : 'ส่วนลด 15 บาท',
+        desc: isEn ? 'Valid for all delivery types' : 'ใช้ได้กับบริการขนส่งทุกประเภท',
+        expiry: isEn ? 'Expired 1 Aug 2025' : 'หมดอายุ 1 ส.ค. 2568',
+        badge: isEn ? 'Discount' : 'คูปองส่วนลด',
         categoryIndex: 1, // คูปองส่วนลด
         leftColor: Colors.grey.shade400,
-        badgeBg: const Color(0xFFF1F5F9),
+        badgeBg: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
         badgeTextCol: const Color(0xFF64748B),
         btnBg: Colors.transparent,
         illustrationIcon: Icons.local_shipping_outlined,
@@ -381,10 +391,10 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'ไม่มีคูปองประเภทนี้ให้เก็บ',
+                isEn ? 'No coupons in this category' : 'ไม่มีคูปองประเภทนี้ให้เก็บ',
                 style: GoogleFonts.kanit(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -401,21 +411,22 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
         final coupon = filtered[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: _buildClaimCard(coupon),
+          child: _buildClaimCard(coupon, isEn, isDarkMode, cardBg, textColor),
         );
       },
     );
   }
 
-  Widget _buildClaimCard(_ClaimCouponData coupon) {
+  Widget _buildClaimCard(_ClaimCouponData coupon, bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
     return Container(
       height: 124,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDarkMode ? const Color(0xFF334155) : Colors.transparent),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -439,8 +450,8 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                     child: Container(
                       width: 12,
                       height: 12,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFAFAFA),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -451,8 +462,8 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                     child: Container(
                       width: 12,
                       height: 12,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFAFAFA),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -463,8 +474,8 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                     child: Container(
                       width: 12,
                       height: 12,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFAFAFA),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -475,8 +486,8 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                     child: Container(
                       width: 12,
                       height: 12,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFAFAFA),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -494,7 +505,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          coupon.isFreeShip ? 'ส่งฟรี' : 'ส่วนลด',
+                          coupon.isFreeShip ? (isEn ? 'Free Ship' : 'ส่งฟรี') : (isEn ? 'Discount' : 'ส่วนลด'),
                           style: GoogleFonts.kanit(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
@@ -511,7 +522,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                           Text(
                             coupon.amount,
                             style: GoogleFonts.kanit(
-                              fontSize: coupon.isFreeShip ? 22 : 26,
+                              fontSize: coupon.isFreeShip ? (isEn ? 18 : 22) : 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.1,
@@ -520,9 +531,9 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                           if (!coupon.isFreeShip) ...[
                             const SizedBox(width: 1),
                             Text(
-                              'บาท',
+                              isEn ? 'THB' : 'บาท',
                               style: GoogleFonts.kanit(
-                                fontSize: 9,
+                                fontSize: 8.5,
                                 color: Colors.white,
                               ),
                             ),
@@ -574,9 +585,9 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                     Text(
                       coupon.title,
                       style: GoogleFonts.kanit(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: coupon.isExpired ? Colors.grey.shade600 : const Color(0xFF1F2937),
+                        color: coupon.isExpired ? Colors.grey.shade500 : textColor,
                       ),
                     ),
                     // Subtitle
@@ -584,7 +595,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                       coupon.desc,
                       style: GoogleFonts.kanit(
                         fontSize: 11,
-                        color: const Color(0xFF64748B),
+                        color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -633,7 +644,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                   Icon(
                     coupon.illustrationIcon,
                     size: 40,
-                    color: Colors.grey.shade100,
+                    color: isDarkMode ? const Color(0xFF334155) : Colors.grey.shade100,
                   ),
                   // Button/Badge
                   coupon.isExpired
@@ -645,7 +656,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'หมดอายุแล้ว',
+                            isEn ? 'Expired' : 'หมดอายุแล้ว',
                             style: GoogleFonts.kanit(
                               fontSize: 10,
                               color: Colors.grey.shade400,
@@ -658,7 +669,9 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                           height: 28,
                           alignment: Alignment.center,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              context.push(AppRoutes.coupons);
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: coupon.btnBg,
                               foregroundColor: Colors.white,
@@ -669,7 +682,7 @@ class _ClaimCouponsScreenState extends State<ClaimCouponsScreen> {
                               elevation: 0,
                             ),
                             child: Text(
-                              'ใช้คูปอง',
+                              isEn ? 'Use Coupon' : 'ใช้คูปอง',
                               style: GoogleFonts.kanit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,

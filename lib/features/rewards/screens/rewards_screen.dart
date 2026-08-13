@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
 class RewardsScreen extends ConsumerWidget {
@@ -12,6 +14,8 @@ class RewardsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
@@ -55,7 +59,7 @@ class RewardsScreen extends ConsumerWidget {
                       },
                     ),
                     Text(
-                      'สิทธิพิเศษ',
+                      t('privileges_rewards'),
                       style: GoogleFonts.kanit(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -74,7 +78,7 @@ class RewardsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'ใช้บริการมาก ยิ่งได้รับสิทธิพิเศษมาก',
+                  t('privileges_subtitle'),
                   style: GoogleFonts.kanit(
                     fontSize: 13,
                     color: Colors.white.withValues(alpha: 0.85),
@@ -95,12 +99,12 @@ class RewardsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // MY USAGE CARD
-                  _buildMyUsageCard(),
+                  _buildMyUsageCard(currentLang, t),
                   const SizedBox(height: 24),
 
                   // REWARDS SECTION TITLE
                   Text(
-                    'รางวัลของฉัน',
+                    t('my_rewards_title'),
                     style: GoogleFonts.kanit(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -110,7 +114,7 @@ class RewardsScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
 
                   // TIMELINE OF REWARDS
-                  _buildRewardsTimeline(),
+                  _buildRewardsTimeline(currentLang, t),
                 ],
               ),
             ),
@@ -123,7 +127,7 @@ class RewardsScreen extends ConsumerWidget {
   // ==========================================
   // MY USAGE CARD WIDGET
   // ==========================================
-  Widget _buildMyUsageCard() {
+  Widget _buildMyUsageCard(AppLanguage currentLang, String Function(String) t) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -178,7 +182,7 @@ class RewardsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '7 ครั้ง',
+                        currentLang == AppLanguage.en ? '7 Trips' : '7 ครั้ง',
                         style: GoogleFonts.kanit(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -186,7 +190,7 @@ class RewardsScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        'จาก 10 ครั้ง',
+                        currentLang == AppLanguage.en ? 'of 10 trips' : 'จาก 10 ครั้ง',
                         style: GoogleFonts.kanit(
                           fontSize: 8,
                           color: Colors.grey.shade500,
@@ -204,7 +208,7 @@ class RewardsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'การใช้งานของฉัน',
+                      t('my_usage'),
                       style: GoogleFonts.kanit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -212,7 +216,7 @@ class RewardsScreen extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'จำนวนครั้งที่ใช้บริการ',
+                      t('total_deliveries'),
                       style: GoogleFonts.kanit(
                         fontSize: 12,
                         color: Colors.grey.shade400,
@@ -220,9 +224,9 @@ class RewardsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '7 ครั้ง',
+                      currentLang == AppLanguage.en ? '7 Trips' : '7 ครั้ง',
                       style: GoogleFonts.kanit(
-                        fontSize: 26,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF1C7FF6),
                         height: 1.1,
@@ -248,7 +252,7 @@ class RewardsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'เป้าหมายต่อไป 10 ครั้ง',
+                            currentLang == AppLanguage.en ? 'Next Goal: 10 Trips' : 'เป้าหมายต่อไป 10 ครั้ง',
                             style: GoogleFonts.kanit(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -278,7 +282,7 @@ class RewardsScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          '7 / 10 ครั้ง',
+                          currentLang == AppLanguage.en ? '7 / 10 Trips' : '7 / 10 ครั้ง',
                           style: GoogleFonts.kanit(
                             fontSize: 11,
                             color: Colors.grey.shade500,
@@ -314,7 +318,7 @@ class RewardsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'อีก 3 ครั้ง',
+                        currentLang == AppLanguage.en ? '3 more trips' : 'อีก 3 ครั้ง',
                         style: GoogleFonts.kanit(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -322,7 +326,7 @@ class RewardsScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        'รับส่วนลด 50 บาท',
+                        currentLang == AppLanguage.en ? 'Get 50 THB discount' : 'รับส่วนลด 50 บาท',
                         style: GoogleFonts.kanit(
                           fontSize: 12,
                           color: const Color(0xFF1D4ED8),
@@ -358,7 +362,7 @@ class RewardsScreen extends ConsumerWidget {
   // ==========================================
   // REWARDS TIMELINE LIST WIDGET
   // ==========================================
-  Widget _buildRewardsTimeline() {
+  Widget _buildRewardsTimeline(AppLanguage currentLang, String Function(String) t) {
     final rewardLevels = [
       _RewardLevelData(
         times: 5,
@@ -370,25 +374,25 @@ class RewardsScreen extends ConsumerWidget {
         times: 10,
         discount: 50,
         status: _RewardLevelStatus.inProgress,
-        progressText: '7 / 10 ครั้ง',
+        progressText: currentLang == AppLanguage.en ? '7 / 10 Trips' : '7 / 10 ครั้ง',
       ),
       _RewardLevelData(
         times: 20,
         discount: 120,
         status: _RewardLevelStatus.locked,
-        progressText: '0 / 20 ครั้ง',
+        progressText: currentLang == AppLanguage.en ? '0 / 20 Trips' : '0 / 20 ครั้ง',
       ),
       _RewardLevelData(
         times: 30,
         discount: 200,
         status: _RewardLevelStatus.locked,
-        progressText: '0 / 30 ครั้ง',
+        progressText: currentLang == AppLanguage.en ? '0 / 30 Trips' : '0 / 30 ครั้ง',
       ),
       _RewardLevelData(
         times: 50,
         discount: 400,
         status: _RewardLevelStatus.locked,
-        progressText: '0 / 50 ครั้ง',
+        progressText: currentLang == AppLanguage.en ? '0 / 50 Trips' : '0 / 50 ครั้ง',
       ),
     ];
 
@@ -423,7 +427,7 @@ class RewardsScreen extends ConsumerWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildTicketCard(level),
+                  child: _buildTicketCard(level, currentLang, t),
                 ),
               ),
             ],
@@ -480,7 +484,7 @@ class RewardsScreen extends ConsumerWidget {
   // ==========================================
   // TICKET CARD DESIGN WIDGET
   // ==========================================
-  Widget _buildTicketCard(_RewardLevelData level) {
+  Widget _buildTicketCard(_RewardLevelData level, AppLanguage currentLang, String Function(String) t) {
     final bool isClaimed = level.status == _RewardLevelStatus.claimed;
     final bool isInProgress = level.status == _RewardLevelStatus.inProgress;
     final bool isLocked = level.status == _RewardLevelStatus.locked;
@@ -536,7 +540,7 @@ class RewardsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      'ครั้ง',
+                      currentLang == AppLanguage.en ? 'Trips' : 'ครั้ง',
                       style: GoogleFonts.kanit(
                         fontSize: 10,
                         color: Colors.white.withValues(alpha: 0.9),
@@ -556,7 +560,7 @@ class RewardsScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'ใช้บริการครบ ${level.times} ครั้ง',
+                      currentLang == AppLanguage.en ? 'Complete ${level.times} deliveries' : 'ใช้บริการครบ ${level.times} ครั้ง',
                       style: GoogleFonts.kanit(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -564,7 +568,7 @@ class RewardsScreen extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'รับส่วนลด ${level.discount} บาท',
+                      currentLang == AppLanguage.en ? 'Get ${level.discount} THB discount' : 'รับส่วนลด ${level.discount} บาท',
                       style: GoogleFonts.kanit(
                         fontSize: 12,
                         color: const Color(0xFF4B5563),
@@ -582,7 +586,7 @@ class RewardsScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'รับรางวัลแล้ว',
+                          t('claimed_status'),
                           style: GoogleFonts.kanit(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -661,7 +665,7 @@ class RewardsScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'ส่วนลด',
+                    currentLang == AppLanguage.en ? 'Discount' : 'ส่วนลด',
                     style: GoogleFonts.kanit(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
@@ -677,7 +681,7 @@ class RewardsScreen extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'บาท',
+                    t('baht_unit'),
                     style: GoogleFonts.kanit(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,

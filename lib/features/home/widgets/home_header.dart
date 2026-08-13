@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../partner/providers/partner_application_provider.dart';
 
 class HomeHeader extends ConsumerWidget {
@@ -18,6 +20,8 @@ class HomeHeader extends ConsumerWidget {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final partnerApp = ref.watch(partnerApplicationProvider);
     final notificationCount = partnerApp != null ? 4 : 3;
+    final currentLang = ref.watch(languageProvider);
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     return Container(
       width: double.infinity,
@@ -119,7 +123,7 @@ class HomeHeader extends ConsumerWidget {
           // GREETING
           // =========================
           Text(
-            'ยินดีต้อนรับสู่',
+            t('welcome_greeting'),
             style: GoogleFonts.kanit(
               fontSize: 16,
               color: Colors.white.withValues(alpha: 0.9),
@@ -163,7 +167,9 @@ class HomeHeader extends ConsumerWidget {
           // SUBTITLE
           // =========================
           Text(
-            'บริการขนส่งครบ จบในที่เดียว',
+            currentLang == AppLanguage.en
+                ? 'All-in-one delivery service, fast & reliable'
+                : 'บริการขนส่งครบ จบในที่เดียว',
             style: GoogleFonts.kanit(
               fontSize: 13,
               color: Colors.white.withValues(alpha: 0.85),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/providers/language_provider.dart';
 
 class VehicleModel {
   final String name;
@@ -19,6 +20,28 @@ class VehicleModel {
     required this.imagePath,
     this.icon = Icons.local_shipping_rounded,
   });
+
+  String getName(AppLanguage language) {
+    if (language == AppLanguage.en) {
+      if (name.contains('มอเตอร์ไซค์')) return 'Motorcycle';
+      if (name.contains('รถเก๋ง')) return '4-Door Sedan';
+      if (name.contains('รถกระบะ')) return 'Pickup Truck';
+      if (name.contains('รถห้องเย็น')) return 'Cold Storage Truck';
+      if (name.contains('รถบรรทุก')) return 'Tailgate Truck';
+    }
+    return name;
+  }
+
+  String getDescription(AppLanguage language) {
+    if (language == AppLanguage.en) {
+      if (name.contains('มอเตอร์ไซค์')) return 'Ideal for food & drinks, documents, small parcels';
+      if (name.contains('รถเก๋ง')) return 'Ideal for flowers, cakes, party items, bulk lunch boxes';
+      if (name.contains('รถกระบะ')) return 'Ideal for produce crates, auto parts, furniture, large boxes';
+      if (name.contains('รถห้องเย็น')) return 'Ideal for fresh food, seafood, frozen goods, medical items';
+      if (name.contains('รถบรรทุก')) return 'Ideal for appliances, heavy machinery & bulk cargo';
+    }
+    return description;
+  }
 
   /// Mock data list matching the reference image and requirements
   static List<VehicleModel> get mockVehicles => [
@@ -58,10 +81,10 @@ class VehicleModel {
         const VehicleModel(
           name: 'รถบรรทุกมีลิฟท์ท้าย',
           description: 'เหมาะสำหรับขนย้ายเครื่องใช้ไฟฟ้า, เฟอร์นิเจอร์, เครื่องจักร, สินค้าน้ำหนักมาก',
-          dimensions: '3.1 x 1.7 x 1.8 เมตร',
-          maxWeight: 'สูงสุด 3000 กิโลกรัม',
-          imagePath: AppAssets.truckLift,
-          icon: Icons.fire_truck_rounded,
+          dimensions: '2.2 x 1.7 x 1.9 เมตร',
+          maxWeight: 'สูงสุด 2500 กิโลกรัม',
+          imagePath: AppAssets.pickup,
+          icon: Icons.unfold_more_rounded,
         ),
       ];
 }

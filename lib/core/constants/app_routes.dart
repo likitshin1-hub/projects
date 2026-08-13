@@ -78,6 +78,8 @@ class AppRoutes {
   static const String tracking = '/tracking';
   
   static const String trackingDetail = '/tracking/detail';
+
+  static const String searchingRider = '/searching-rider';
   
   static const String deliverySuccess = '/delivery-success';
   

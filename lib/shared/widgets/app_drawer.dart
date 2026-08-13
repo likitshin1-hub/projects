@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_routes.dart';
+import '../../core/constants/app_translations.dart';
+import '../../core/providers/language_provider.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../features/auth/providers/auth_provider.dart';
 
@@ -13,6 +15,7 @@ class AppDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final isLoggedIn = authState.status == AuthStatus.success && user != null;
@@ -20,6 +23,8 @@ class AppDrawer extends ConsumerWidget {
     final drawerBg = isDarkMode ? const Color(0xFF0B0F17) : Colors.white;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
     final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     return Drawer(
       backgroundColor: drawerBg,
@@ -31,7 +36,7 @@ class AppDrawer extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Drawer Header Matching Screenshot Exactly
+          // Drawer Header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
@@ -78,7 +83,9 @@ class AppDrawer extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'บริการขนส่งมืออาชีพ',
+                        currentLang == AppLanguage.en
+                            ? 'Professional Logistics Service'
+                            : 'บริการขนส่งมืออาชีพ',
                         style: GoogleFonts.kanit(
                           fontSize: 12.5,
                           color: Colors.white.withValues(alpha: 0.85),
@@ -91,7 +98,7 @@ class AppDrawer extends ConsumerWidget {
             ),
           ),
 
-          // Drawer Menu List (Exact items & styles as screenshot)
+          // Drawer Menu List
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -99,7 +106,7 @@ class AppDrawer extends ConsumerWidget {
                 // 1. คูปองของฉัน
                 _buildDrawerItem(
                   icon: Icons.confirmation_number_rounded,
-                  title: 'คูปองของฉัน',
+                  title: t('my_coupons'),
                   iconColor: const Color(0xFF1C7FF6),
                   iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
                   textColor: textColor,
@@ -112,7 +119,7 @@ class AppDrawer extends ConsumerWidget {
                 // 2. สะสมรีวอร์ด
                 _buildDrawerItem(
                   icon: Icons.emoji_events_rounded,
-                  title: 'สะสมรีวอร์ด',
+                  title: t('collect_rewards'),
                   iconColor: const Color(0xFFFFB300),
                   iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
                   textColor: textColor,
@@ -125,7 +132,7 @@ class AppDrawer extends ConsumerWidget {
                 // 3. ประวัติการจัดส่ง
                 _buildDrawerItem(
                   icon: Icons.calendar_month_rounded,
-                  title: 'ประวัติการจัดส่ง',
+                  title: t('delivery_history'),
                   iconColor: const Color(0xFF1C7FF6),
                   iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
                   textColor: textColor,
@@ -138,7 +145,7 @@ class AppDrawer extends ConsumerWidget {
                 // 4. ข้อความแชท
                 _buildDrawerItem(
                   icon: Icons.chat_bubble_outline_rounded,
-                  title: 'ข้อความแชท',
+                  title: t('chat_messages'),
                   iconColor: const Color(0xFF1C7FF6),
                   iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
                   textColor: textColor,
@@ -151,7 +158,7 @@ class AppDrawer extends ConsumerWidget {
                 // 5. แก้ไขโปรไฟล์
                 _buildDrawerItem(
                   icon: Icons.person_outline_rounded,
-                  title: 'แก้ไขโปรไฟล์',
+                  title: t('edit_profile'),
                   iconColor: const Color(0xFF1C7FF6),
                   iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE3F2FD),
                   textColor: textColor,
@@ -164,7 +171,7 @@ class AppDrawer extends ConsumerWidget {
                 // 6. สมัครพาร์ทเนอร์คนขับ / ไรเดอร์
                 _buildDrawerItem(
                   icon: Icons.two_wheeler_rounded,
-                  title: 'สมัครพาร์ทเนอร์คนขับ / ไรเดอร์ 🛵',
+                  title: t('partner_apply'),
                   iconColor: const Color(0xFFF59E0B),
                   iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
                   textColor: textColor,
@@ -182,7 +189,7 @@ class AppDrawer extends ConsumerWidget {
                 // 7. ตั้งค่าระบบ
                 _buildDrawerItem(
                   icon: Icons.settings_rounded,
-                  title: 'ตั้งค่าระบบ',
+                  title: t('system_settings'),
                   iconColor: const Color(0xFF64748B),
                   iconBgColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                   textColor: textColor,
@@ -195,7 +202,7 @@ class AppDrawer extends ConsumerWidget {
                 // 8. ความช่วยเหลือ / ติดต่อเรา
                 _buildDrawerItem(
                   icon: Icons.info_outline_rounded,
-                  title: 'ความช่วยเหลือ / ติดต่อเรา',
+                  title: t('help_contact'),
                   iconColor: const Color(0xFF64748B),
                   iconBgColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                   textColor: textColor,
@@ -207,40 +214,6 @@ class AppDrawer extends ConsumerWidget {
               ],
             ),
           ),
-
-          // Drawer Footer with Logout Button
-          Divider(height: 1, color: dividerColor),
-          InkWell(
-            onTap: () async {
-              Navigator.pop(context);
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                context.go(AppRoutes.login);
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              width: double.infinity,
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.power_settings_new_rounded,
-                    color: Colors.redAccent,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'ออกจากระบบ',
-                    style: GoogleFonts.kanit(
-                      fontSize: 14.5,
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -249,19 +222,24 @@ class AppDrawer extends ConsumerWidget {
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
-    required VoidCallback onTap,
     required Color iconColor,
     required Color iconBgColor,
     required Color textColor,
+    required VoidCallback onTap,
   }) {
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: iconBgColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: iconColor, size: 20),
+        child: Icon(
+          icon,
+          color: iconColor,
+          size: 20,
+        ),
       ),
       title: Text(
         title,
@@ -271,13 +249,7 @@ class AppDrawer extends ConsumerWidget {
           color: textColor,
         ),
       ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios_rounded,
-        size: 14,
-        color: Color(0xFF94A3B8),
-      ),
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
     );
   }
 }

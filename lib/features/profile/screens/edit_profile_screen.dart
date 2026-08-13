@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../auth/providers/auth_provider.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../../auth/models/user_model.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -86,11 +89,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'บันทึกข้อมูลเรียบร้อยแล้ว',
-          style: GoogleFonts.kanit(),
-        ),
-        backgroundColor: const Color(0xFF22C55E),
+        content: Text('บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว', style: GoogleFonts.kanit()),
+        backgroundColor: const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -101,24 +101,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+
+    String t(String key) => AppTranslations.getText(currentLang, key);
+
+    final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF3F7FB);
+    final cardBgColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: bgColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Custom Wavy Blue Gradient Appbar (matching Profile Screen)
+            // Custom Wavy Header Matching Screenshot Exactly
             ClipPath(
               clipper: EditProfileHeaderClipper(),
               child: Container(
                 width: double.infinity,
                 height: 145 + statusBarHeight,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF1C7FF6),
-                      Color(0xFF0056C6),
-                    ],
+                    colors: isDarkMode
+                        ? const [Color(0xFF0284C7), Color(0xFF1E293B)]
+                        : const [Color(0xFF1C7FF6), Color(0xFF0056C6)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -127,7 +133,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Back button with circular background
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.15),
@@ -139,63 +144,64 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           color: Colors.white,
                           size: 16,
                         ),
-                        onPressed: () => context.pop(),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          }
+                        },
                       ),
                     ),
-                    // Centered Title "แก้ไขข้อมูล"
                     Text(
-                      'แก้ไขข้อมูล',
+                      t('edit_info_title'),
                       style: GoogleFonts.kanit(
                         fontSize: 22,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    // Invisible placeholder to keep title centered
                     const SizedBox(width: 48),
                   ],
                 ),
               ),
             ),
 
-            // Transform card up to overlap wavy appbar
+            // Transform Column up to overlap wavy appbar
             Transform.translate(
-              offset: const Offset(0, -35),
+              offset: const Offset(0, -45),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBgColor,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.all(20),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Profile Avatar Area
+                        // Avatar Section with Edit Badge
                         Center(
                           child: Stack(
                             alignment: Alignment.bottomRight,
                             children: [
                               Container(
-                                width: 110,
-                                height: 110,
+                                width: 108,
+                                height: 108,
+                                padding: const EdgeInsets.all(3),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF64B5F6),
-                                      Color(0xFF1976D2),
-                                    ],
+                                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
@@ -243,53 +249,57 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         const SizedBox(height: 24),
 
                         // Field 1: ชื่อ-นามสกุล
-                        _buildFieldLabel(icon: Icons.person_outline_rounded, label: 'ชื่อ-นามสกุล'),
+                        _buildFieldLabel(icon: Icons.person_outline_rounded, label: t('full_name'), isDarkMode: isDarkMode),
                         const SizedBox(height: 8),
                         _buildInputField(
                           controller: _nameController,
-                          hint: 'กรอกชื่อ-นามสกุลของคุณ',
+                          hint: t('full_name'),
+                          isDarkMode: isDarkMode,
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'กรุณากรอกชื่อ-นามสกุล';
+                            if (v == null || v.isEmpty) return t('full_name');
                             return null;
                           },
                         ),
                         const SizedBox(height: 18),
 
                         // Field 2: เบอร์โทรศัพท์
-                        _buildFieldLabel(icon: Icons.phone_android_rounded, label: 'เบอร์โทรศัพท์'),
+                        _buildFieldLabel(icon: Icons.phone_android_rounded, label: t('phone_number'), isDarkMode: isDarkMode),
                         const SizedBox(height: 8),
                         _buildInputField(
                           controller: _phoneController,
-                          hint: 'กรอกเบอร์โทรศัพท์ของคุณ',
+                          hint: t('phone_number'),
+                          isDarkMode: isDarkMode,
                           keyboardType: TextInputType.phone,
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'กรุณากรอกเบอร์โทรศัพท์';
+                            if (v == null || v.isEmpty) return t('phone_number');
                             return null;
                           },
                         ),
                         const SizedBox(height: 18),
 
                         // Field 3: อีเมล
-                        _buildFieldLabel(icon: Icons.mail_outline_rounded, label: 'อีเมล'),
+                        _buildFieldLabel(icon: Icons.mail_outline_rounded, label: t('email'), isDarkMode: isDarkMode),
                         const SizedBox(height: 8),
                         _buildInputField(
                           controller: _emailController,
-                          hint: 'กรอกอีเมลของคุณ',
+                          hint: t('email'),
+                          isDarkMode: isDarkMode,
                           keyboardType: TextInputType.emailAddress,
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'กรุณากรอกอีเมล';
-                            if (!v.contains('@')) return 'รูปแบบอีเมลไม่ถูกต้อง';
+                            if (v == null || v.isEmpty) return t('email');
+                            if (!v.contains('@')) return 'Invalid Email';
                             return null;
                           },
                         ),
                         const SizedBox(height: 18),
 
                         // Field 4: วันเกิด
-                        _buildFieldLabel(icon: Icons.calendar_month_rounded, label: 'วันเกิด'),
+                        _buildFieldLabel(icon: Icons.calendar_month_rounded, label: t('birth_date'), isDarkMode: isDarkMode),
                         const SizedBox(height: 8),
                         _buildInputField(
                           controller: _birthdayController,
-                          hint: 'วัน เดือน ปีเกิด',
+                          hint: t('birth_date'),
+                          isDarkMode: isDarkMode,
                           readOnly: true,
                           onTap: _selectDate,
                           suffix: IconButton(
@@ -304,47 +314,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         const SizedBox(height: 18),
 
                         // Field 5: เพศ
-                        _buildFieldLabel(icon: Icons.people_outline_rounded, label: 'เพศ'),
+                        _buildFieldLabel(icon: Icons.people_outline_rounded, label: t('gender'), isDarkMode: isDarkMode),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            _buildGenderButton(gender: 'ชาย', iconText: '♂'),
+                            _buildGenderButton(genderKey: 'ชาย', label: t('male'), iconText: '♂', isDarkMode: isDarkMode),
                             const SizedBox(width: 8),
-                            _buildGenderButton(gender: 'หญิง', iconText: '♀'),
+                            _buildGenderButton(genderKey: 'หญิง', label: t('female'), iconText: '♀', isDarkMode: isDarkMode),
                             const SizedBox(width: 8),
-                            _buildGenderButton(gender: 'ไม่ระบุ', iconText: '⚦'),
+                            _buildGenderButton(genderKey: 'ไม่ระบุ', label: t('unspecified'), iconText: '⚦', isDarkMode: isDarkMode),
                           ],
                         ),
                         const SizedBox(height: 28),
 
-                        // Save Button (Inside the card!)
+                        // Save Button
                         SizedBox(
                           width: double.infinity,
-                          height: 56,
+                          height: 52,
                           child: ElevatedButton(
                             onPressed: _onSave,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1C7FF6),
                               foregroundColor: Colors.white,
+                              elevation: 2,
+                              shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.35),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(28),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              elevation: 4,
-                              shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.save_rounded, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'บันทึกข้อมูล',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 16.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              t('save'),
+                              style: GoogleFonts.kanit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -360,21 +363,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  Widget _buildFieldLabel({required IconData icon, required String label}) {
+  Widget _buildFieldLabel({required IconData icon, required String label, required bool isDarkMode}) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: const Color(0xFF1C7FF6),
-        ),
-        const SizedBox(width: 8),
+        Icon(icon, size: 18, color: const Color(0xFF1C7FF6)),
+        const SizedBox(width: 6),
         Text(
           label,
           style: GoogleFonts.kanit(
-            fontSize: 14.5,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF1F2937),
+            color: isDarkMode ? Colors.white : const Color(0xFF374151),
           ),
         ),
       ],
@@ -384,95 +383,106 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget _buildInputField({
     required TextEditingController controller,
     required String hint,
-    TextInputType keyboardType = TextInputType.text,
+    required bool isDarkMode,
     bool readOnly = false,
     VoidCallback? onTap,
     Widget? suffix,
+    TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: keyboardType,
       readOnly: readOnly,
       onTap: onTap,
+      keyboardType: keyboardType,
       validator: validator,
       style: GoogleFonts.kanit(
-        fontSize: 14.5,
-        color: const Color(0xFF1F2937),
+        fontSize: 14,
+        color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.kanit(
           fontSize: 14,
-          color: const Color(0xFF9CA3AF),
+          color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
         ),
         filled: true,
-        fillColor: const Color(0xFFF8FAFF),
+        fillColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade100),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade100),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFF1C7FF6), width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
         ),
         suffixIcon: suffix,
       ),
     );
   }
 
-  Widget _buildGenderButton({required String gender, required String iconText}) {
-    final bool isActive = _selectedGender == gender;
-
+  Widget _buildGenderButton({
+    required String genderKey,
+    required String label,
+    required String iconText,
+    required bool isDarkMode,
+  }) {
+    final isSelected = _selectedGender == genderKey;
     return Expanded(
-      child: SizedBox(
-        height: 48,
-        child: OutlinedButton(
-          onPressed: () {
-            setState(() {
-              _selectedGender = gender;
-            });
-          },
-          style: OutlinedButton.styleFrom(
-            backgroundColor: isActive ? const Color(0xFF1C7FF6) : Colors.white,
-            foregroundColor: isActive ? Colors.white : const Color(0xFF4B5563),
-            side: BorderSide(
-              color: isActive ? const Color(0xFF1C7FF6) : Colors.grey.shade200,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedGender = genderKey;
+          });
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFF1C7FF6)
+                : (isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? const Color(0xFF1C7FF6)
+                  : (isDarkMode ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+              width: 1.5,
             ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: EdgeInsets.zero,
           ),
+          alignment: Alignment.center,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '$iconText ',
-                style: GoogleFonts.kanit(
-                  fontSize: 16,
+                iconText,
+                style: TextStyle(
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: isActive ? Colors.white : const Color(0xFF1C7FF6),
+                  color: isSelected
+                      ? Colors.white
+                      : (isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280)),
                 ),
               ),
+              const SizedBox(width: 4),
               Text(
-                gender,
+                label,
                 style: GoogleFonts.kanit(
-                  fontSize: 13.5,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280)),
                 ),
               ),
             ],
@@ -483,25 +493,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 }
 
-// ==========================================
-// APPBAR WAVE CLIPPER FOR EDIT PROFILE
-// ==========================================
 class EditProfileHeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
     path.lineTo(0, size.height - 30);
-    
-    final controlPoint = Offset(size.width / 2, size.height + 15);
-    final endPoint = Offset(size.width, size.height - 30);
-    
     path.quadraticBezierTo(
-      controlPoint.dx,
-      controlPoint.dy,
-      endPoint.dx,
-      endPoint.dy,
+      size.width * 0.5,
+      size.height + 15,
+      size.width,
+      size.height - 30,
     );
-    
     path.lineTo(size.width, 0);
     path.close();
     return path;

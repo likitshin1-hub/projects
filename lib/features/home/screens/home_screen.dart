@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../models/vehicle_model.dart';
 import '../widgets/home_header.dart';
@@ -48,6 +50,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildHomeTab() {
     final vehicles = VehicleModel.mockVehicles;
+    final currentLang = ref.watch(languageProvider);
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     return SafeArea(
       top: false,
@@ -147,7 +151,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   size: 11, color: Colors.yellow.shade300),
                               const SizedBox(width: 7),
                               Text(
-                                'เก็บคูปอง',
+                                t('claim_coupons'),
                                 style: GoogleFonts.kanit(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -188,7 +192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 size: 18, color: Color(0xFFFFB300)),
                             const SizedBox(width: 7),
                             Text(
-                              'รีวอร์ด',
+                              t('rewards'),
                               style: GoogleFonts.kanit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -208,7 +212,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // ==================================================
 
                   Text(
-                    'บริการของเรา',
+                    t('our_services'),
                     style: GoogleFonts.kanit(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -258,27 +262,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildMessagesTab() {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
-    final categories = ['ทั้งหมด', 'การขนส่ง', 'คนขับ', 'ฝ่ายบริการ', 'โปรโมชั่น'];
+    final categories = currentLang == AppLanguage.en
+        ? ['All', 'Delivery', 'Driver', 'Support', 'Promos']
+        : ['ทั้งหมด', 'การขนส่ง', 'คนขับ', 'ฝ่ายบริการ', 'โปรโมชั่น'];
 
     return Column(
       children: [
         // ==========================================
-        // BLUE GRADIENT HEADER WITH SEARCH BAR
+        // BLUE HEADER BANNER WITH SEARCH
         // ==========================================
         Container(
           width: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Color(0xFF1C7FF6),
-                Color(0xFF0056C6),
-              ],
+              colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(28),
+              bottomRight: Radius.circular(28),
+            ),
           ),
-          padding: EdgeInsets.fromLTRB(20, statusBarHeight + 16, 20, 20),
+          padding: EdgeInsets.fromLTRB(20, statusBarHeight + 16, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -287,7 +296,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'ข้อความ',
+                    t('messages_title'),
                     style: GoogleFonts.kanit(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -303,7 +312,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('กำลังพัฒนาฟังก์ชันเขียนข้อความใหม่...', style: GoogleFonts.kanit()),
+                          content: Text(
+                            currentLang == AppLanguage.en
+                                ? 'New message composition coming soon...'
+                                : 'กำลังพัฒนาฟังก์ชันเขียนข้อความใหม่...',
+                            style: GoogleFonts.kanit(),
+                          ),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -330,7 +344,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: TextField(
                   style: GoogleFonts.kanit(fontSize: 14),
                   decoration: InputDecoration(
-                    hintText: 'ค้นหาชื่อ, ออเดอร์ หรือข้อความ',
+                    hintText: t('search_chat_placeholder'),
                     hintStyle: GoogleFonts.kanit(color: const Color(0xFF9CA3AF), fontSize: 13.5),
                     prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF9CA3AF), size: 20),
                     border: InputBorder.none,
@@ -426,9 +440,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   name: 'TBMOVEHUB Support',
                   isVerified: true,
                   message: ref.watch(partnerApplicationProvider) != null
-                      ? '📢 [อัปเดตใบสมัครคนขับ]: ${ref.watch(partnerApplicationProvider)!.currentStatusText}'
-                      : 'สวัสดีครับ 👋 มีอะไรให้เราช่วยไหมครับ?',
-                  time: ref.watch(partnerApplicationProvider) != null ? 'เมื่อครู่' : '09:30',
+                      ? '📢 [Driver Application Update]: ${ref.watch(partnerApplicationProvider)!.currentStatusText}'
+                      : (currentLang == AppLanguage.en ? 'Hello! 👋 How can we help you today?' : 'สวัสดีครับ 👋 มีอะไรให้เราช่วยไหมครับ?'),
+                  time: ref.watch(partnerApplicationProvider) != null
+                      ? (currentLang == AppLanguage.en ? 'Just now' : 'เมื่อครู่')
+                      : '09:30',
                   badgeCount: ref.watch(partnerApplicationProvider) != null ? 3 : 2,
                   onTap: () {
                     context.push(AppRoutes.chat);
@@ -468,8 +484,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ],
                   ),
-                  name: 'คนขับ : สมชาย',
-                  message: 'กำลังไปยังจุดรับพัสดุครับ',
+                  name: currentLang == AppLanguage.en ? 'Driver: Somchai' : 'คนขับ : สมชาย',
+                  message: currentLang == AppLanguage.en ? 'Heading to pickup location' : 'กำลังไปยังจุดรับพัสดุครับ',
                   time: '09:15',
                   badgeCount: 1,
                   onTap: () {
@@ -494,14 +510,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       size: 26,
                     ),
                   ),
-                  name: 'ออเดอร์ #TB2405081234',
-                  message: 'กำลังจัดส่งพัสดุ',
-                  time: 'เมื่อวาน',
+                  name: currentLang == AppLanguage.en ? 'Order #TB2405081234' : 'ออเดอร์ #TB2405081234',
+                  message: currentLang == AppLanguage.en ? 'Parcel in transit' : 'กำลังจัดส่งพัสดุ',
+                  time: currentLang == AppLanguage.en ? 'Yesterday' : 'เมื่อวาน',
                   badgeCount: 1,
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('เปิดหน้ารายละเอียดออเดอร์นี้...', style: GoogleFonts.kanit()),
+                        content: Text(
+                          currentLang == AppLanguage.en ? 'Opening order details...' : 'เปิดหน้ารายละเอียดออเดอร์นี้...',
+                          style: GoogleFonts.kanit(),
+                        ),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -525,14 +544,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       size: 26,
                     ),
                   ),
-                  name: 'ทีมงานลูกค้าสัมพันธ์',
-                  message: 'ขอบคุณที่ติดต่อเรา TBMOVEHUB ยินดีให้...',
-                  time: '2 วัน',
+                  name: currentLang == AppLanguage.en ? 'Customer Support Team' : 'ทีมงานลูกค้าสัมพันธ์',
+                  message: currentLang == AppLanguage.en
+                      ? 'Thank you for contacting TBMOVEHUB. We are glad to help...'
+                      : 'ขอบคุณที่ติดต่อเรา TBMOVEHUB ยินดีให้...',
+                  time: currentLang == AppLanguage.en ? '2d ago' : '2 วัน',
                   badgeCount: 0,
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('กำลังเชื่อมต่อฝ่ายลูกค้าสัมพันธ์...', style: GoogleFonts.kanit()),
+                        content: Text(
+                          currentLang == AppLanguage.en ? 'Connecting to Customer Support...' : 'กำลังเชื่อมต่อฝ่ายลูกค้าสัมพันธ์...',
+                          style: GoogleFonts.kanit(),
+                        ),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -556,15 +580,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       size: 26,
                     ),
                   ),
-                  name: 'โปรโมชั่น & ข่าวสาร',
-                  message: 'ส่งฟรี! ทุกออเดอร์ วันนี้ - 31 พ.ค. 67',
-                  time: '3 วัน',
+                  name: currentLang == AppLanguage.en ? 'Promotions & News' : 'โปรโมชั่น & ข่าวสาร',
+                  message: currentLang == AppLanguage.en
+                      ? 'Free Delivery! All orders today - 31 May 2024'
+                      : 'ส่งฟรี! ทุกออเดอร์ วันนี้ - 31 พ.ค. 67',
+                  time: currentLang == AppLanguage.en ? '3d ago' : '3 วัน',
                   badgeCount: 0,
                   hasRedDot: true,
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('กำลังเปิดข่าวสารโปรโมชั่นล่าสุด...', style: GoogleFonts.kanit()),
+                        content: Text(
+                          currentLang == AppLanguage.en ? 'Opening latest promotions...' : 'กำลังเปิดข่าวสารโปรโมชั่นล่าสุด...',
+                          style: GoogleFonts.kanit(),
+                        ),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -590,14 +619,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                   ),
-                  name: 'คนขับ : วิทยา',
-                  message: 'ลูกค้าอยู่ที่ไหนครับ?',
-                  time: '5 วัน',
+                  name: currentLang == AppLanguage.en ? 'Driver: Witthaya' : 'คนขับ : วิทยา',
+                  message: currentLang == AppLanguage.en ? 'Where are you located?' : 'ลูกค้าอยู่ที่ไหนครับ?',
+                  time: currentLang == AppLanguage.en ? '5d ago' : '5 วัน',
                   badgeCount: 0,
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('กำลังเปิดห้องแชทของ วิทยา...', style: GoogleFonts.kanit()),
+                        content: Text(
+                          currentLang == AppLanguage.en ? 'Opening chat with Witthaya...' : 'กำลังเปิดห้องแชทของ วิทยา...',
+                          style: GoogleFonts.kanit(),
+                        ),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );

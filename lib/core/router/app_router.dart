@@ -18,6 +18,7 @@ import '../../features/home/screens/home_screen.dart';
 
 // Booking
 import '../../features/booking/screens/booking_screen.dart';
+import '../../features/booking/screens/searching_rider_screen.dart';
 import '../../features/booking/screens/tracking_screen.dart';
 import '../../features/booking/screens/tracking_detail_screen.dart';
 import '../../features/booking/screens/delivery_success_screen.dart';
@@ -130,6 +131,10 @@ final appRouter = GoRouter(
         final bookingId = state.pathParameters['id'] ?? '';
         return TrackingDetailScreen(bookingId: bookingId);
       },
+    ),
+    GoRoute(
+      path: AppRoutes.searchingRider,
+      builder: (context, state) => const SearchingRiderScreen(),
     ),
     GoRoute(
       path: AppRoutes.deliverySuccess,

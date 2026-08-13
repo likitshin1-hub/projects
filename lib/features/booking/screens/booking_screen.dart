@@ -5,9 +5,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/services/directions_service.dart';
+import '../../../core/services/location_service.dart';
 import '../providers/booking_provider.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
@@ -48,6 +54,86 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   String _selectedCouponText = 'เลือกหรือกรอกรหัสคูปอง';
   double _couponDiscount = 0.0;
 
+  // Real Map Pins, Distance & Duration State
+  LatLng _pickupLatLng = const LatLng(13.7466, 100.5393); // Bangkok Sukhumvit
+  LatLng _dropoffLatLng = const LatLng(13.3361, 100.9702); // Chonburi
+  double _distanceKm = 82.5; // Real calculated distance in km
+  int _estimatedDurationMinutes = 45; // Real calculated duration in mins
+  bool _isCalculatingFastestRoute = false;
+
+  Future<void> _calculateFastestRoute() async {
+    setState(() {
+      _isCalculatingFastestRoute = true;
+    });
+
+    final routeResult = await DirectionsService.getDrivingRoute(
+      origin: _pickupLatLng,
+      destination: _dropoffLatLng,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isCalculatingFastestRoute = false;
+      if (routeResult != null) {
+        _distanceKm = routeResult.distanceKm;
+        _estimatedDurationMinutes = routeResult.durationMinutes;
+      }
+    });
+  }
+
+  // Dynamic Fare Formula: Vehicle Base + (Distance * Rate/km) + Excess Weight Charge
+  double _calculateDynamicFare() {
+    double basePrice = 40.0;
+    double pricePerKm = 10.0;
+    double baseWeightLimitKg = 5.0;
+    double pricePerKgOverLimit = 5.0;
+
+    switch (_selectedVehicle) {
+      case 'มอเตอร์ไซค์':
+        basePrice = 40.0;
+        pricePerKm = 10.0;
+        baseWeightLimitKg = 5.0;
+        pricePerKgOverLimit = 5.0;
+        break;
+      case 'รถเก๋ง 4 ประตู':
+        basePrice = 80.0;
+        pricePerKm = 15.0;
+        baseWeightLimitKg = 15.0;
+        pricePerKgOverLimit = 8.0;
+        break;
+      case 'รถกระบะ':
+        basePrice = 250.0;
+        pricePerKm = 20.0;
+        baseWeightLimitKg = 50.0;
+        pricePerKgOverLimit = 10.0;
+        break;
+      case 'รถห้องเย็น':
+        basePrice = 450.0;
+        pricePerKm = 25.0;
+        baseWeightLimitKg = 50.0;
+        pricePerKgOverLimit = 12.0;
+        break;
+      case 'รถบรรทุกมีลิฟท์ท้าย':
+        basePrice = 750.0;
+        pricePerKm = 30.0;
+        baseWeightLimitKg = 100.0;
+        pricePerKgOverLimit = 15.0;
+        break;
+      default:
+        basePrice = 40.0;
+        pricePerKm = 10.0;
+        baseWeightLimitKg = 5.0;
+        pricePerKgOverLimit = 5.0;
+    }
+
+    double distanceCharge = _distanceKm * pricePerKm;
+    double excessWeight = (_parcelWeight > baseWeightLimitKg) ? (_parcelWeight - baseWeightLimitKg) : 0.0;
+    double weightCharge = excessWeight * pricePerKgOverLimit;
+
+    return basePrice + distanceCharge + weightCharge;
+  }
+
   late String _selectedVehicle;
 
   @override
@@ -74,14 +160,491 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   void _syncToProvider() {
     ref.read(bookingProvider.notifier).updateForm(
           vehicleType: _selectedVehicle,
-          pickup: '$_pickupName\n$_pickupAddress1\n$_pickupAddress2',
-          dropoff: '$_dropoffName\n$_dropoffAddress',
-          details: 'รายละเอียดพัสดุ: ${_descriptionController.text} | เบอร์ติดต่อ: $_dropoffPhone | เวลาทำการ: $_pickupTime',
+          pickup: '$_pickupAddress1 $_pickupAddress2',
+          pickupName: _pickupName,
+          pickupLat: _pickupLatLng.latitude,
+          pickupLng: _pickupLatLng.longitude,
+          dropoff: _dropoffAddress,
+          dropoffName: _dropoffName,
+          dropoffLat: _dropoffLatLng.latitude,
+          dropoffLng: _dropoffLatLng.longitude,
+          receiverPhone: _dropoffPhone,
+          parcelType: _parcelType,
+          parcelWeight: _parcelWeight,
+          details: _descriptionController.text,
+          distanceKm: _distanceKm,
+          estimatedDurationMinutes: _estimatedDurationMinutes,
+          estimatedPrice: _calculateDynamicFare(),
         );
+  }
+
+  // Interactive Map Pin Selection Modal
+  void _showMapPinPickerModal() {
+    final currentLang = ref.watch(languageProvider);
+    int activePinTab = 0; // 0: Pickup (Blue), 1: Dropoff (Green)
+
+    LatLng tempPickupLatLng = _pickupLatLng;
+    LatLng tempDropoffLatLng = _dropoffLatLng;
+    double tempDistanceKm = _distanceKm;
+
+    final pickupCtrl = TextEditingController(text: '$_pickupAddress1 $_pickupAddress2');
+    final dropoffCtrl = TextEditingController(text: _dropoffAddress);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isDarkMode = ref.watch(themeProvider);
+            final sheetBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+            final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+
+            // Compute current live price based on Vehicle + Distance + Weight
+            double calculateModalFare() {
+              double basePrice = 40.0;
+              double pricePerKm = 10.0;
+              double baseWeightLimitKg = 5.0;
+              double pricePerKgOverLimit = 5.0;
+
+              switch (_selectedVehicle) {
+                case 'มอเตอร์ไซค์':
+                  basePrice = 40.0;
+                  pricePerKm = 10.0;
+                  baseWeightLimitKg = 5.0;
+                  pricePerKgOverLimit = 5.0;
+                  break;
+                case 'รถเก๋ง 4 ประตู':
+                  basePrice = 80.0;
+                  pricePerKm = 15.0;
+                  baseWeightLimitKg = 15.0;
+                  pricePerKgOverLimit = 8.0;
+                  break;
+                case 'รถกระบะ':
+                  basePrice = 250.0;
+                  pricePerKm = 20.0;
+                  baseWeightLimitKg = 50.0;
+                  pricePerKgOverLimit = 10.0;
+                  break;
+                case 'รถห้องเย็น':
+                  basePrice = 450.0;
+                  pricePerKm = 25.0;
+                  baseWeightLimitKg = 50.0;
+                  pricePerKgOverLimit = 12.0;
+                  break;
+                case 'รถบรรทุกมีลิฟท์ท้าย':
+                  basePrice = 750.0;
+                  pricePerKm = 30.0;
+                  baseWeightLimitKg = 100.0;
+                  pricePerKgOverLimit = 15.0;
+                  break;
+              }
+
+              double distanceCharge = tempDistanceKm * pricePerKm;
+              double excessWeight = (_parcelWeight > baseWeightLimitKg) ? (_parcelWeight - baseWeightLimitKg) : 0.0;
+              double weightCharge = excessWeight * pricePerKgOverLimit;
+
+              return basePrice + distanceCharge + weightCharge;
+            }
+
+            final currentModalFare = calculateModalFare();
+
+            // Set Markers
+            final Set<Marker> modalMarkers = {
+              Marker(
+                markerId: const MarkerId('pickup_pin'),
+                position: tempPickupLatLng,
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+                infoWindow: InfoWindow(
+                  title: currentLang == AppLanguage.en ? 'Pickup Location' : 'จุดรับสินค้า',
+                ),
+              ),
+              Marker(
+                markerId: const MarkerId('dropoff_pin'),
+                position: tempDropoffLatLng,
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+                infoWindow: InfoWindow(
+                  title: currentLang == AppLanguage.en ? 'Dropoff Location' : 'จุดส่งสินค้า',
+                ),
+              ),
+            };
+
+            // Set Polyline
+            final Set<Polyline> modalPolylines = {
+              Polyline(
+                polylineId: const PolylineId('route_line'),
+                points: [tempPickupLatLng, tempDropoffLatLng],
+                color: const Color(0xFF1C7FF6),
+                width: 4,
+              ),
+            };
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.88,
+              decoration: BoxDecoration(
+                color: sheetBg,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  // Modal Header & Drag Handle
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          currentLang == AppLanguage.en ? 'Select Pins on Map' : 'ปักหมุดจุดรับ-ส่งบนแผนที่',
+                          style: GoogleFonts.kanit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Pin Selector Tab Switcher (Pickup Blue / Dropoff Green)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setModalState(() => activePinTab = 0),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: activePinTab == 0
+                                    ? const Color(0xFF1C7FF6)
+                                    : (isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.location_on_rounded,
+                                    color: activePinTab == 0 ? Colors.white : const Color(0xFF1C7FF6),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    currentLang == AppLanguage.en ? 'Pickup Pin' : 'หมุดจุดรับสินค้า',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: activePinTab == 0 ? Colors.white : textColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setModalState(() => activePinTab = 1),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: activePinTab == 1
+                                    ? const Color(0xFF22C55E)
+                                    : (isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.location_on_rounded,
+                                    color: activePinTab == 1 ? Colors.white : const Color(0xFF22C55E),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    currentLang == AppLanguage.en ? 'Dropoff Pin' : 'หมุดจุดส่งสินค้า',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: activePinTab == 1 ? Colors.white : textColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Real Interactive Google Map Widget
+                  Expanded(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: activePinTab == 0 ? tempPickupLatLng : tempDropoffLatLng,
+                            zoom: 11.5,
+                          ),
+                          markers: modalMarkers,
+                          polylines: modalPolylines,
+                          onTap: (LatLng tappedLatLng) async {
+                            setModalState(() {
+                              if (activePinTab == 0) {
+                                tempPickupLatLng = tappedLatLng;
+                                pickupCtrl.text =
+                                    '${tappedLatLng.latitude.toStringAsFixed(4)}, ${tappedLatLng.longitude.toStringAsFixed(4)} (จุดรับสินค้า)';
+                              } else {
+                                tempDropoffLatLng = tappedLatLng;
+                                dropoffCtrl.text =
+                                    '${tappedLatLng.latitude.toStringAsFixed(4)}, ${tappedLatLng.longitude.toStringAsFixed(4)} (จุดส่งสินค้า)';
+                              }
+                            });
+
+                            // Calculate actual driving route along real roads using Directions Engine
+                            final routeResult = await DirectionsService.getDrivingRoute(
+                              origin: tempPickupLatLng,
+                              destination: tempDropoffLatLng,
+                            );
+
+                            setModalState(() {
+                              if (routeResult != null && routeResult.distanceKm > 0) {
+                                tempDistanceKm = routeResult.distanceKm;
+                              } else {
+                                // Fallback calculation based on geodesic distance
+                                final latDiff = (tempPickupLatLng.latitude - tempDropoffLatLng.latitude).abs() * 111.0;
+                                final lngDiff = (tempPickupLatLng.longitude - tempDropoffLatLng.longitude).abs() * 105.0;
+                                tempDistanceKm = double.parse((latDiff + lngDiff).toStringAsFixed(1));
+                                if (tempDistanceKm < 1.0) tempDistanceKm = 1.2;
+                              }
+                            });
+                          },
+                        ),
+
+                        // Search Address Overlay Field
+                        Positioned(
+                          top: 14,
+                          left: 16,
+                          right: 16,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: sheetBg,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: activePinTab == 0 ? pickupCtrl : dropoffCtrl,
+                              style: GoogleFonts.kanit(fontSize: 13.5, color: textColor),
+                              decoration: InputDecoration(
+                                hintText: currentLang == AppLanguage.en
+                                    ? 'Tap map to place pin...'
+                                    : 'แตะที่แผนที่เพื่อเลือกตำแหน่งหมุด...',
+                                hintStyle: GoogleFonts.kanit(fontSize: 12.5, color: Colors.grey.shade400),
+                                prefixIcon: Icon(
+                                  Icons.ads_click_rounded,
+                                  color: activePinTab == 0 ? const Color(0xFF1C7FF6) : const Color(0xFF22C55E),
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // GPS Current Location Floating Action Button
+                        Positioned(
+                          bottom: 16,
+                          right: 16,
+                          child: FloatingActionButton.extended(
+                            heroTag: 'gps_fetch_btn',
+                            backgroundColor: const Color(0xFF10B981),
+                            icon: const Icon(Icons.my_location_rounded, color: Colors.white, size: 20),
+                            label: Text(
+                              currentLang == AppLanguage.en ? 'GPS My Location' : 'ดึง GPS ปัจจุบัน',
+                              style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            onPressed: () async {
+                              final loc = await LocationService.getCurrentLocation();
+                              if (loc != null) {
+                                setModalState(() {
+                                  if (activePinTab == 0) {
+                                    tempPickupLatLng = loc.location;
+                                    pickupCtrl.text = loc.address;
+                                  } else {
+                                    tempDropoffLatLng = loc.location;
+                                    dropoffCtrl.text = loc.address;
+                                  }
+                                });
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        currentLang == AppLanguage.en
+                                            ? 'GPS Position Set Successfully!'
+                                            : 'ปักหมุดตำแหน่งจาก GPS เครื่องเรียบร้อยแล้ว!',
+                                        style: GoogleFonts.kanit(),
+                                      ),
+                                      backgroundColor: const Color(0xFF10B981),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // LIVE PRICING & DISTANCE INFORMATION BAR (ระยะทาง + น้ำหนัก + ราคา)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.straighten_rounded, color: Color(0xFF1C7FF6), size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              currentLang == AppLanguage.en
+                                  ? 'Distance: ${tempDistanceKm} km'
+                                  : 'ระยะทาง: ${tempDistanceKm} กม.',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : const Color(0xFF1D4ED8),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.scale_rounded, color: Color(0xFF8B5CF6), size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              currentLang == AppLanguage.en
+                                  ? 'Weight: ${_parcelWeight} kg'
+                                  : 'น้ำหนัก: ${_parcelWeight} กก.',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : const Color(0xFF6D28D9),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${currentModalFare.toInt()} THB',
+                              style: GoogleFonts.kanit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Bottom Save Pins Action Bar
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: sheetBg,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, -4),
+                        ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                        label: Text(
+                          currentLang == AppLanguage.en ? 'Confirm Pin Locations' : 'บันทึกตำแหน่งหมุดที่เลือก',
+                          style: GoogleFonts.kanit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1C7FF6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(26),
+                          ),
+                          elevation: 3,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _pickupLatLng = tempPickupLatLng;
+                            _dropoffLatLng = tempDropoffLatLng;
+                            _distanceKm = tempDistanceKm;
+                            if (pickupCtrl.text.isNotEmpty) {
+                              _pickupAddress1 = pickupCtrl.text;
+                            }
+                            if (dropoffCtrl.text.isNotEmpty) {
+                              _dropoffAddress = dropoffCtrl.text;
+                            }
+                          });
+                          _syncToProvider();
+                          Navigator.pop(context);
+                          _calculateFastestRoute();
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   // Open Bottom Sheet to Edit Pickup Details
   void _editPickupBottomSheet() {
+    final currentLang = ref.read(languageProvider);
     final nameCtrl = TextEditingController(text: _pickupName);
     final addr1Ctrl = TextEditingController(text: _pickupAddress1);
     final addr2Ctrl = TextEditingController(text: _pickupAddress2);
@@ -118,7 +681,89 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
+
+              // Request GPS Device Location Button
+              ElevatedButton.icon(
+                icon: const Icon(Icons.my_location_rounded, color: Colors.white, size: 18),
+                label: Text(
+                  currentLang == AppLanguage.en ? '📡 Use My Current Device GPS Location' : '📡 ใช้ตำแหน่ง GPS ของเครื่องปัจจุบัน',
+                  style: GoogleFonts.kanit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                  backgroundColor: const Color(0xFF10B981),
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        currentLang == AppLanguage.en ? 'Requesting GPS Location from device...' : 'กำลังค้นหาตำแหน่ง GPS ของเครื่อง...',
+                        style: GoogleFonts.kanit(),
+                      ),
+                      backgroundColor: const Color(0xFF1C7FF6),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+
+                  final result = await LocationService.getCurrentLocation();
+                  if (result != null) {
+                    setState(() {
+                      _pickupLatLng = result.location;
+                      _pickupAddress1 = result.address;
+                      _pickupAddress2 = result.districtProvince;
+                      addr1Ctrl.text = result.address;
+                      addr2Ctrl.text = result.districtProvince;
+                    });
+                    _syncToProvider();
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            currentLang == AppLanguage.en
+                                ? 'GPS location retrieved successfully!'
+                                : 'ดึงตำแหน่ง GPS ของเครื่องเรียบร้อยแล้ว!',
+                            style: GoogleFonts.kanit(),
+                          ),
+                          backgroundColor: const Color(0xFF10B981),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // Open Map Pin Picker Button
+              OutlinedButton.icon(
+                icon: const Icon(Icons.map_rounded, color: Color(0xFF1C7FF6), size: 18),
+                label: Text(
+                  '📍 เลือกตำแหน่งโดยปักหมุดบนแผนที่',
+                  style: GoogleFonts.kanit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1C7FF6),
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                  side: const BorderSide(color: Color(0xFF1C7FF6), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showMapPinPickerModal();
+                },
+              ),
+              const SizedBox(height: 14),
               TextField(
                 controller: nameCtrl,
                 decoration: InputDecoration(
@@ -229,7 +874,30 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
+
+              // Open Map Pin Picker Button
+              OutlinedButton.icon(
+                icon: const Icon(Icons.map_rounded, color: Color(0xFF22C55E), size: 18),
+                label: Text(
+                  '🎯 เลือกตำแหน่งโดยปักหมุดบนแผนที่',
+                  style: GoogleFonts.kanit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF22C55E),
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                  side: const BorderSide(color: Color(0xFF22C55E), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showMapPinPickerModal();
+                },
+              ),
+              const SizedBox(height: 14),
               TextField(
                 controller: nameCtrl,
                 decoration: InputDecoration(
@@ -498,15 +1166,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     _syncToProvider();
     final success = await ref.read(bookingProvider.notifier).submitBooking();
     if (success && mounted) {
-      context.pushReplacement(AppRoutes.notificationDetail);
+      context.pushReplacement(AppRoutes.searchingRider);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
@@ -560,14 +1229,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           },
                         ),
                         Text(
-                          'สรุปการจัดส่ง',
+                          currentLang == AppLanguage.en ? 'Booking Summary' : 'สรุปการจัดส่ง',
                           style: GoogleFonts.kanit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 48), // Spacer to balance back arrow
+                        const SizedBox(width: 48),
                       ],
                     ),
                   ],
@@ -595,11 +1264,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStep(1, 'ข้อมูลการจัดส่ง', _currentStep >= 1),
+                      _buildStep(1, currentLang == AppLanguage.en ? 'Delivery Info' : 'ข้อมูลการจัดส่ง', _currentStep >= 1),
                       _buildStepDivider(_currentStep >= 2),
-                      _buildStep(2, 'รายละเอียดพัสดุ', _currentStep >= 2),
+                      _buildStep(2, currentLang == AppLanguage.en ? 'Parcel Details' : 'รายละเอียดพัสดุ', _currentStep >= 2),
                       _buildStepDivider(_currentStep >= 3),
-                      _buildStep(3, 'สรุปการจัดส่ง', _currentStep >= 3),
+                      _buildStep(3, currentLang == AppLanguage.en ? 'Summary & Pay' : 'สรุปการจัดส่ง', _currentStep >= 3),
                     ],
                   ),
                 ),
@@ -648,6 +1317,79 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             style: GoogleFonts.kanit(
               fontSize: 13,
               color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Interactive Map Pin Selection Button
+          InkWell(
+            onTap: _showMapPinPickerModal,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1C7FF6).withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white24,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.map_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ref.watch(languageProvider) == AppLanguage.en
+                              ? 'Interactive Pin Selection'
+                              : 'ปักหมุดเลือกจุดรับ-ส่ง บนแผนที่',
+                          style: GoogleFonts.kanit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          ref.watch(languageProvider) == AppLanguage.en
+                              ? 'Tap map to place pickup & dropoff pins'
+                              : 'แตะเลื่อนหมุดระบุจุดรับและจุดส่งพัสดุได้เอง',
+                          style: GoogleFonts.kanit(
+                            fontSize: 11.5,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -823,6 +1565,193 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // FASTEST ROUTE REVIEW & APPROVAL CARD
+          Container(
+            decoration: BoxDecoration(
+              color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE8F8EE),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.bolt_rounded,
+                        color: Color(0xFF10B981),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ref.watch(languageProvider) == AppLanguage.en
+                                ? 'Fastest Delivery Route Calculated'
+                                : 'สรุปเส้นทางจัดส่งที่เร็วที่สุด',
+                            style: GoogleFonts.kanit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : const Color(0xFF065F46),
+                            ),
+                          ),
+                          Text(
+                            ref.watch(languageProvider) == AppLanguage.en
+                                ? 'Review duration & route before approval'
+                                : 'คำนวณเส้นทางถนนและเวลาให้ตรวจสอบก่อนอนุมัติสั่งงาน',
+                            style: GoogleFonts.kanit(
+                              fontSize: 11.5,
+                              color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF047857),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                if (_isCalculatingFastestRoute)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        ref.watch(languageProvider) == AppLanguage.en
+                            ? 'Calculating fastest road route...'
+                            : 'กำลังประมวลผลเส้นทางจัดส่งที่ไวที่สุด...',
+                        style: GoogleFonts.kanit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.timer_outlined, color: Color(0xFF10B981), size: 18),
+                                const SizedBox(width: 6),
+                                Text(
+                                  ref.watch(languageProvider) == AppLanguage.en ? 'Est. Duration:' : 'เวลาจัดส่งโดยประมาณ:',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 12.5,
+                                    color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF047857),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '$_estimatedDurationMinutes นาที (${(_estimatedDurationMinutes / 60.0).toStringAsFixed(1)} ชม.)',
+                              style: GoogleFonts.kanit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.alt_route_rounded, color: Color(0xFF1C7FF6), size: 18),
+                                const SizedBox(width: 6),
+                                Text(
+                                  ref.watch(languageProvider) == AppLanguage.en ? 'Road Distance:' : 'ระยะทางถนนจริง:',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 12.5,
+                                    color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF1E40AF),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '$_distanceKm กม.',
+                              style: GoogleFonts.kanit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1C7FF6),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF8B5CF6), size: 18),
+                                const SizedBox(width: 6),
+                                Text(
+                                  ref.watch(languageProvider) == AppLanguage.en ? 'Calculated Fare:' : 'ค่าบริการสุทธิ:',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 12.5,
+                                    color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF6D28D9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${_calculateDynamicFare().toInt()} บาท',
+                              style: GoogleFonts.kanit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -1464,22 +2393,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   // STEP 3 FORM: SUMMARY AND PAYMENT
   // ==========================================
 
-  // Helper to get delivery cost based on vehicle
+  // Helper to get delivery cost based on vehicle, distance and weight
   double _getVehiclePrice() {
-    switch (_selectedVehicle) {
-      case 'มอเตอร์ไซค์':
-        return 120.0;
-      case 'รถเก๋ง 4 ประตู':
-        return 250.0;
-      case 'รถกระบะ':
-        return 450.0;
-      case 'รถห้องเย็น':
-        return 650.0;
-      case 'รถบรรทุกมีลิฟท์ท้าย':
-        return 950.0;
-      default:
-        return 120.0;
-    }
+    return _calculateDynamicFare();
   }
 
   // Open coupon selection bottom sheet
@@ -1718,13 +2634,29 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'จุดรับสินค้า',
-                          style: GoogleFonts.kanit(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1C7FF6),
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'จุดรับสินค้า',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1C7FF6),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => setState(() => _currentStep = 1),
+                              child: Text(
+                                ref.watch(languageProvider) == AppLanguage.en ? 'Edit' : 'แก้ไข',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1C7FF6),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -2055,43 +2987,82 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
 
-          // Confirm Button
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1C7FF6),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                elevation: 4,
-                shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
-              ),
-              onPressed: _submit,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.lock_rounded,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'ยืนยันการจัดส่ง',
-                    style: GoogleFonts.kanit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+          // Bottom Dual Action Bar: Go Back & Edit vs Confirm Order
+          Row(
+            children: [
+              // Back & Edit Button
+              Expanded(
+                child: SizedBox(
+                  height: 54,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(
+                      Icons.edit_note_rounded,
+                      color: Color(0xFF1C7FF6),
+                      size: 20,
                     ),
+                    label: Text(
+                      ref.watch(languageProvider) == AppLanguage.en ? 'Go Back & Edit' : 'ย้อนกลับไปแก้ไข',
+                      style: GoogleFonts.kanit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1C7FF6),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                        color: Color(0xFF1C7FF6),
+                        width: 1.8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(27),
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _currentStep = 1; // Return to Step 1 for full editing
+                      });
+                    },
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(width: 14),
+
+              // Final Confirm & Dispatch Rider Button
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  height: 54,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    label: Text(
+                      ref.watch(languageProvider) == AppLanguage.en ? 'Confirm Order' : 'ยืนยันการจัดส่ง',
+                      style: GoogleFonts.kanit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1C7FF6),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(27),
+                      ),
+                      elevation: 4,
+                      shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+                    ),
+                    onPressed: _submit,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
         ],
       ),
     );

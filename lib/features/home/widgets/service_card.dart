@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../models/vehicle_model.dart';
 
@@ -25,6 +27,8 @@ class _ServiceCardState extends ConsumerState<ServiceCard>
   @override
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+
     final vehicle = widget.vehicle;
     final isRefrigerated = vehicle.tempControl != null;
 
@@ -32,6 +36,9 @@ class _ServiceCardState extends ConsumerState<ServiceCard>
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
+
+    final vehicleName = vehicle.getName(currentLang);
+    final vehicleDesc = vehicle.getDescription(currentLang);
 
     return AnimatedScale(
       scale: _isHovered ? 1.02 : 1.0,
@@ -103,7 +110,7 @@ class _ServiceCardState extends ConsumerState<ServiceCard>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          vehicle.name,
+                          vehicleName,
                           style: GoogleFonts.kanit(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -112,50 +119,68 @@ class _ServiceCardState extends ConsumerState<ServiceCard>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          vehicle.description,
+                          vehicleDesc,
                           style: GoogleFonts.kanit(
                             fontSize: 12,
                             color: subTextColor,
                             height: 1.3,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
 
-                        // Dimension & Weight info
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        // Specs Chips (Dimensions & Weight)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.inventory_2_outlined,
-                              size: 14,
-                              color: Color(0xFF1C7FF6),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '${vehicle.dimensions} • ${vehicle.maxWeight}',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 11,
-                                  color: subTextColor,
-                                  fontWeight: FontWeight.w500,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.aspect_ratio_rounded,
+                                  size: 13,
+                                  color: Color(0xFF1C7FF6),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  vehicle.dimensions,
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 10.5,
+                                    color: subTextColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.fitness_center_rounded,
+                                  size: 13,
+                                  color: Color(0xFF1C7FF6),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  vehicle.maxWeight,
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 10.5,
+                                    color: subTextColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
 
-                        // If refrigerated, show temp badge
                         if (isRefrigerated) ...[
                           const SizedBox(height: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? const Color(0xFF0369A1).withValues(alpha: 0.3)
-                                  : const Color(0xFFE0F2FE),
+                              color: const Color(0xFF0284C7).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
@@ -163,17 +188,17 @@ class _ServiceCardState extends ConsumerState<ServiceCard>
                               children: [
                                 const Icon(
                                   Icons.ac_unit_rounded,
-                                  size: 11,
-                                  color: Color(0xFF38BDF8),
+                                  size: 12,
+                                  color: Color(0xFF0284C7),
                                 ),
                                 const SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
                                     vehicle.tempControl!,
                                     style: GoogleFonts.kanit(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF38BDF8),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF0284C7),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -186,16 +211,11 @@ class _ServiceCardState extends ConsumerState<ServiceCard>
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
 
-                  // Arrow button
-                  Align(
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
-                    ),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 16,
+                    color: Colors.grey,
                   ),
                 ],
               ),

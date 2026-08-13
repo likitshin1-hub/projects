@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/app_routes.dart';
-import '../../../core/providers/theme_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../../partner/providers/partner_application_provider.dart';
 
 class NotificationsListScreen extends ConsumerWidget {
@@ -14,7 +16,10 @@ class NotificationsListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
     final partnerApp = ref.watch(partnerApplicationProvider);
+
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
 
@@ -53,7 +58,7 @@ class NotificationsListScreen extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          'แจ้งเตือน',
+                          t('notifications'),
                           style: GoogleFonts.kanit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -78,14 +83,11 @@ class NotificationsListScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.06),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.06),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -94,8 +96,8 @@ class NotificationsListScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8F2FE),
-                          borderRadius: BorderRadius.circular(14),
+                          color: const Color(0xFF1C7FF6).withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.notifications_active_rounded,
@@ -104,27 +106,27 @@ class NotificationsListScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'แจ้งเตือนทั้งหมด',
-                              style: GoogleFonts.kanit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
-                              ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            currentLang == AppLanguage.en ? 'Notification Center' : 'ศูนย์รวมการแจ้งเตือน',
+                            style: GoogleFonts.kanit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
                             ),
-                            Text(
-                              partnerApp != null ? 'มี 4 รายการใหม่ที่คุณยังไม่อ่าน' : 'มี 3 รายการใหม่ที่คุณยังไม่อ่าน',
-                              style: GoogleFonts.kanit(
-                                fontSize: 12.5,
-                                color: subTextColor,
-                              ),
+                          ),
+                          Text(
+                            currentLang == AppLanguage.en
+                                ? 'Real-time updates on orders and system'
+                                : 'ติดตามข่าวสารและสถานะคำสั่งซื้อแบบเรียลไทม์',
+                            style: GoogleFonts.kanit(
+                              fontSize: 12,
+                              color: subTextColor,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -135,201 +137,87 @@ class NotificationsListScreen extends ConsumerWidget {
 
           const SizedBox(height: 44),
 
-          // DATE CHIP TAG
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'วันนี้',
-                    style: GoogleFonts.kanit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : const Color(0xFF475569),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // ==========================================
-          // SCROLLABLE NOTIFICATIONS LIST
+          // NOTIFICATIONS LIST
           // ==========================================
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.all(16),
               physics: const BouncingScrollPhysics(),
               children: [
                 if (partnerApp != null) ...[
-                  // Card 0: สถานะการสมัครพาร์ทเนอร์คนขับ (Dynamic Periodic System Notification)
                   _buildNotificationCard(
-                    context,
-                    ref,
-                    sideColor: const Color(0xFF10B981),
-                    iconBgColor: const Color(0xFFECFDF5),
-                    iconColor: const Color(0xFF10B981),
-                    icon: Icons.badge_rounded,
-                    title: 'สถานะใบสมัครพาร์ทเนอร์คนขับ',
+                    context: context,
+                    icon: Icons.assignment_ind_rounded,
+                    iconBgColor: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
+                    iconColor: const Color(0xFF1C7FF6),
+                    title: currentLang == AppLanguage.en
+                        ? 'Driver Partner Application Update'
+                        : 'อัปเดตสถานะใบสมัครคนขับ / ไรเดอร์',
+                    subtitle: partnerApp.currentStatusText,
                     time: 'เมื่อครู่',
-                    dotColor: const Color(0xFF10B981),
-                    customSubtitle: RichText(
-                      text: TextSpan(
-                        style: GoogleFonts.kanit(
-                          fontSize: 13,
-                          color: subTextColor,
-                          height: 1.35,
-                        ),
-                        children: [
-                          const TextSpan(
-                            text: 'อัปเดตระบบตรวจสอบ: ',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          TextSpan(text: partnerApp.currentStatusText),
-                        ],
-                      ),
-                    ),
+                    isUnread: true,
+                    isDarkMode: isDarkMode,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'สถานะใบสมัครปัจจุบัน: ${partnerApp.currentStatusText}',
-                            style: GoogleFonts.kanit(),
-                          ),
-                          backgroundColor: const Color(0xFF10B981),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
+                      context.push(AppRoutes.partner);
                     },
                   ),
+                  const SizedBox(height: 12),
                 ],
-
-                // Card 1: คำสั่งซื้อจัดส่งแล้ว (Blue theme)
                 _buildNotificationCard(
-                  context,
-                  ref,
-                  sideColor: const Color(0xFF1C7FF6),
-                  iconBgColor: const Color(0xFFE8F2FE),
-                  iconColor: const Color(0xFF1C7FF6),
-                  icon: Icons.inventory_2_outlined,
-                  title: 'คำสั่งซื้อจัดส่งแล้ว',
-                  time: '10:30 น.',
-                  dotColor: const Color(0xFF1C7FF6),
-                  customSubtitle: RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.kanit(
-                        fontSize: 13,
-                        color: subTextColor,
-                        height: 1.35,
-                      ),
-                      children: const [
-                        TextSpan(text: 'คำสั่งซื้อ #TH21549666541A ของคุณ\nถูกจัดส่งเรียบร้อยแล้ว'),
-                      ],
-                    ),
-                  ),
+                  context: context,
+                  icon: Icons.local_shipping_rounded,
+                  iconBgColor: const Color(0xFF10B981).withValues(alpha: 0.12),
+                  iconColor: const Color(0xFF10B981),
+                  title: currentLang == AppLanguage.en
+                      ? 'Interprovincial Delivery In Progress'
+                      : 'พัสดุของคุณอยู่ระหว่างการขนส่งข้ามจังหวัด',
+                  subtitle: currentLang == AppLanguage.en
+                      ? 'Driver on Burapha Withi Expressway (ETA 35m)'
+                      : 'พนักงานขับรถเดินทางถึงทางด่วนบูรพาวิถีแล้ว (คาดว่าจะถึงใน 35 นาที)',
+                  time: '10 นาทีที่แล้ว',
+                  isUnread: true,
+                  isDarkMode: isDarkMode,
                   onTap: () {
-                    context.push(AppRoutes.notificationDetail);
+                    context.push(AppRoutes.tracking);
                   },
                 ),
-
-                // Card 2: ชำระเงินสำเร็จ (Green theme)
+                const SizedBox(height: 12),
                 _buildNotificationCard(
-                  context,
-                  ref,
-                  sideColor: const Color(0xFF22C55E),
-                  iconBgColor: const Color(0xFFE8F8EE),
-                  iconColor: const Color(0xFF22C55E),
-                  icon: Icons.check_circle_outline_rounded,
-                  title: 'ชำระเงินสำเร็จ',
-                  time: '09:30 น.',
-                  dotColor: const Color(0xFF22C55E),
-                  customSubtitle: RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.kanit(
-                        fontSize: 13,
-                        color: subTextColor,
-                        height: 1.35,
-                      ),
-                      children: const [
-                        TextSpan(text: 'คุณได้ชำระเงินจำนวน '),
-                        TextSpan(
-                          text: '1,590.00 บาท',
-                          style: TextStyle(
-                            color: Color(0xFF22C55E),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(text: ' เรียบร้อย'),
-                      ],
-                    ),
-                  ),
+                  context: context,
+                  icon: Icons.local_offer_rounded,
+                  iconBgColor: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                  iconColor: const Color(0xFFF59E0B),
+                  title: currentLang == AppLanguage.en
+                      ? 'Special Discount Coupon Received!'
+                      : 'คุณได้รับคูปองส่วนลดพิเศษ 50 บาท!',
+                  subtitle: currentLang == AppLanguage.en
+                      ? 'Use code FOR YOU for next interprovincial trip'
+                      : 'กดใช้คูปองส่วนลดได้ทันทีเมื่อใช้บริการส่งของข้ามจังหวัด',
+                  time: '2 ชั่วโมงที่แล้ว',
+                  isUnread: false,
+                  isDarkMode: isDarkMode,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'ชำระเงินสำเร็จเรียบร้อยแล้ว',
-                          style: GoogleFonts.kanit(),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    context.push(AppRoutes.coupons);
                   },
                 ),
-
-                // Card 3: แจ้งเตือนโปรโมชั่น (Orange theme)
+                const SizedBox(height: 12),
                 _buildNotificationCard(
-                  context,
-                  ref,
-                  sideColor: const Color(0xFFFFB300),
-                  iconBgColor: const Color(0xFFFFF8E1),
-                  iconColor: const Color(0xFFFFB300),
-                  icon: Icons.notifications_none_rounded,
-                  title: 'แจ้งเตือนโปรโมชั่น',
-                  time: '08:30 น.',
-                  dotColor: const Color(0xFFFFB300),
-                  customSubtitle: RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.kanit(
-                        fontSize: 13,
-                        color: subTextColor,
-                        height: 1.35,
-                      ),
-                      children: const [
-                        TextSpan(text: 'โปรโมชั่นพิเศษสำหรับคุณ รับส่วนลด '),
-                        TextSpan(
-                          text: '10%',
-                          style: TextStyle(
-                            color: Color(0xFFFFB300),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(text: ' เมื่อช้อปครบ '),
-                        TextSpan(
-                          text: '1,000 บาท',
-                          style: TextStyle(
-                            color: Color(0xFFFFB300),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  context: context,
+                  icon: Icons.check_circle_rounded,
+                  iconBgColor: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                  iconColor: const Color(0xFF6366F1),
+                  title: currentLang == AppLanguage.en
+                      ? 'Delivery Completed Successfully'
+                      : 'การจัดส่งออเดอร์ TB668511 สำเร็จเรียบร้อย',
+                  subtitle: currentLang == AppLanguage.en
+                      ? 'Recipient received item and signed'
+                      : 'ผู้รับปลายทางเซ็นรับพัสดุเรียบร้อยแล้ว ขอบคุณที่ใช้บริการ',
+                  time: 'เมื่อวานนี้ 14:00',
+                  isUnread: false,
+                  isDarkMode: isDarkMode,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'รับสิทธิ์ส่วนลดโปรโมชั่น 10% เรียบร้อย',
-                          style: GoogleFonts.kanit(),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    context.push(AppRoutes.history);
                   },
                 ),
               ],
@@ -340,128 +228,108 @@ class NotificationsListScreen extends ConsumerWidget {
     );
   }
 
-  // ==========================================
-  // NOTIFICATION LIST CARD HELPER
-  // ==========================================
-  Widget _buildNotificationCard(
-    BuildContext context,
-    WidgetRef ref, {
-    required Color sideColor,
+  Widget _buildNotificationCard({
+    required BuildContext context,
+    required IconData icon,
     required Color iconBgColor,
     required Color iconColor,
-    required IconData icon,
     required String title,
+    required String subtitle,
     required String time,
-    required Color dotColor,
-    required Widget customSubtitle,
+    required bool isUnread,
+    required bool isDarkMode,
     required VoidCallback onTap,
   }) {
-    final isDarkMode = ref.watch(themeProvider);
-    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor),
+        color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isUnread
+              ? const Color(0xFF1C7FF6)
+              : (isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          width: isUnread ? 1.5 : 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
+          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
-          child: Row(
-            children: [
-              // Left color side bar indicator
-              Container(
-                width: 4,
-                height: 96,
-                color: sideColor,
-              ),
-              const SizedBox(width: 14),
-
-              // Circle Icon container
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isDarkMode ? sideColor.withValues(alpha: 0.2) : iconBgColor,
-                  shape: BoxShape.circle,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: iconColor, size: 22),
                 ),
-                child: Icon(icon, color: iconColor, size: 24),
-              ),
-              const SizedBox(width: 14),
-
-              // Info and Details
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                const SizedBox(width: 14),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
-                      Text(
-                        title,
-                        style: GoogleFonts.kanit(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: GoogleFonts.kanit(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ),
+                          if (isUnread)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(left: 6),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF1C7FF6),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 4),
-                      // Dynamic Rich Text subtitle
-                      customSubtitle,
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.kanit(
+                          fontSize: 12.5,
+                          color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        time,
+                        style: GoogleFonts.kanit(
+                          fontSize: 11,
+                          color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-
-              // Time & Unread dot on the right
-              Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          time,
-                          style: GoogleFonts.kanit(
-                            fontSize: 11,
-                            color: const Color(0xFF94A3B8),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: dotColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: Color(0xFFCBD5E1),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

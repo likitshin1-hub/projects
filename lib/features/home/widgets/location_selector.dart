@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
 class LocationSelector extends ConsumerStatefulWidget {
@@ -34,6 +36,24 @@ class _LocationSelectorState extends ConsumerState<LocationSelector> {
     'สงขลา',
   ];
 
+  String _getProvinceDisplayName(String province, AppLanguage lang) {
+    if (lang == AppLanguage.en) {
+      switch (province) {
+        case 'กรุงเทพมหานคร': return 'Bangkok';
+        case 'ชลบุรี': return 'Chonburi';
+        case 'เชียงใหม่': return 'Chiang Mai';
+        case 'ภูเก็ต': return 'Phuket';
+        case 'สมุทรปราการ': return 'Samut Prakan';
+        case 'นนทบุรี': return 'Nonthaburi';
+        case 'ปทุมธานี': return 'Pathum Thani';
+        case 'ขอนแก่น': return 'Khon Kaen';
+        case 'นครราชสีมา': return 'Nakhon Ratchasima';
+        case 'สงขลา': return 'Songkhla';
+      }
+    }
+    return province;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +69,9 @@ class _LocationSelectorState extends ConsumerState<LocationSelector> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             final isDarkMode = ref.watch(themeProvider);
+            final currentLang = ref.watch(languageProvider);
+            String t(String key) => AppTranslations.getText(currentLang, key);
+
             final dialogBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
             final searchBg = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
             final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -92,7 +115,7 @@ class _LocationSelectorState extends ConsumerState<LocationSelector> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'เลือกจังหวัด',
+                              t('select_province'),
                               style: GoogleFonts.kanit(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -126,7 +149,7 @@ class _LocationSelectorState extends ConsumerState<LocationSelector> {
                           color: textColor,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'ค้นหาจังหวัด...',
+                          hintText: t('search_province'),
                           hintStyle: GoogleFonts.kanit(
                             fontSize: 14,
                             color: subTextColor,
@@ -193,12 +216,12 @@ class _LocationSelectorState extends ConsumerState<LocationSelector> {
                                       vertical: 2,
                                     ),
                                     title: Text(
-                                      province,
+                                      _getProvinceDisplayName(province, currentLang),
                                       style: GoogleFonts.kanit(
-                                        fontSize: 15,
+                                        fontSize: 16,
                                         fontWeight: isSelected
                                             ? FontWeight.bold
-                                            : FontWeight.normal,
+                                            : FontWeight.w400,
                                         color: isSelected
                                             ? const Color(0xFF1C7FF6)
                                             : textColor,
@@ -242,6 +265,7 @@ class _LocationSelectorState extends ConsumerState<LocationSelector> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
     final buttonBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF334155);
 
@@ -281,7 +305,7 @@ class _LocationSelectorState extends ConsumerState<LocationSelector> {
 
               Expanded(
                 child: Text(
-                  _selectedLocation,
+                  _getProvinceDisplayName(_selectedLocation, currentLang),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.kanit(

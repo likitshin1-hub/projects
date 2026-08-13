@@ -5,8 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/services/directions_service.dart';
+import '../providers/booking_provider.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final String bookingId;
@@ -21,10 +24,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   final int _currentStep = 2; // 0=รับออเดอร์, 1=กำลังไปรับ, 2=กำลังส่ง, 3=สำเร็จ
   GoogleMapController? _mapController;
   late AnimationController _pulseController;
-
-  bool _useCanvasMap = false;
-  double _zoomLevel = 1.0;
-  Offset _mapOffset = Offset.zero;
 
   bool _isLoadingRoute = true;
   String _distanceText = '82.9 กิโลเมตร';
@@ -50,13 +49,45 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     _initMapMarkersAndFetchProductionRoute();
   }
 
+  void _recenterMap() {
+    final bookingState = ref.read(bookingProvider);
+    final driverLocation = LatLng(
+      (bookingState.pickupLat + bookingState.dropoffLat) / 2,
+      (bookingState.pickupLng + bookingState.dropoffLng) / 2,
+    );
+
+    try {
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: driverLocation,
+            zoom: 10.5,
+          ),
+        ),
+      );
+    } catch (_) {}
+  }
+
   Future<void> _initMapMarkersAndFetchProductionRoute() async {
-    // 1. Initial Markers
+    final bookingState = ref.read(bookingProvider);
+    final pickupLatLng = LatLng(bookingState.pickupLat, bookingState.pickupLng);
+    final dropoffLatLng = LatLng(bookingState.dropoffLat, bookingState.dropoffLng);
+
+    // Dynamic driver position along the route
+    final driverLatLng = LatLng(
+      (pickupLatLng.latitude + dropoffLatLng.latitude) / 2,
+      (pickupLatLng.longitude + dropoffLatLng.longitude) / 2,
+    );
+
+    _markers.clear();
     _markers.add(
       Marker(
         markerId: const MarkerId('pickup'),
-        position: _centralChonburiLocation,
-        infoWindow: const InfoWindow(title: 'จุดรับสินค้า', snippet: 'เซ็นทรัล ชลบุรี (Central Chonburi)'),
+        position: pickupLatLng,
+        infoWindow: InfoWindow(
+          title: 'จุดรับสินค้า',
+          snippet: bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'จุดรับพัสดุ',
+        ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       ),
     );
@@ -64,8 +95,11 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     _markers.add(
       Marker(
         markerId: const MarkerId('dropoff'),
-        position: _centralWorldLocation,
-        infoWindow: const InfoWindow(title: 'จุดส่งสินค้า', snippet: 'เซ็นทรัลเวิลด์ กรุงเทพฯ (CentralWorld)'),
+        position: dropoffLatLng,
+        infoWindow: InfoWindow(
+          title: 'จุดส่งสินค้า',
+          snippet: bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'จุดส่งพัสดุ',
+        ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
       ),
     );
@@ -73,17 +107,19 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     _markers.add(
       Marker(
         markerId: const MarkerId('driver'),
-        position: _expresswayDriverLocation,
-        infoWindow: const InfoWindow(title: 'คนขับ (สมปอง มีดี)', snippet: 'กำลังขับบนทางพิเศษบูรพาวิถี (มุ่งหน้ากรุงเทพฯ)'),
+        position: driverLatLng,
+        infoWindow: const InfoWindow(
+          title: 'คนขับ (สมปอง มีดี)',
+          snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางถนนจริง',
+        ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
       ),
     );
 
-    // 2. Fetch Real Production Driving Route from Routing Engine (Google / OSRM)
+    // Fetch Real Production Driving Route from Routing Engine (OSRM / Google)
     final result = await DirectionsService.getDrivingRoute(
-      origin: _centralChonburiLocation,
-      destination: _centralWorldLocation,
-      googleApiKey: 'AIzaSyDcQSw71ZN2v-Wb4woluYzdAObxg1Bczxk',
+      origin: pickupLatLng,
+      destination: dropoffLatLng,
     );
 
     if (mounted) {
@@ -91,10 +127,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
         _isLoadingRoute = false;
         if (result != null && result.polylinePoints.isNotEmpty) {
           _liveRoutePoints = result.polylinePoints;
-          _distanceText = '${result.distanceKm} กิโลเมตร';
-          final hours = result.durationMinutes ~/ 60;
-          final mins = result.durationMinutes % 60;
-          _durationText = hours > 0 ? '$hours ชั่วโมง $mins นาที' : '$mins นาที';
 
           _polylines.clear();
           _polylines.add(
@@ -109,6 +141,19 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
             ),
           );
 
+          _fitCameraToBounds();
+        } else {
+          // Fallback straight line polyline if no internet
+          _liveRoutePoints = [pickupLatLng, driverLatLng, dropoffLatLng];
+          _polylines.clear();
+          _polylines.add(
+            Polyline(
+              polylineId: const PolylineId('real_production_route'),
+              points: _liveRoutePoints,
+              color: const Color(0xFF1C7FF6),
+              width: 5,
+            ),
+          );
           _fitCameraToBounds();
         }
       });
@@ -140,63 +185,16 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     } catch (_) {}
   }
 
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    _mapController?.dispose();
-    super.dispose();
-  }
-
-  void _recenterMap() {
-    setState(() {
-      _mapOffset = Offset.zero;
-      _zoomLevel = 1.0;
-    });
-
-    try {
-      _mapController?.animateCamera(
-        CameraUpdate.newCameraPosition(
-          const CameraPosition(
-            target: _expresswayDriverLocation,
-            zoom: 11.5,
-          ),
-        ),
-      );
-    } catch (_) {}
-  }
-
   Widget _buildMapContent(bool isDarkMode) {
-    if (_useCanvasMap) {
-      return GestureDetector(
-        onPanUpdate: (details) {
-          setState(() {
-            _mapOffset += details.delta;
-          });
-        },
-        child: Transform.translate(
-          offset: _mapOffset,
-          child: Transform.scale(
-            scale: _zoomLevel,
-            child: AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: Size.infinite,
-                  painter: _RealisticGoogleMapPainter(
-                    isDarkMode: isDarkMode,
-                    pulseProgress: _pulseController.value,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-    }
+    final bookingState = ref.read(bookingProvider);
+    final driverLatLng = LatLng(
+      (bookingState.pickupLat + bookingState.dropoffLat) / 2,
+      (bookingState.pickupLng + bookingState.dropoffLng) / 2,
+    );
 
     return GoogleMap(
-      initialCameraPosition: const CameraPosition(
-        target: _expresswayDriverLocation,
+      initialCameraPosition: CameraPosition(
+        target: driverLatLng,
         zoom: 10.5,
       ),
       onMapCreated: (controller) {
@@ -219,164 +217,64 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    final bookingState = ref.watch(bookingProvider);
 
-    final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF);
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-
     final displayBookingId = widget.bookingId.isEmpty ? 'B25538914' : widget.bookingId;
 
+    final dynamicPickup = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'จุดรับสินค้า';
+    final dynamicDropoff = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'จุดส่งสินค้า';
+    final dynamicDistance = '${bookingState.distanceKm} กิโลเมตร';
+    final dynamicDuration = '${bookingState.estimatedDurationMinutes} นาที';
+
     return Scaffold(
-      backgroundColor: bgColor,
-      body: Column(
+      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
+      body: Stack(
         children: [
           // ==========================================
-          // 1. TOP APP BAR
+          // 1. FULL-SCREEN 100% GOOGLE MAPS BACKGROUND
           // ==========================================
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 14),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-                  onPressed: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go(AppRoutes.home);
-                    }
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    'ติดตามพัสดุข้ามจังหวัด',
-                    style: GoogleFonts.kanit(
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
-                  onPressed: () => context.push(AppRoutes.notification),
-                ),
-              ],
-            ),
+          Positioned.fill(
+            child: _buildMapContent(isDarkMode),
           ),
 
-          // ==========================================
-          // 2. REAL GOOGLE MAPS SECTION (TOP HALF)
-          // ==========================================
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.38,
-            child: ClipRect(
-              child: Stack(
-                children: [
-                  _buildMapContent(isDarkMode),
-
-                  // TOP LEFT: GOOGLE MAPS LIVE BADGE & ROUTE ENGINE INDICATOR
-                  Positioned(
-                    top: 12,
-                    left: 14,
-                    child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          _useCanvasMap = !_useCanvasMap;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: (isDarkMode ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: borderColor),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.08),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _isLoadingRoute ? Icons.sync_rounded : Icons.alt_route_rounded,
-                              color: const Color(0xFF10B981),
-                              size: 15,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              _isLoadingRoute ? 'กำลังคำนวณเส้นทางถนนจริง...' : 'เส้นทางถนนจริง (Live Directions API)',
-                              style: GoogleFonts.kanit(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
-                                color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.swap_horiz_rounded, size: 14, color: Color(0xFF1C7FF6)),
-                          ],
-                        ),
-                      ),
-                    ),
+          // TOP LEFT: GOOGLE MAPS LIVE ROAD ROUTE BADGE
+          Positioned(
+            top: statusBarHeight + 74,
+            left: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: (isDarkMode ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: borderColor),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-
-                  // BOTTOM RIGHT: MAP CONTROLS
-                  Positioned(
-                    bottom: 12,
-                    right: 14,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildMapControlButton(
-                          icon: Icons.my_location_rounded,
-                          color: const Color(0xFF1C7FF6),
-                          onTap: _recenterMap,
-                          isDark: isDarkMode,
-                          borderColor: borderColor,
-                        ),
-                        if (_useCanvasMap) ...[
-                          const SizedBox(height: 8),
-                          _buildMapControlButton(
-                            icon: Icons.add_rounded,
-                            color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
-                            onTap: () {
-                              setState(() {
-                                _zoomLevel = (_zoomLevel + 0.15).clamp(0.8, 2.0);
-                              });
-                            },
-                            isDark: isDarkMode,
-                            borderColor: borderColor,
-                          ),
-                          const SizedBox(height: 6),
-                          _buildMapControlButton(
-                            icon: Icons.remove_rounded,
-                            color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
-                            onTap: () {
-                              setState(() {
-                                _zoomLevel = (_zoomLevel - 0.15).clamp(0.8, 2.0);
-                              });
-                            },
-                            isDark: isDarkMode,
-                            borderColor: borderColor,
-                          ),
-                        ],
-                      ],
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _isLoadingRoute ? Icons.sync_rounded : Icons.alt_route_rounded,
+                    color: const Color(0xFF10B981),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _isLoadingRoute ? 'กำลังคำนวณเส้นทางถนนจริง...' : 'เส้นทางถนนจริง (Directions API)',
+                    style: GoogleFonts.kanit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : const Color(0xFF3C4043),
                     ),
                   ),
                 ],
@@ -384,21 +282,121 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
             ),
           ),
 
-          // Divider Line
-          Container(
-            height: 3,
-            color: const Color(0xFF1C7FF6),
+          // TOP RIGHT: FLOATING MAP RECENTER CONTROL
+          Positioned(
+            top: statusBarHeight + 74,
+            right: 16,
+            child: _buildMapControlButton(
+              icon: Icons.my_location_rounded,
+              color: const Color(0xFF1C7FF6),
+              onTap: _recenterMap,
+              isDark: isDarkMode,
+              borderColor: borderColor,
+            ),
           ),
 
           // ==========================================
-          // 3. SCROLLABLE DETAILS SHEET (BOTTOM HALF)
+          // 2. TOP FLOATING APP BAR
           // ==========================================
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go(AppRoutes.home);
+                      }
+                    },
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentLang == AppLanguage.en ? 'Interprovincial Delivery Tracking' : 'ติดตามการจัดส่งพัสดุข้ามจังหวัด',
+                          style: GoogleFonts.kanit(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          currentLang == AppLanguage.en ? 'Live Road Navigation (Real-Time GPS)' : 'เส้นทางถนนจริง (Real-Time GPS)',
+                          style: GoogleFonts.kanit(
+                            fontSize: 11.5,
+                            color: Colors.white.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+                    onPressed: () => context.push(AppRoutes.notification),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ==========================================
+          // 3. INTERACTIVE DRAGGABLE DETAILS BOTTOM SHEET
+          // ==========================================
+          DraggableScrollableSheet(
+            initialChildSize: 0.42,
+            minChildSize: 0.16,
+            maxChildSize: 0.86,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                  children: [
+                    // Sheet Drag Handle Pill Bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
                   // CARD 1: DRIVER INFO CARD
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -568,28 +566,30 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'สถานะการจัดส่งพัสดุข้ามจังหวัด',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 12.5,
-                                      color: subTextColor,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'สถานะการจัดส่งพัสดุข้ามจังหวัด',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 12.5,
+                                        color: subTextColor,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'อยู่บนทางพิเศษบูรพาวิถี (กม.22 บางพลี)',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 15.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
+                                    Text(
+                                      'อยู่บนทางพิเศษบูรพาวิถี (กม.22 บางพลี)',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
@@ -666,7 +666,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                             Expanded(
                               child: _buildSummaryBox(
                                 title: 'ต้นทาง ➔ ปลายทาง',
-                                value: 'เซ็นทรัล ชลบุรี ➔ เซ็นทรัลเวิลด์',
+                                value: '$dynamicPickup ➔ $dynamicDropoff',
                                 icon: Icons.map_rounded,
                                 isDark: isDarkMode,
                               ),
@@ -680,7 +680,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                             Expanded(
                               child: _buildSummaryBox(
                                 title: 'ระยะทางทั้งหมด (คำนวณจริง)',
-                                value: _distanceText,
+                                value: dynamicDistance,
                                 icon: Icons.straighten_rounded,
                                 isDark: isDarkMode,
                               ),
@@ -689,7 +689,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                             Expanded(
                               child: _buildSummaryBox(
                                 title: 'เวลาเดินทางทั้งหมด',
-                                value: _durationText,
+                                value: dynamicDuration,
                                 icon: Icons.access_time_rounded,
                                 isDark: isDarkMode,
                               ),
@@ -699,9 +699,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                         const SizedBox(height: 10),
 
                         _buildSummaryBox(
-                          title: 'ระบบนำทางตามถนนจริง',
-                          value: 'คำนวณพิกัดละเอียดจาก Directions API Engine 100%',
-                          icon: Icons.alt_route_rounded,
+                          title: 'ยานพาหนะและค่าบริการจัดส่ง',
+                          value: '${bookingState.vehicleType} | ค่าบริการ net: ${bookingState.estimatedPrice.toInt()} บาท',
+                          icon: Icons.local_shipping_rounded,
                           isDark: isDarkMode,
                         ),
                       ],
@@ -743,12 +743,13 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+            );
+          },
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildMapControlButton({
     required IconData icon,
@@ -891,244 +892,4 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 }
 
-// Custom Painter for Realistic Google Maps Rendering
-class _RealisticGoogleMapPainter extends CustomPainter {
-  final bool isDarkMode;
-  final double pulseProgress;
 
-  _RealisticGoogleMapPainter({
-    required this.isDarkMode,
-    required this.pulseProgress,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // 1. Base Map Background Tile Color
-    final baseLandColor = isDarkMode ? const Color(0xFF191A1A) : const Color(0xFFF4F3F0);
-    canvas.drawRect(Offset.zero & size, Paint()..color = baseLandColor);
-
-    // 2. Draw Parks / Greenery Areas
-    final parkPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF1D2B24) : const Color(0xFFC8E6C9).withValues(alpha: 0.7)
-      ..style = PaintingStyle.fill;
-
-    final parkPath1 = Path()
-      ..addOval(Rect.fromLTWH(size.width * 0.05, size.height * 0.1, 140, 90));
-    final parkPath2 = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.65, size.height * 0.55, 120, 110),
-        const Radius.circular(16),
-      ));
-    canvas.drawPath(parkPath1, parkPaint);
-    canvas.drawPath(parkPath2, parkPaint);
-
-    // 3. Draw Water River Stream
-    final waterPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF121E2C) : const Color(0xFFAAD3DF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 24
-      ..strokeCap = StrokeCap.round;
-
-    final riverPath = Path();
-    riverPath.moveTo(-20, size.height * 0.85);
-    riverPath.cubicTo(
-      size.width * 0.3, size.height * 0.95,
-      size.width * 0.5, size.height * 0.65,
-      size.width + 20, size.height * 0.75,
-    );
-    canvas.drawPath(riverPath, waterPaint);
-
-    // 4. Draw Minor & Major Roads (Google Maps Road Styling)
-    final minorRoadPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF2C2D2E) : Colors.white
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke;
-
-    final majorRoadPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF38393A) : const Color(0xFFFFD54F)
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke;
-
-    // Secondary streets
-    canvas.drawLine(Offset(0, size.height * 0.25), Offset(size.width, size.height * 0.25), minorRoadPaint);
-    canvas.drawLine(Offset(0, size.height * 0.5), Offset(size.width, size.height * 0.5), minorRoadPaint);
-    canvas.drawLine(Offset(size.width * 0.3, 0), Offset(size.width * 0.3, size.height), minorRoadPaint);
-    canvas.drawLine(Offset(size.width * 0.7, 0), Offset(size.width * 0.7, size.height), minorRoadPaint);
-
-    // Highway / Main Road
-    final highwayPath = Path();
-    highwayPath.moveTo(size.width * 0.1, 0);
-    highwayPath.lineTo(size.width * 0.85, size.height);
-    canvas.drawPath(highwayPath, majorRoadPaint);
-
-    // 5. Draw GPS Navigation Route Line (Vibrant Blue Google Route)
-    final routeGlowPaint = Paint()
-      ..color = const Color(0xFF4285F4).withValues(alpha: 0.35)
-      ..strokeWidth = 14
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final routePathPaint = Paint()
-      ..color = const Color(0xFF1A73E8)
-      ..strokeWidth = 6.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final routePath = Path();
-    final startPt = Offset(size.width * 0.18, size.height * 0.78);
-    final driverPt = Offset(size.width * 0.42, size.height * 0.52);
-    final midPt = Offset(size.width * 0.62, size.height * 0.42);
-    final destPt = Offset(size.width * 0.82, size.height * 0.22);
-
-    routePath.moveTo(startPt.dx, startPt.dy);
-    routePath.lineTo(driverPt.dx, driverPt.dy);
-    routePath.lineTo(midPt.dx, midPt.dy);
-    routePath.lineTo(destPt.dx, destPt.dy);
-
-    canvas.drawPath(routePath, routeGlowPaint);
-    canvas.drawPath(routePath, routePathPaint);
-
-    // 6. Draw Pickup Pin (Green)
-    _drawLocationPin(
-      canvas,
-      startPt,
-      const Color(0xFF22C55E),
-      'เซ็นทรัล ชลบุรี',
-      Icons.store_rounded,
-      isDarkMode,
-    );
-
-    // 7. Draw Dropoff Pin (Red)
-    _drawLocationPin(
-      canvas,
-      destPt,
-      const Color(0xFFEF4444),
-      'เซ็นทรัลเวิลด์ กรุงเทพฯ',
-      Icons.location_on_rounded,
-      isDarkMode,
-    );
-
-    // 8. Draw Live Driver Vehicle Pin with Pulse Ring
-    final pulseRadius = 14 + (pulseProgress * 16);
-    final pulseOpacity = (1.0 - pulseProgress).clamp(0.0, 1.0);
-    final pulsePaint = Paint()
-      ..color = const Color(0xFF1C7FF6).withValues(alpha: pulseOpacity * 0.5)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(driverPt, pulseRadius, pulsePaint);
-
-    // Driver vehicle circle marker
-    final vehicleBgPaint = Paint()..color = const Color(0xFF1C7FF6);
-    final vehicleBorderPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(driverPt, 16, vehicleBgPaint);
-    canvas.drawCircle(driverPt, 16, vehicleBorderPaint);
-
-    // Draw driver popup bubble above marker
-    _drawDriverBubble(canvas, Offset(driverPt.dx, driverPt.dy - 28), isDarkMode);
-  }
-
-  void _drawLocationPin(
-    Canvas canvas,
-    Offset position,
-    Color color,
-    String label,
-    IconData icon,
-    bool isDark,
-  ) {
-    // Pin Shadow
-    final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.25)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawCircle(Offset(position.dx, position.dy + 2), 10, shadowPaint);
-
-    // Pin Body
-    final pinPaint = Paint()..color = color;
-    final pinBorder = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(position, 10, pinPaint);
-    canvas.drawCircle(position, 10, pinBorder);
-
-    // Label Text Box above Pin
-    final textSpan = TextSpan(
-      text: label,
-      style: GoogleFonts.kanit(
-        fontSize: 10.5,
-        fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white : const Color(0xFF1F2937),
-      ),
-    );
-
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final bgRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: Offset(position.dx, position.dy - 22),
-        width: textPainter.width + 12,
-        height: textPainter.height + 6,
-      ),
-      const Radius.circular(8),
-    );
-
-    final bgPaint = Paint()..color = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderPaint = Paint()
-      ..color = color
-      ..strokeWidth = 1.2
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawRRect(bgRect, bgPaint);
-    canvas.drawRRect(bgRect, borderPaint);
-
-    textPainter.paint(
-      canvas,
-      Offset(position.dx - (textPainter.width / 2), position.dy - 22 - (textPainter.height / 2)),
-    );
-  }
-
-  void _drawDriverBubble(Canvas canvas, Offset position, bool isDark) {
-    final textSpan = TextSpan(
-      text: '🚚 ทางพิเศษบูรพาวิถี (35 นาที)',
-      style: GoogleFonts.kanit(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-    );
-
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final bgRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: position,
-        width: textPainter.width + 16,
-        height: textPainter.height + 8,
-      ),
-      const Radius.circular(10),
-    );
-
-    final bgPaint = Paint()..color = const Color(0xFF1C7FF6);
-    canvas.drawRRect(bgRect, bgPaint);
-
-    textPainter.paint(
-      canvas,
-      Offset(position.dx - (textPainter.width / 2), position.dy - (textPainter.height / 2)),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _RealisticGoogleMapPainter oldDelegate) {
-    return oldDelegate.isDarkMode != isDarkMode || oldDelegate.pulseProgress != pulseProgress;
-  }
-}

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
 class HelpScreen extends ConsumerStatefulWidget {
@@ -187,6 +189,31 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final currentLang = ref.watch(languageProvider);
+    String t(String key) => AppTranslations.getText(currentLang, key);
+
+    final dynamicFaqList = [
+      {
+        'icon': Icons.description_outlined,
+        'question': t('faq_q1'),
+        'answer': _faqList[0]['answer'],
+      },
+      {
+        'icon': Icons.search_rounded,
+        'question': t('faq_q2'),
+        'answer': _faqList[1]['answer'],
+      },
+      {
+        'icon': Icons.autorenew_rounded,
+        'question': t('faq_q3'),
+        'answer': _faqList[2]['answer'],
+      },
+      {
+        'icon': Icons.find_in_page_outlined,
+        'question': t('faq_q4'),
+        'answer': _faqList[3]['answer'],
+      },
+    ];
 
     return PopScope(
       canPop: true,
@@ -244,7 +271,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'คำถามที่พบบ่อย',
+                                t('faq_title'),
                                 style: GoogleFonts.kanit(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -254,7 +281,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'รวบรวมคำถามและคำตอบที่พบบ่อย\nเพื่อช่วยให้คุณใช้งานได้ง่ายขึ้น',
+                                t('faq_subtitle'),
                                 style: GoogleFonts.kanit(
                                   fontSize: 14.5,
                                   color: const Color(0xFF64748B),
@@ -320,9 +347,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 200),
-                      itemCount: _faqList.length,
+                      itemCount: dynamicFaqList.length,
                       itemBuilder: (context, index) {
-                        final item = _faqList[index];
+                        final item = dynamicFaqList[index];
                         final isExpanded = _expandedIndex == index;
 
                         return Container(

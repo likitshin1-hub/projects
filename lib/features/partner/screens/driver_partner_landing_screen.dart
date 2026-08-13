@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
 class DriverPartnerLandingScreen extends ConsumerWidget {
@@ -13,6 +15,8 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
@@ -120,7 +124,7 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
 
                 // Header Title & Subtitle
                 Text(
-                  'สมัครเป็นพาร์ทเนอร์คนขับ',
+                  currentLang == AppLanguage.en ? 'Apply as Driver Partner' : 'สมัครเป็นพาร์ทเนอร์คนขับ',
                   style: GoogleFonts.kanit(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -130,7 +134,9 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'ร่วมสร้างรายได้มั่นคงไปกับ TB MoveHub\nรับงานง่าย รายได้ดี เลือกเวลาทำงานตามต้องการ',
+                  currentLang == AppLanguage.en
+                      ? 'Earn steady income with TB MoveHub\nEasy job dispatch, competitive payout, flexible schedule'
+                      : 'ร่วมสร้างรายได้มั่นคงไปกับ TB MoveHub\nรับงานง่าย รายได้ดี เลือกเวลาทำงานตามต้องการ',
                   style: GoogleFonts.kanit(
                     fontSize: 13,
                     color: Colors.white.withValues(alpha: 0.9),

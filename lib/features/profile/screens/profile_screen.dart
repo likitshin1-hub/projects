@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/app_translations.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -40,7 +42,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     super.dispose();
   }
 
-  void _showChangePhotoSheet(bool isDarkMode) {
+  void _showChangePhotoSheet(bool isDarkMode, String Function(String) t) {
     showModalBottomSheet(
       context: context,
       backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
@@ -55,7 +57,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'เปลี่ยนรูปโปรไฟล์',
+                  t('edit_profile'),
                   style: GoogleFonts.kanit(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -110,48 +112,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
         );
       },
-    );
-  }
-
-  void _showSecurityDialog(bool isDarkMode) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.shield_rounded, color: Color(0xFF1C7FF6)),
-            const SizedBox(width: 10),
-            Text(
-              'ความปลอดภัย',
-              style: GoogleFonts.kanit(
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black87,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'บัญชีของคุณได้รับการปกป้องด้วยการยืนยันตัวตนแบบสองปัจจัย รหัสผ่าน และการเข้ารหัสข้อมูลระดับสูงสุด',
-          style: GoogleFonts.kanit(
-            fontSize: 14,
-            color: isDarkMode ? const Color(0xFF94A3B8) : Colors.black87,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'ตกลง',
-              style: GoogleFonts.kanit(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1C7FF6),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -231,12 +191,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final cardBgColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
+
+    String t(String key) => AppTranslations.getText(currentLang, key);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF5F7FB),
@@ -262,7 +225,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Back button with dark circular background
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.15),
@@ -281,16 +243,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         },
                       ),
                     ),
-                    // Centered Title "โปรไฟล์"
                     Text(
-                      'โปรไฟล์',
+                      t('profile_title'),
                       style: GoogleFonts.kanit(
                         fontSize: 22,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    // Invisible placeholder to keep title perfectly centered
                     const SizedBox(width: 48),
                   ],
                 ),
@@ -321,12 +281,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ),
                       child: Column(
                         children: [
-                          // Interactive Avatar Circle with Scale Effect
+                          // Interactive Avatar Circle
                           GestureDetector(
                             onTapDown: (_) => _avatarController.forward(),
                             onTapUp: (_) => _avatarController.reverse(),
                             onTapCancel: () => _avatarController.reverse(),
-                            onTap: () => _showChangePhotoSheet(isDarkMode),
+                            onTap: () => _showChangePhotoSheet(isDarkMode, t),
                             child: ScaleTransition(
                               scale: _avatarScale,
                               child: Stack(
@@ -347,7 +307,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                                       ],
                                     ),
                                   ),
-                                  // Gradient Profile Avatar
                                   Container(
                                     width: 100,
                                     height: 100,
@@ -365,7 +324,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                                       size: 70,
                                     ),
                                   ),
-                                  // Pencil Edit Badge
                                   Positioned(
                                     right: 4,
                                     bottom: 4,
@@ -433,36 +391,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   // Menu Items (Separate cards)
                   _buildMenuItemCard(
                     icon: Icons.person_rounded,
-                    title: 'แก้ไขข้อมูลส่วนตัว',
+                    title: t('edit_profile_info'),
                     onTap: () => context.push(AppRoutes.editProfile),
                     isDarkMode: isDarkMode,
                   ),
                   _buildMenuItemCard(
                     icon: Icons.badge_outlined,
-                    title: 'ประวัติการขนส่ง',
+                    title: t('delivery_history'),
                     onTap: () => context.push(AppRoutes.history),
                     isDarkMode: isDarkMode,
                   ),
                   _buildMenuItemCard(
                     icon: Icons.confirmation_number_outlined,
-                    title: 'คูปองของฉัน',
+                    title: t('my_coupons'),
                     onTap: () => context.push(AppRoutes.coupons),
                     isDarkMode: isDarkMode,
                   ),
                   _buildMenuItemCard(
-                    icon: Icons.notifications_active_outlined,
-                    title: 'การแจ้งเตือน',
+                    icon: Icons.notifications_none_rounded,
+                    title: t('notifications'),
                     onTap: () => context.push(AppRoutes.notification),
                     isDarkMode: isDarkMode,
                   ),
                   _buildMenuItemCard(
-                    icon: Icons.shield_outlined,
-                    title: 'ความปลอดภัย',
-                    onTap: () => _showSecurityDialog(isDarkMode),
+                    icon: Icons.settings_outlined,
+                    title: t('settings'),
+                    onTap: () => context.push(AppRoutes.settings),
                     isDarkMode: isDarkMode,
                   ),
-
-                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -473,25 +429,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 }
 
-// ==========================================
-// CUSTOM APPBAR WAVE CLIPPER
-// ==========================================
 class ProfileHeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
     path.lineTo(0, size.height - 30);
-    
-    final controlPoint = Offset(size.width / 2, size.height + 15);
-    final endPoint = Offset(size.width, size.height - 30);
-    
     path.quadraticBezierTo(
-      controlPoint.dx,
-      controlPoint.dy,
-      endPoint.dx,
-      endPoint.dy,
+      size.width * 0.5,
+      size.height + 15,
+      size.width,
+      size.height - 30,
     );
-    
     path.lineTo(size.width, 0);
     path.close();
     return path;
