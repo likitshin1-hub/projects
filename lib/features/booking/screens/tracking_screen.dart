@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -68,6 +70,65 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     } catch (_) {}
   }
 
+  Future<BitmapDescriptor> _createCustomVehicleMarkerIcon(String vehicleType) async {
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    const double size = 120.0;
+
+    // Outer shadow glow
+    final shadowPaint = Paint()
+      ..color = const Color(0xFF1C7FF6).withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12.0);
+    canvas.drawCircle(const Offset(size / 2, size / 2), 48, shadowPaint);
+
+    // Outer white border circle
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(const Offset(size / 2, size / 2), 44, borderPaint);
+
+    // Inner primary blue circle
+    final circlePaint = Paint()
+      ..color = const Color(0xFF1C7FF6)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(const Offset(size / 2, size / 2), 38, circlePaint);
+
+    // Motorbike icon by default
+    IconData iconData = Icons.two_wheeler_rounded;
+    if (vehicleType.contains('เก๋ง')) {
+      iconData = Icons.directions_car_rounded;
+    } else if (vehicleType.contains('กระบะ')) {
+      iconData = Icons.airport_shuttle_rounded;
+    } else if (vehicleType.contains('ห้องเย็น') || vehicleType.contains('บรรทุก')) {
+      iconData = Icons.local_shipping_rounded;
+    }
+
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: String.fromCharCode(iconData.codePoint),
+      style: TextStyle(
+        fontSize: 44,
+        fontFamily: iconData.fontFamily,
+        package: iconData.fontPackage,
+        color: Colors.white,
+      ),
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        (size - textPainter.width) / 2,
+        (size - textPainter.height) / 2,
+      ),
+    );
+
+    final ui.Image image = await pictureRecorder.endRecording().toImage(size.toInt(), size.toInt());
+    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+    return BitmapDescriptor.bytes(pngBytes);
+  }
+
   Future<void> _initMapMarkersAndFetchProductionRoute() async {
     final bookingState = ref.read(bookingProvider);
     final pickupLatLng = LatLng(bookingState.pickupLat, bookingState.pickupLng);
@@ -78,6 +139,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       (pickupLatLng.latitude + dropoffLatLng.latitude) / 2,
       (pickupLatLng.longitude + dropoffLatLng.longitude) / 2,
     );
+
+    final riderMarkerIcon = await _createCustomVehicleMarkerIcon(bookingState.vehicleType);
 
     _markers.clear();
     _markers.add(
@@ -109,10 +172,10 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
         markerId: const MarkerId('driver'),
         position: driverLatLng,
         infoWindow: const InfoWindow(
-          title: 'คนขับ (สมปอง มีดี)',
-          snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางถนนจริง',
+          title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
+          snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
         ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        icon: riderMarkerIcon,
       ),
     );
 
