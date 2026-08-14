@@ -186,9 +186,11 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       });
     }
 
+    BitmapDescriptor riderMarkerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
+
     // Generate custom canvas vehicle icon asynchronously & update rider marker cleanly
     try {
-      final riderMarkerIcon = await _createCustomVehicleMarkerIcon(bookingState.vehicleType);
+      riderMarkerIcon = await _createCustomVehicleMarkerIcon(bookingState.vehicleType);
       if (mounted) {
         setState(() {
           _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
@@ -230,6 +232,25 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
               jointType: JointType.round,
               startCap: Cap.roundCap,
               endCap: Cap.roundCap,
+            ),
+          );
+
+          // Snap rider marker position EXACTLY onto the real polyline road route (~45% along the way)
+          final LatLng onRoadDriverLatLng = _liveRoutePoints.length > 2
+              ? _liveRoutePoints[(_liveRoutePoints.length * 0.45).toInt()]
+              : driverLatLng;
+
+          _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
+          _markers.add(
+            Marker(
+              markerId: const MarkerId('driver'),
+              position: onRoadDriverLatLng,
+              anchor: const Offset(0.5, 0.5),
+              infoWindow: const InfoWindow(
+                title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
+                snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
+              ),
+              icon: riderMarkerIcon,
             ),
           );
 
