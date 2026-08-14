@@ -163,6 +163,14 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: AppRoutes.chat,
+      builder: (context, state) => const ChatScreen(driverId: 'support'),
+    ),
+    GoRoute(
+      path: AppRoutes.chatDetail,
+      builder: (context, state) => const ChatScreen(driverId: 'driver_somchai'),
+    ),
+    GoRoute(
       path: '${AppRoutes.call}/:id',
       builder: (context, state) {
         final driverId = state.pathParameters['id'] ?? '';

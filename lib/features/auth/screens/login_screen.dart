@@ -375,12 +375,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 12),
+                              Center(
+                                child: TextButton(
+                                  onPressed: isLoading
+                                      ? null
+                                      : () {
+                                          _usernameController.text = 'test@example.com';
+                                          _passwordController.text = 'password123';
+                                          _onLogin();
+                                        },
+                                  child: Text(
+                                    'เข้าสู่ระบบด่วน (ทดสอบระบบ)',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF0284C7),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
 
                     // Divider
                     Row(

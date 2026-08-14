@@ -7,7 +7,7 @@ import '../../../core/storage/secure_storage.dart';
 import '../services/auth_service.dart';
 
 /// Backend พร้อมใช้งานจริงแล้ว
-const bool _useMock = false;
+const bool _useMock = true;
 
 class AuthRepository {
   final AuthService _authService;
