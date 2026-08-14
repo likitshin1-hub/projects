@@ -39,7 +39,7 @@ class AppTranslations {
       'moving_service': 'บริการย้ายบ้าน',
       'recent_orders': 'ออเดอร์ล่าสุด',
       'view_all': 'ดูทั้งหมด',
-      'claim_coupons': 'เก็บคูปอง',
+      'claim_coupons': 'คูปองของฉัน',
       'rewards': 'รีวอร์ด',
 
       // Drawer Menu
@@ -99,7 +99,7 @@ class AppTranslations {
 
       // Rewards Screen
       'privileges_rewards': 'สิทธิพิเศษ',
-      'privileges_subtitle': 'ใช้บริการมาก ยิ่งได้รับสิทธิพิเศษมาก',
+      'privileges_subtitle': 'เมื่อใช้บริการครบยอดการใช้งานที่กำหนด จะได้รับส่วนลดเป็นคูปองไปเก็บไว้ใน คูปองของฉัน',
       'my_usage': 'การใช้งานของฉัน',
       'total_deliveries': 'จำนวนครั้งที่ใช้บริการ',
       'trips_unit': 'ครั้ง',
@@ -205,7 +205,7 @@ class AppTranslations {
       'moving_service': 'House Moving',
       'recent_orders': 'Recent Orders',
       'view_all': 'View All',
-      'claim_coupons': 'Coupons',
+      'claim_coupons': 'My Coupons',
       'rewards': 'Rewards',
 
       // Drawer Menu
@@ -265,7 +265,7 @@ class AppTranslations {
 
       // Rewards Screen
       'privileges_rewards': 'Rewards & Privileges',
-      'privileges_subtitle': 'Use services more, earn more exclusive rewards',
+      'privileges_subtitle': 'Complete the required usage amount to get a discount coupon saved in My Coupons',
       'my_usage': 'My Usage History',
       'total_deliveries': 'Total Completed Deliveries',
       'trips_unit': 'Trips',

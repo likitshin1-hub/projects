@@ -31,6 +31,7 @@ class AppAssets {
 
   // Badges
   static const String trustShieldBox = 'assets/images/placeholder/trust_shield_box.jpg';
+  static const String promptPayQr = 'assets/images/promptpay_qr.jpg';
 
   // =========================
   // Icons

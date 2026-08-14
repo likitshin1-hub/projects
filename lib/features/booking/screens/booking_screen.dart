@@ -1163,11 +1163,284 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 
   Future<void> _submit() async {
-    _syncToProvider();
-    final success = await ref.read(bookingProvider.notifier).submitBooking();
-    if (success && mounted) {
-      context.pushReplacement(AppRoutes.searchingRider);
+    Widget buildWarningItem(IconData icon, String text) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFFE53935), size: 24),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                text,
+                style: GoogleFonts.kanit(
+                  fontSize: 14.5,
+                  color: const Color(0xFF1F2937),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
+
+    Widget buildActionItem(Widget iconWidget, String text) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            iconWidget,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                text,
+                style: GoogleFonts.kanit(
+                  fontSize: 14.5,
+                  color: const Color(0xFF1F2937),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        bool isChecked = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Warning Icon & Title
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Color(0xFFFFB300),
+                          size: 36,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'เพื่อความปลอดภัยของผู้ขับและการจัดส่ง',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'หากตรวจพบว่า',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 14.5,
+                                  color: const Color(0xFF4B5563),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Warnings List
+                    buildWarningItem(Icons.location_on_rounded, 'ตำแหน่งรับ-ส่งไม่ตรงตามที่ระบุ'),
+                    buildWarningItem(Icons.scale_rounded, 'น้ำหนักสินค้าไม่ตรงตามจริง'),
+                    buildWarningItem(Icons.inventory_2_rounded, 'ขนาดสินค้าไม่ตรงตามที่แจ้ง'),
+                    buildWarningItem(Icons.description_rounded, 'ขนาดสินค้าไม่ตรงตามที่แจ้ง'),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Divider(color: Color(0xFFE2E8F0), height: 1),
+                    ),
+
+                    // Red Reserves Title
+                    Text(
+                      'TBMOVEHUB ขอสงวนสิทธิ์',
+                      style: GoogleFonts.kanit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Actions List
+                    buildActionItem(
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF1F2937), width: 1.8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '\$',
+                          style: GoogleFonts.kanit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1F2937),
+                          ),
+                        ),
+                      ),
+                      'เรียกเก็บค่าบริการเพิ่มเติม',
+                    ),
+                    buildActionItem(
+                      const Icon(Icons.block_flipped, color: Color(0xFF1F2937), size: 22),
+                      'ปฏิเสธการรับงาน',
+                    ),
+                    buildActionItem(
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF1F2937), width: 1.8),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.person_outline_rounded,
+                          color: Color(0xFF1F2937),
+                          size: 14,
+                        ),
+                      ),
+                      'ระงับบัญชีผู้ใช้งานตามเงื่อนไขของระบบ',
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Divider(color: Color(0xFFE2E8F0), height: 1),
+                    ),
+
+                    // Checkbox Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: isChecked,
+                          activeColor: const Color(0xFF1C7FF6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          onChanged: (val) {
+                            setDialogState(() {
+                              isChecked = val ?? false;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {
+                              setDialogState(() {
+                                isChecked = !isChecked;
+                              });
+                            },
+                            child: Text(
+                              'ยอมรับเงื่อนไขการใช้งาน\nและยืนยันข้อมูลการจัดส่งถูกต้องทุกประการ',
+                              style: GoogleFonts.kanit(
+                                fontSize: 13.5,
+                                color: const Color(0xFF1F2937),
+                                height: 1.35,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Buttons Outlined Cancel & Filled Confirm
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF1C7FF6)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'ยกเลิก',
+                                style: GoogleFonts.kanit(
+                                  color: const Color(0xFF1C7FF6),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isChecked
+                                    ? const Color(0xFF1C7FF6)
+                                    : const Color(0xFFE2E8F0),
+                                foregroundColor: isChecked ? Colors.white : const Color(0xFF94A3B8),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: isChecked
+                                  ? () async {
+                                      Navigator.pop(context); // Close dialog
+                                      _syncToProvider();
+                                      final success = await ref.read(bookingProvider.notifier).submitBooking();
+                                      if (success && mounted) {
+                                        context.pushReplacement(AppRoutes.searchingRider);
+                                      }
+                                    }
+                                  : null,
+                              child: Text(
+                                'ยืนยันการจัดส่ง',
+                                style: GoogleFonts.kanit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -1855,9 +2128,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
               ),
               onPressed: () {
-                setState(() {
-                  _currentStep = 2;
-                });
+                if (_validateStep1()) {
+                  setState(() {
+                    _currentStep = 2;
+                  });
+                }
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1916,6 +2191,95 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       default:
         return const Color(0xFFF3E5F5); // Light purple
     }
+  }
+
+  String _getVehicleEmoji() {
+    switch (_selectedVehicle) {
+      case 'มอเตอร์ไซค์':
+        return '🛵';
+      case 'รถเก๋ง 4 ประตู':
+        return '🚗';
+      case 'รถกระบะ':
+      case 'รถกระบะขนของ':
+        return '🛻';
+      case 'รถห้องเย็น':
+        return '❄️';
+      default:
+        return '📦';
+    }
+  }
+
+  Color _getVehicleBgColor() {
+    switch (_selectedVehicle) {
+      case 'มอเตอร์ไซค์':
+        return const Color(0xFFE3F2FD); // Light blue
+      case 'รถเก๋ง 4 ประตู':
+        return const Color(0xFFEFF6FF); // Light blue-purple
+      case 'รถกระบะ':
+      case 'รถกระบะขนของ':
+        return const Color(0xFFFFF3E0); // Light orange
+      case 'รถห้องเย็น':
+        return const Color(0xFFE0F7FA); // Light cyan
+      default:
+        return const Color(0xFFF1F5F9); // Light grey
+    }
+  }
+
+  bool _validateStep1() {
+    if (_pickupName.trim().isEmpty) {
+      _showValidationError('กรุณากรอกชื่อผู้ส่งพัสดุ');
+      return false;
+    }
+    if (_pickupAddress1.trim().isEmpty && _pickupAddress2.trim().isEmpty) {
+      _showValidationError('กรุณาระบุที่อยู่ผู้ส่งพัสดุ');
+      return false;
+    }
+    if (_dropoffName.trim().isEmpty) {
+      _showValidationError('กรุณากรอกชื่อผู้รับพัสดุ');
+      return false;
+    }
+    if (_dropoffAddress.trim().isEmpty) {
+      _showValidationError('กรุณาระบุที่อยู่ผู้รับพัสดุ');
+      return false;
+    }
+    if (_dropoffPhone.trim().isEmpty) {
+      _showValidationError('กรุณากรอกเบอร์โทรศัพท์ผู้รับ');
+      return false;
+    }
+    return true;
+  }
+
+  bool _validateStep2() {
+    if (_parcelType.trim().isEmpty) {
+      _showValidationError('กรุณาระบุประเภทพัสดุ');
+      return false;
+    }
+    if (_parcelWeight <= 0) {
+      _showValidationError('กรุณาระบุน้ำหนักพัสดุให้ถูกต้อง');
+      return false;
+    }
+    if (_parcelSize.trim().isEmpty) {
+      _showValidationError('กรุณาระบุขนาดพัสดุ (กว้าง x ยาว x สูง)');
+      return false;
+    }
+    if (_descriptionController.text.trim().isEmpty) {
+      _showValidationError('กรุณากรอกรายละเอียดสินค้า');
+      return false;
+    }
+    return true;
+  }
+
+  void _showValidationError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.kanit(),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   // ==========================================
@@ -2357,9 +2721,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       ),
                     ),
                     onPressed: () {
-                      setState(() {
-                        _currentStep = 3;
-                      });
+                      if (_validateStep2()) {
+                        setState(() {
+                          _currentStep = 3;
+                        });
+                      }
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -2732,10 +3098,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: _getVehicleBgColor(),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('🏍', style: TextStyle(fontSize: 24)),
+                  child: Text(_getVehicleEmoji(), style: const TextStyle(fontSize: 24)),
                 ),
                 const SizedBox(width: 14),
                 Column(
@@ -2879,12 +3245,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   icon: Icons.account_balance_rounded,
                   title: 'โอนเงิน',
                   subtitle: 'โอนเข้าบัญชีบริษัท',
-                ),
-                _buildPaymentOptionRow(
-                  index: 2,
-                  icon: Icons.wallet_rounded,
-                  title: 'Wallet ในระบบ',
-                  subtitle: 'ยอดคงเหลือ: 350 บาท',
                 ),
               ],
             ),

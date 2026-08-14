@@ -23,6 +23,7 @@ import '../../features/booking/screens/tracking_screen.dart';
 import '../../features/booking/screens/tracking_detail_screen.dart';
 import '../../features/booking/screens/delivery_success_screen.dart';
 import '../../features/booking/screens/cancel_order_screen.dart';
+import '../../features/booking/screens/payment_screen.dart';
 
 // Chat
 import '../../features/chat/screens/chat_screen.dart';
@@ -135,6 +136,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.searchingRider,
       builder: (context, state) => const SearchingRiderScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.payment,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        final amount = extra['amount'] as double? ?? 0.0;
+        return PaymentScreen(amount: amount);
+      },
     ),
     GoRoute(
       path: AppRoutes.deliverySuccess,

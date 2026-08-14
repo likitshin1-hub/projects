@@ -64,7 +64,7 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
           },
         ),
         title: Text(
-          isEn ? 'Claim Coupons' : 'เก็บคูปอง',
+          isEn ? 'My Coupons' : 'คูปองของฉัน',
           style: GoogleFonts.kanit(
             color: textColor,
             fontWeight: FontWeight.bold,
