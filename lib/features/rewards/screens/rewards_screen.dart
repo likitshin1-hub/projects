@@ -811,6 +811,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Left Panel (Pill badge representing number of times)
             Container(
