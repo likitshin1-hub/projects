@@ -225,23 +225,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        onPressed: widget.onBackPressed ?? () {
-                          if (context.canPop()) {
-                            context.pop();
-                          }
-                        },
-                      ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
+                      onPressed: widget.onBackPressed ?? () {
+                        if (context.canPop()) {
+                          context.pop();
+                        }
+                      },
                     ),
                     Text(
                       t('profile_title'),
@@ -251,7 +243,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 48),
+                    GestureDetector(
+                      onTap: () => context.push(AppRoutes.notification),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
+                          Positioned(
+                            top: -1, right: -1,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                              child: Text('3', style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

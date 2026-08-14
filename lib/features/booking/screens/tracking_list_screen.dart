@@ -9,7 +9,9 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
 class TrackingListScreen extends ConsumerWidget {
-  const TrackingListScreen({super.key});
+  final VoidCallback? onMenuPressed;
+
+  const TrackingListScreen({super.key, this.onMenuPressed});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,109 +80,83 @@ class TrackingListScreen extends ConsumerWidget {
                 bottomRight: Radius.circular(32),
               ),
             ),
-            padding: EdgeInsets.fromLTRB(20, statusBarHeight + 16, 20, 16),
-            child: Stack(
-              clipBehavior: Clip.none,
+            padding: EdgeInsets.fromLTRB(12, statusBarHeight + 8, 12, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Text Column
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                // Standard top bar Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      t('tracking_list_title'),
-                      style: GoogleFonts.kanit(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
+                      onPressed: () => onMenuPressed?.call(),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      t('realtime_status_sub'),
-                      style: GoogleFonts.kanit(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.8),
+                    GestureDetector(
+                      onTap: () => context.push(AppRoutes.notification),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
+                          Positioned(
+                            top: -1, right: -1,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                              child: Text('3', style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                // 3D Pin & Box illustration on the right
-                Positioned(
-                  right: -10,
-                  bottom: -20,
-                  child: SizedBox(
-                    width: 140,
-                    height: 140,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          right: 15,
-                          top: 0,
-                          child: Icon(
-                            Icons.location_on_rounded,
-                            size: 110,
-                            color: Colors.white.withValues(alpha: 0.15),
+                const SizedBox(height: 8),
+                // Title + Subtitle and 3D Graphic
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            t('tracking_list_title'),
+                            style: GoogleFonts.kanit(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
-                        ),
-                        Positioned(
-                          right: 25,
-                          bottom: 25,
-                          child: Icon(
-                            Icons.inventory_2_rounded,
-                            size: 48,
-                            color: Colors.orange.shade300,
+                          const SizedBox(height: 2),
+                          Text(
+                            t('realtime_status_sub'),
+                            style: GoogleFonts.kanit(fontSize: 12.5, color: Colors.white.withValues(alpha: 0.8)),
                           ),
-                        ),
-                        Positioned(
-                          right: 65,
-                          bottom: 20,
-                          child: Icon(
-                            Icons.inventory_2_rounded,
-                            size: 38,
-                            color: Colors.orange.shade400,
-                          ),
-                        ),
-                        Positioned(
-                          right: 50,
-                          bottom: 50,
-                          child: Icon(
-                            Icons.inventory_2_rounded,
-                            size: 32,
-                            color: Colors.orange.shade200,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.notifications_none_rounded,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                        onPressed: () => context.push(AppRoutes.notification),
-                      ),
-                      Positioned(
-                        right: 12,
-                        top: 12,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
+                    SizedBox(
+                      width: 80,
+                      height: 60,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            right: 0, top: -10,
+                            child: Icon(Icons.location_on_rounded, size: 70, color: Colors.white.withValues(alpha: 0.15)),
                           ),
-                        ),
+                          Positioned(
+                            right: 5, bottom: 5,
+                            child: Icon(Icons.inventory_2_rounded, size: 36, color: Colors.orange.shade300),
+                          ),
+                          Positioned(
+                            right: 35, bottom: 2,
+                            child: Icon(Icons.inventory_2_rounded, size: 28, color: Colors.orange.shade400),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),

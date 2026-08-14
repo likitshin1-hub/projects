@@ -7,6 +7,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -319,6 +320,72 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
+
+                    // Logout Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              title: Text(
+                                isEn ? 'Sign Out' : 'ออกจากระบบ',
+                                style: GoogleFonts.kanit(fontWeight: FontWeight.bold),
+                              ),
+                              content: Text(
+                                isEn ? 'Are you sure you want to sign out?' : 'คุณต้องการออกจากระบบหรือไม่?',
+                                style: GoogleFonts.kanit(),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: Text(isEn ? 'Cancel' : 'ยกเลิก', style: GoogleFonts.kanit()),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFEF4444),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: Text(isEn ? 'Sign Out' : 'ออกจากระบบ',
+                                    style: GoogleFonts.kanit(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true && context.mounted) {
+                            await ref.read(authProvider.notifier).logout();
+                            if (context.mounted) {
+                              context.go(AppRoutes.login);
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.logout_rounded, color: Colors.white),
+                        label: Text(
+                          isEn ? 'Sign Out' : 'ออกจากระบบ',
+                          style: GoogleFonts.kanit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEF4444),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
                     // Version Footer
                     Center(

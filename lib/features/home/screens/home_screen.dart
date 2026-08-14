@@ -18,6 +18,7 @@ import '../../history/screens/delivery_history_page.dart';
 import '../../booking/screens/tracking_list_screen.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../partner/providers/partner_application_provider.dart';
+import '../../rewards/providers/rewards_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -114,7 +115,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // ปุ่มเก็บคูปอง
                       Badge(
                         label: Text(
-                          '3',
+                          '${ref.watch(rewardsProvider).state.userCoupons.length}',
                           style: GoogleFonts.kanit(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,

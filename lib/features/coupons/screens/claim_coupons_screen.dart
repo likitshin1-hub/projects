@@ -6,6 +6,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../rewards/providers/rewards_provider.dart';
 
 class ClaimCouponsScreen extends ConsumerStatefulWidget {
   const ClaimCouponsScreen({super.key});
@@ -16,6 +17,7 @@ class ClaimCouponsScreen extends ConsumerStatefulWidget {
 
 class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
   int _selectedCategoryIndex = 0; // 0: ทั้งหมด, 1: คูปองส่วนลด, 2: คูปองส่งฟรี, 3: คูปองพิเศษ
+  late final Set<int> _claimedIndices = <int>{}; // Start empty so coupons can be claimed
 
   final List<IconData> _categoryIcons = [
     Icons.local_activity_rounded,
@@ -409,15 +411,16 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
       itemCount: filtered.length,
       itemBuilder: (context, index) {
         final coupon = filtered[index];
+        final isClaimed = _claimedIndices.contains(index);
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: _buildClaimCard(coupon, isEn, isDarkMode, cardBg, textColor),
+          child: _buildClaimCard(coupon, index, isClaimed, isEn, isDarkMode, cardBg, textColor),
         );
       },
     );
   }
 
-  Widget _buildClaimCard(_ClaimCouponData coupon, bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
+  Widget _buildClaimCard(_ClaimCouponData coupon, int itemIndex, bool isClaimed, bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
     return Container(
       height: 124,
       decoration: BoxDecoration(
@@ -670,10 +673,54 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                           alignment: Alignment.center,
                           child: ElevatedButton(
                             onPressed: () {
+                              if (!isClaimed) {
+                                setState(() {
+                                  _claimedIndices.add(itemIndex);
+                                });
+
+                                // Add to global state so it appears in CouponsScreen
+                                ref.read(rewardsProvider).addUserCoupon(
+                                  UserCoupon(
+                                    id: 'claimed_${coupon.title}_$itemIndex',
+                                    discountText: coupon.amount,
+                                    unitText: coupon.isFreeShip ? (isEn ? 'Free' : 'ส่งฟรี') : (isEn ? 'THB' : 'บาท'),
+                                    badgeText: coupon.badge,
+                                    title: coupon.title,
+                                    subtitle: coupon.minSpend,
+                                    expiryText: coupon.expiry,
+                                    badgeBgColor: coupon.badgeBg,
+                                    badgeTextColor: coupon.badgeTextCol,
+                                    cardColor: coupon.leftColor,
+                                    illustrationIcon: coupon.illustrationIcon,
+                                  ),
+                                );
+
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isEn
+                                          ? 'Coupon claimed successfully! Saved in My Coupons.'
+                                          : 'เก็บคูปองเรียบร้อยแล้ว! คูปองอยู่ใน คูปองของฉัน',
+                                      style: GoogleFonts.kanit(),
+                                    ),
+                                    backgroundColor: const Color(0xFF16A34A),
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 2),
+                                    action: SnackBarAction(
+                                      label: isEn ? 'View' : 'ดูคูปอง',
+                                      textColor: Colors.white,
+                                      onPressed: () {
+                                        context.push(AppRoutes.coupons);
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }
                               context.push(AppRoutes.coupons);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: coupon.btnBg,
+                              backgroundColor: isClaimed ? coupon.btnBg : const Color(0xFF10B981),
                               foregroundColor: Colors.white,
                               padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(
@@ -682,7 +729,9 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                               elevation: 0,
                             ),
                             child: Text(
-                              isEn ? 'Use Coupon' : 'ใช้คูปอง',
+                              isClaimed
+                                  ? (isEn ? 'Use Coupon' : 'ใช้คูปอง')
+                                  : (isEn ? 'Claim Coupon' : 'เก็บคูปอง'),
                               style: GoogleFonts.kanit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,

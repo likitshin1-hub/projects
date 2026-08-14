@@ -14,6 +14,7 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/services/directions_service.dart';
 import '../../../core/services/location_service.dart';
+import '../../rewards/providers/rewards_provider.dart';
 import '../providers/booking_provider.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
@@ -548,8 +549,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             const SizedBox(width: 4),
                             Text(
                               currentLang == AppLanguage.en
-                                  ? 'Distance: ${tempDistanceKm} km'
-                                  : 'ระยะทาง: ${tempDistanceKm} กม.',
+                                  ? 'Distance: $tempDistanceKm km'
+                                  : 'ระยะทาง: $tempDistanceKm กม.',
                               style: GoogleFonts.kanit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
@@ -564,8 +565,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             const SizedBox(width: 4),
                             Text(
                               currentLang == AppLanguage.en
-                                  ? 'Weight: ${_parcelWeight} kg'
-                                  : 'น้ำหนัก: ${_parcelWeight} กก.',
+                                  ? 'Weight: $_parcelWeight kg'
+                                  : 'น้ำหนัก: $_parcelWeight กก.',
                               style: GoogleFonts.kanit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
@@ -1496,7 +1497,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
-    String t(String key) => AppTranslations.getText(currentLang, key);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
@@ -2339,100 +2339,195 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final isEn = currentLang == AppLanguage.en;
 
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
-    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section Title Row
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.inventory_2_rounded,
-                  color: Color(0xFF1C7FF6),
-                  size: 20,
-                ),
+          // Premium Header Banner
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDarkMode
+                    ? [const Color(0xFF1E3A8A), const Color(0xFF0F172A)]
+                    : [const Color(0xFFE0F2FE), const Color(0xFFF0F9FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(width: 8),
-              Text(
-                isEn ? 'Parcel Details' : 'รายละเอียดพัสดุ',
-                style: GoogleFonts.kanit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFF1C7FF6).withValues(alpha: 0.2),
               ),
-            ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C7FF6),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.inventory_2_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEn ? 'Parcel Information' : 'ข้อมูลและขนาดพัสดุ',
+                        style: GoogleFonts.kanit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      Text(
+                        isEn ? 'Specify parcel specs for vehicle match' : 'ระบุขนาดเพื่อคำนวณราคาและประเมินรถรับส่ง',
+                        style: GoogleFonts.kanit(
+                          fontSize: 11.5,
+                          color: subTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
 
           // 1. ประเภทพัสดุ
           Text(
-            isEn ? 'Parcel Type' : 'ประเภทพัสดุ',
+            isEn ? 'Parcel Category' : 'หมวดหมู่ประเภทพัสดุ',
             style: GoogleFonts.kanit(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: subTextColor,
+              fontWeight: FontWeight.bold,
+              color: textColor,
             ),
           ),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: _selectParcelTypeSheet,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFF1C7FF6).withValues(alpha: 0.35), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF1C7FF6).withValues(alpha: isDarkMode ? 0.25 : 0.08),
+                    blurRadius: 20,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
-                      color: _getParcelBgColor(),
-                      borderRadius: BorderRadius.circular(12),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1C7FF6).withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Text(_getParcelEmoji(), style: const TextStyle(fontSize: 24)),
+                    alignment: Alignment.center,
+                    child: Text(_getParcelEmoji(), style: const TextStyle(fontSize: 30)),
                   ),
                   const SizedBox(width: 14),
-                  Text(
-                    _parcelType,
-                    style: GoogleFonts.kanit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _parcelType,
+                          style: GoogleFonts.kanit(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(
+                              isEn ? 'Tap to change' : 'เปลี่ยนประเภท',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12,
+                                color: const Color(0xFF1C7FF6),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.touch_app_rounded,
+                              size: 14,
+                              color: Color(0xFF1C7FF6),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 16,
-                    color: subTextColor,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          isEn ? 'Select' : 'เลือก',
+                          style: GoogleFonts.kanit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1C7FF6),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 16,
+                          color: Color(0xFF1C7FF6),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
           // 2. น้ำหนัก และ ขนาด (Row of 2 columns)
           Row(
@@ -2443,74 +2538,81 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEn ? 'Weight' : 'น้ำหนัก',
+                      isEn ? 'Weight' : 'น้ำหนักพัสดุ',
                       style: GoogleFonts.kanit(
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: subTextColor,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: _editWeightDialog,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(22),
                           border: Border.all(color: borderColor),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
+                              blurRadius: 14,
+                              offset: const Offset(0, 5),
                             ),
                           ],
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.scale_rounded,
-                                color: Color(0xFF1C7FF6),
-                                size: 18,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                                    textBaseline: TextBaseline.alphabetic,
-                                    children: [
-                                      Text(
-                                        '$_parcelWeight',
-                                        style: GoogleFonts.kanit(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: textColor,
-                                          height: 1.1,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        isEn ? 'kg' : 'กก.',
-                                        style: GoogleFonts.kanit(
-                                          fontSize: 12,
-                                          color: subTextColor,
-                                        ),
-                                      ),
-                                    ],
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                    shape: BoxShape.circle,
                                   ),
-                                ],
-                              ),
+                                  child: const Icon(
+                                    Icons.scale_rounded,
+                                    color: Color(0xFF10B981),
+                                    size: 20,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.edit_rounded, size: 12, color: subTextColor),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '$_parcelWeight',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isEn ? 'kg' : 'กก.',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF10B981),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -2527,66 +2629,75 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEn ? 'Dimensions ( W x L x H )' : 'ขนาด  ( กว้าง x ยาว x สูง )',
+                      isEn ? 'Dimensions' : 'ขนาด (ก x ย x ส)',
                       style: GoogleFonts.kanit(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: subTextColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: _editSizeDialog,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(22),
                           border: Border.all(color: borderColor),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
+                              blurRadius: 14,
+                              offset: const Offset(0, 5),
                             ),
                           ],
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.view_in_ar_rounded,
-                                color: Color(0xFF1C7FF6),
-                                size: 18,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.view_in_ar_rounded,
+                                    color: Color(0xFF1C7FF6),
+                                    size: 20,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.edit_rounded, size: 12, color: subTextColor),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _parcelSize,
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                      height: 1.1,
-                                    ),
-                                  ),
-                                  Text(
-                                    isEn ? 'cm' : 'ซม.',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 11,
-                                      color: subTextColor,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 14),
+                            Text(
+                              _parcelSize,
+                              style: GoogleFonts.kanit(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              isEn ? 'cm' : 'ซม.',
+                              style: GoogleFonts.kanit(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1C7FF6),
                               ),
                             ),
                           ],
@@ -2598,19 +2709,19 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
           // 3. รายละเอียดพัสดุ Text Box
           Row(
             children: [
-              const Icon(Icons.description_rounded, color: Color(0xFF1C7FF6), size: 18),
+              const Icon(Icons.edit_note_rounded, color: Color(0xFF1C7FF6), size: 20),
               const SizedBox(width: 6),
               Text(
-                isEn ? 'Parcel Description' : 'รายละเอียดพัสดุ',
+                isEn ? 'Parcel Details & Notes' : 'รายละเอียดสินค้าเพิ่มเติม',
                 style: GoogleFonts.kanit(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: subTextColor,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
               ),
             ],
@@ -2619,51 +2730,69 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           Container(
             decoration: BoxDecoration(
               color: cardBg,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
+                  blurRadius: 14,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _descriptionController,
-              maxLines: 3,
-              maxLength: 100,
-              style: GoogleFonts.kanit(
-                fontSize: 14,
-                color: textColor,
-              ),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                counterText: '', // Hide standard counter
-                hintText: isEn ? 'e.g. Electrical appliances (Air Fryer)' : 'เช่น เครื่องใช้ไฟฟ้า (หม้อทอดไร้น้ำมัน)',
-                hintStyle: GoogleFonts.kanit(
-                  fontSize: 13,
-                  color: isDarkMode ? const Color(0xFF64748B) : Colors.grey.shade400,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _descriptionController,
+                  maxLines: 3,
+                  maxLength: 100,
+                  style: GoogleFonts.kanit(
+                    fontSize: 14.5,
+                    color: textColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    counterText: '', // Hide standard counter
+                    hintText: isEn ? 'e.g. Electrical appliances (Air Fryer)' : 'เช่น เครื่องใช้ไฟฟ้า (หม้อทอดไร้น้ำมัน)',
+                    hintStyle: GoogleFonts.kanit(
+                      fontSize: 13.5,
+                      color: isDarkMode ? const Color(0xFF64748B) : Colors.grey.shade400,
+                    ),
+                  ),
+                  onChanged: (text) {
+                    setState(() {});
+                    _syncToProvider();
+                  },
                 ),
-              ),
-              onChanged: (text) {
-                setState(() {});
-                _syncToProvider();
-              },
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4, right: 4),
-              child: Text(
-                '${_descriptionController.text.length}/100',
-                style: GoogleFonts.kanit(
-                  fontSize: 11,
-                  color: subTextColor,
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF1C7FF6)),
+                        const SizedBox(width: 4),
+                        Text(
+                          isEn ? 'Required info' : 'จำเป็นต้องระบุ',
+                          style: GoogleFonts.kanit(
+                            fontSize: 11,
+                            color: const Color(0xFF1C7FF6),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '${_descriptionController.text.length}/100',
+                      style: GoogleFonts.kanit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: subTextColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              ],
             ),
           ),
           const SizedBox(height: 14),
@@ -2830,6 +2959,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   // Open coupon selection bottom sheet
   void _selectCouponBottomSheet() {
+    final userCoupons = ref.read(rewardsProvider).state.userCoupons;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -2842,18 +2973,38 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'เลือกคูปองส่วนลด',
-                style: GoogleFonts.kanit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1F2937),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'คูปองของฉัน (${userCoupons.length})',
+                    style: GoogleFonts.kanit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1F2937),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.push(AppRoutes.claimCoupons);
+                    },
+                    icon: const Icon(Icons.add_circle_outline_rounded, size: 16, color: Color(0xFF1C7FF6)),
+                    label: Text(
+                      'เก็บคูปองเพิ่ม',
+                      style: GoogleFonts.kanit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1C7FF6),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               ListTile(
                 leading: const Icon(Icons.money_off_rounded, color: Colors.grey),
-                title: Text('ไม่ใช้คูปอง', style: GoogleFonts.kanit()),
+                title: Text('ไม่ใช้คูปอง', style: GoogleFonts.kanit(fontWeight: FontWeight.w600)),
                 onTap: () {
                   setState(() {
                     _selectedCouponText = 'เลือกหรือกรอกรหัสคูปอง';
@@ -2862,42 +3013,66 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   Navigator.pop(context);
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.local_activity_rounded, color: Color(0xFF8B5CF6)),
-                title: Text('TBNEW50 (ลด 50 บาท)', style: GoogleFonts.kanit()),
-                subtitle: Text('สำหรับสมาชิกใหม่', style: GoogleFonts.kanit(fontSize: 12)),
-                onTap: () {
-                  setState(() {
-                    _selectedCouponText = 'TBNEW50 - ส่วนลด 50 บาท';
-                    _couponDiscount = 50.0;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.local_shipping_rounded, color: Color(0xFF22C55E)),
-                title: Text('TBFREESHIP (ลดสูงสุด 40 บาท)', style: GoogleFonts.kanit()),
-                subtitle: Text('ส่วนลดค่าจัดส่งพิเศษ', style: GoogleFonts.kanit(fontSize: 12)),
-                onTap: () {
-                  setState(() {
-                    _selectedCouponText = 'TBFREESHIP - ส่วนลด 40 บาท';
-                    _couponDiscount = 40.0;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.local_activity_rounded, color: Color(0xFF1C7FF6)),
-                title: Text('TB20 (ลด 20 บาท)', style: GoogleFonts.kanit()),
-                subtitle: Text('ส่วนลดทั่วไป', style: GoogleFonts.kanit(fontSize: 12)),
-                onTap: () {
-                  setState(() {
-                    _selectedCouponText = 'TB20 - ส่วนลด 20 บาท';
-                    _couponDiscount = 20.0;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
+              const Divider(height: 1),
+              if (userCoupons.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Text(
+                      'ไม่มีคูปองที่ใช้ได้ในขณะนี้',
+                      style: GoogleFonts.kanit(color: Colors.grey),
+                    ),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: userCoupons.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final coupon = userCoupons[index];
+                      // Extract numeric discount value if possible
+                      final double discVal = double.tryParse(coupon.discountText) ?? 20.0;
+                      return ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: coupon.badgeBgColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(coupon.illustrationIcon, color: coupon.cardColor, size: 20),
+                        ),
+                        title: Text(
+                          coupon.title,
+                          style: GoogleFonts.kanit(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${coupon.subtitle} • ${coupon.expiryText}',
+                          style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey.shade600),
+                        ),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: coupon.cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'ใช้คูปอง',
+                            style: GoogleFonts.kanit(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            _selectedCouponText = '${coupon.title} (${coupon.badgeText})';
+                            _couponDiscount = discVal;
+                          });
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
             ],
           ),
         );
