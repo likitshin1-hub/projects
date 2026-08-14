@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
@@ -15,11 +16,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // Toggle states matching the switches in the mockup
   bool _notificationEnabled = true;
-  bool _vibrationEnabled = true;
   bool _locationAccessEnabled = true;
-  bool _highAccuracyGpsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +30,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final primaryTextColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
     final secondaryTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF9CA3AF);
     final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+
+    final isEn = currentLang == AppLanguage.en;
 
     String t(String key) => AppTranslations.getText(currentLang, key);
 
@@ -148,7 +148,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    // Section 0: Theme & Display Mode
+                    // Section 1: การแสดงผลและธีม (Theme & Display)
                     _buildSettingsCard(
                       cardBgColor: cardBgColor,
                       dividerColor: dividerColor,
@@ -159,7 +159,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       iconColor: isDarkMode ? const Color(0xFFA5B4FC) : const Color(0xFFD97706),
                       title: t('theme_display'),
                       subtitle: t('theme_subtitle'),
-                      onHeaderTap: () {},
                       children: [
                         _buildSwitchRow(
                           icon: isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
@@ -177,19 +176,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Section 1: Notifications
+                    // Section 2: การแจ้งเตือนและตำแหน่ง (Notifications & Location)
                     _buildSettingsCard(
                       cardBgColor: cardBgColor,
                       dividerColor: dividerColor,
                       primaryTextColor: primaryTextColor,
                       secondaryTextColor: secondaryTextColor,
-                      icon: Icons.notifications_rounded,
-                      iconBgColor: const Color(0xFFE8F2FE),
-                      iconColor: const Color(0xFF1C7FF6),
-                      title: t('notifications'),
-                      subtitle: t('notification_subtitle'),
-                      onHeaderTap: () {},
+                      icon: Icons.security_rounded,
+                      iconBgColor: const Color(0xFFE0F2FE),
+                      iconColor: const Color(0xFF0284C7),
+                      title: isEn ? 'Access & Alerts' : 'การเข้าถึงและการแจ้งเตือน',
+                      subtitle: isEn ? 'Configure alerts and GPS access' : 'ตั้งค่าการแจ้งเตือนและการเข้าถึงแผนที่',
                       children: [
+                        // Enable notifications
                         _buildSwitchRow(
                           icon: Icons.notifications_rounded,
                           iconColor: const Color(0xFF1C7FF6),
@@ -204,31 +203,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           },
                         ),
                         Divider(height: 1, indent: 48, color: dividerColor),
-                        _buildNavigationRow(
-                          icon: Icons.volume_up_rounded,
-                          iconColor: const Color(0xFF8B5CF6),
-                          title: t('notification_sound'),
-                          primaryTextColor: primaryTextColor,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${t('notification_sound')}...', style: GoogleFonts.kanit()),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
-                        ),
-                        Divider(height: 1, indent: 48, color: dividerColor),
+                        // Allow location access
                         _buildSwitchRow(
-                          icon: Icons.vibration_rounded,
+                          icon: Icons.location_on_rounded,
                           iconColor: const Color(0xFF10B981),
-                          title: t('vibration'),
+                          title: t('allow_location'),
                           primaryTextColor: primaryTextColor,
                           secondaryTextColor: secondaryTextColor,
-                          value: _vibrationEnabled,
+                          value: _locationAccessEnabled,
                           onChanged: (val) {
                             setState(() {
-                              _vibrationEnabled = val;
+                              _locationAccessEnabled = val;
                             });
                           },
                         ),
@@ -236,7 +221,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Section 2: Language Switching (TH 🇹🇭 / EN 🇬🇧)
+                    // Section 3: ภาษา (Language)
                     _buildSettingsCard(
                       cardBgColor: cardBgColor,
                       dividerColor: dividerColor,
@@ -247,7 +232,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       iconColor: const Color(0xFF1C7FF6),
                       title: t('language'),
                       subtitle: t('language_subtitle'),
-                      onHeaderTap: () {},
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -259,14 +243,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 isDarkMode: isDarkMode,
                                 onTap: () {
                                   ref.read(languageProvider.notifier).setLanguage(AppLanguage.th);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('เปลี่ยนภาษาเป็นภาษาไทยเรียบร้อยแล้ว', style: GoogleFonts.kanit()),
-                                      backgroundColor: const Color(0xFF10B981),
-                                      behavior: SnackBarBehavior.floating,
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
                                 },
                               ),
                               const SizedBox(width: 12),
@@ -276,14 +252,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 isDarkMode: isDarkMode,
                                 onTap: () {
                                   ref.read(languageProvider.notifier).setLanguage(AppLanguage.en);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Language switched to English successfully', style: GoogleFonts.kanit()),
-                                      backgroundColor: const Color(0xFF10B981),
-                                      behavior: SnackBarBehavior.floating,
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
                                 },
                               ),
                             ],
@@ -293,100 +261,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Section 3: Location Access
-                    _buildSettingsCard(
-                      cardBgColor: cardBgColor,
-                      dividerColor: dividerColor,
-                      primaryTextColor: primaryTextColor,
-                      secondaryTextColor: secondaryTextColor,
-                      icon: Icons.location_on_rounded,
-                      iconBgColor: const Color(0xFFE8F2FE),
-                      iconColor: const Color(0xFF1C7FF6),
-                      title: t('location'),
-                      subtitle: t('location_subtitle'),
-                      onHeaderTap: () {},
-                      children: [
-                        _buildSwitchRow(
-                          icon: Icons.gps_fixed_rounded,
-                          iconColor: const Color(0xFF1C7FF6),
-                          title: t('allow_location'),
-                          primaryTextColor: primaryTextColor,
-                          secondaryTextColor: secondaryTextColor,
-                          value: _locationAccessEnabled,
-                          onChanged: (val) {
-                            setState(() {
-                              _locationAccessEnabled = val;
-                            });
-                          },
-                        ),
-                        Divider(height: 1, indent: 48, color: dividerColor),
-                        _buildSwitchRow(
-                          icon: Icons.my_location_rounded,
-                          iconColor: const Color(0xFF8B5CF6),
-                          title: t('high_accuracy_gps'),
-                          primaryTextColor: primaryTextColor,
-                          secondaryTextColor: secondaryTextColor,
-                          value: _highAccuracyGpsEnabled,
-                          onChanged: (val) {
-                            setState(() {
-                              _highAccuracyGpsEnabled = val;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Section 4: Account & Security
+                    // Section 4: บัญชีและความปลอดภัย (Account & Security)
                     _buildSettingsCard(
                       cardBgColor: cardBgColor,
                       dividerColor: dividerColor,
                       primaryTextColor: primaryTextColor,
                       secondaryTextColor: secondaryTextColor,
                       icon: Icons.shield_rounded,
-                      iconBgColor: const Color(0xFFE8F2FE),
-                      iconColor: const Color(0xFF1C7FF6),
-                      title: t('account_security'),
-                      subtitle: 'จัดการรหัสผ่านและนโยบาย',
-                      onHeaderTap: () {},
+                      iconBgColor: const Color(0xFFF3E8FF),
+                      iconColor: const Color(0xFF9333EA),
+                      title: isEn ? 'Account & Security' : 'บัญชีและความปลอดภัย',
+                      subtitle: isEn ? 'Manage password and policies' : 'จัดการรหัสผ่านและนโยบาย',
                       children: [
+                        // Change Password
                         _buildNavigationRow(
                           icon: Icons.lock_rounded,
                           iconColor: const Color(0xFF1C7FF6),
                           title: t('change_password'),
                           primaryTextColor: primaryTextColor,
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${t('change_password')}...', style: GoogleFonts.kanit()),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
+                            context.push(AppRoutes.changePassword);
                           },
                         ),
                         Divider(height: 1, indent: 48, color: dividerColor),
+                        // Privacy Policy
                         _buildNavigationRow(
                           icon: Icons.policy_rounded,
                           iconColor: const Color(0xFF64748B),
                           title: t('privacy_policy'),
                           primaryTextColor: primaryTextColor,
-                          onTap: () {},
+                          onTap: () {
+                            context.push(AppRoutes.legal, extra: {'isPrivacy': true});
+                          },
                         ),
                         Divider(height: 1, indent: 48, color: dividerColor),
+                        // Terms of Service
                         _buildNavigationRow(
                           icon: Icons.article_rounded,
                           iconColor: const Color(0xFF64748B),
                           title: t('terms_of_service'),
                           primaryTextColor: primaryTextColor,
-                          onTap: () {},
+                          onTap: () {
+                            context.push(AppRoutes.legal, extra: {'isPrivacy': false});
+                          },
                         ),
                         Divider(height: 1, indent: 48, color: dividerColor),
+                        // Help Center
                         _buildNavigationRow(
                           icon: Icons.help_outline_rounded,
                           iconColor: const Color(0xFF10B981),
                           title: t('help_center'),
                           primaryTextColor: primaryTextColor,
-                          onTap: () {},
+                          onTap: () {
+                            context.push(AppRoutes.help);
+                          },
                         ),
                       ],
                     ),
@@ -395,9 +323,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     // Version Footer
                     Center(
                       child: Text(
-                        '${t('app_version')} 1.0.0 (Build 102)',
+                        '${t('app_version')} 1.2.0 (Build 120)',
                         style: GoogleFonts.kanit(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           color: secondaryTextColor,
                         ),
                       ),
@@ -423,7 +351,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required Color iconColor,
     required String title,
     required String subtitle,
-    required VoidCallback onHeaderTap,
     required List<Widget> children,
   }) {
     return Container(
@@ -432,7 +359,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -440,51 +367,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       child: Column(
         children: [
-          InkWell(
-            onTap: onHeaderTap,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: iconBgColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      color: iconColor,
-                      size: 20,
-                    ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: GoogleFonts.kanit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: primaryTextColor,
-                          ),
-                        ),
-                        Text(
-                          subtitle,
-                          style: GoogleFonts.kanit(
-                            fontSize: 12,
-                            color: secondaryTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: 20,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.kanit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: primaryTextColor,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.kanit(
+                          fontSize: 12,
+                          color: secondaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           Divider(height: 1, color: dividerColor),

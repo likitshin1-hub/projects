@@ -90,69 +90,66 @@ class AppTextTheme {
   }
 
   static TextTheme get darkTextTheme {
-    const textColorPrimary = Colors.white;
-    const textColorSecondary = Color(0xFF94A3B8);
-
     return TextTheme(
       // Display
       displayLarge: GoogleFonts.kanit(
         fontSize: 32,
         fontWeight: FontWeight.bold,
-        color: textColorPrimary,
+        color: Colors.white,
       ),
 
       displayMedium: GoogleFonts.kanit(
         fontSize: 28,
         fontWeight: FontWeight.bold,
-        color: textColorPrimary,
+        color: Colors.white,
       ),
 
       displaySmall: GoogleFonts.kanit(
         fontSize: 24,
         fontWeight: FontWeight.bold,
-        color: textColorPrimary,
+        color: Colors.white,
       ),
 
       // Headline
       headlineLarge: GoogleFonts.kanit(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: textColorPrimary,
+        color: Colors.white,
       ),
 
       headlineMedium: GoogleFonts.kanit(
         fontSize: 20,
         fontWeight: FontWeight.w600,
-        color: textColorPrimary,
+        color: Colors.white,
       ),
 
       // Title
       titleLarge: GoogleFonts.kanit(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: textColorPrimary,
+        color: Colors.white,
       ),
 
       titleMedium: GoogleFonts.kanit(
         fontSize: 16,
         fontWeight: FontWeight.w500,
-        color: textColorPrimary,
+        color: Colors.white,
       ),
 
       titleSmall: GoogleFonts.kanit(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: textColorSecondary,
+        color: const Color(0xFF94A3B8),
       ),
 
       // Body
-      bodyLarge: GoogleFonts.kanit(fontSize: 16, color: textColorPrimary),
+      bodyLarge: GoogleFonts.kanit(fontSize: 16, color: Colors.white),
 
-      bodyMedium: GoogleFonts.kanit(fontSize: 14, color: textColorPrimary),
+      bodyMedium: GoogleFonts.kanit(fontSize: 14, color: Colors.white),
 
       bodySmall: GoogleFonts.kanit(
         fontSize: 12,
-        color: textColorSecondary,
+        color: const Color(0xFF94A3B8),
       ),
 
       // Label / Button
@@ -165,12 +162,12 @@ class AppTextTheme {
       labelMedium: GoogleFonts.kanit(
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: textColorSecondary,
+        color: const Color(0xFF94A3B8),
       ),
 
       labelSmall: GoogleFonts.kanit(
         fontSize: 11,
-        color: textColorSecondary,
+        color: const Color(0xFF94A3B8),
       ),
     );
   }
