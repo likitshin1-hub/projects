@@ -1415,10 +1415,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                   ? () async {
                                       Navigator.pop(context); // Close dialog
                                       _syncToProvider();
-                                      final success = await ref.read(bookingProvider.notifier).submitBooking();
-                                      if (success && mounted) {
-                                        context.pushReplacement(AppRoutes.searchingRider);
-                                      }
+                                      ref.read(bookingProvider.notifier).submitBooking(); // Call in background
+                                      context.pushReplacement(AppRoutes.searchingRider); // Instant redirection
                                     }
                                   : null,
                               child: Text(
