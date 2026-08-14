@@ -405,17 +405,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),
                                   onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          currentLang == AppLanguage.en
-                                              ? 'Calling Somchai (081-234-5678)...'
-                                              : 'กำลังโทรหาคนขับ สมชาย (081-234-5678)...',
-                                          style: GoogleFonts.kanit(),
-                                        ),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
+                                    context.push('${AppRoutes.call}/driver_somchai');
                                   },
                                 ),
                               ),
@@ -436,7 +426,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),
                                   onPressed: () {
-                                    context.push('${AppRoutes.chatDetail}/driver_somchai');
+                                    context.push('${AppRoutes.chat}/driver_somchai');
                                   },
                                 ),
                               ),

@@ -3354,13 +3354,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   subtitle: isEn ? 'Transfer to company account' : 'โอนเข้าบัญชีบริษัท',
                   isDarkMode: isDarkMode,
                 ),
-                _buildPaymentOptionRow(
-                  index: 2,
-                  icon: Icons.wallet_rounded,
-                  title: isEn ? 'In-App Wallet' : 'Wallet ในระบบ',
-                  subtitle: isEn ? 'Balance: ฿350' : 'ยอดคงเหลือ: 350 บาท',
-                  isDarkMode: isDarkMode,
-                ),
               ],
             ),
           ),

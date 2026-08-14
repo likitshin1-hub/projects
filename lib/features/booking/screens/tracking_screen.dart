@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -23,7 +24,10 @@ class TrackingScreen extends ConsumerStatefulWidget {
 }
 
 class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTickerProviderStateMixin {
-  final int _currentStep = 2; // 0=รับออเดอร์, 1=กำลังไปรับ, 2=กำลังส่ง, 3=สำเร็จ
+  int _currentStep = 0; // 0=รับออเดอร์, 1=กำลังไปรับ, 2=กำลังส่ง, 3=สำเร็จ
+  Timer? _statusProgressTimer;
+  BitmapDescriptor _riderMarkerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
+
   GoogleMapController? _mapController;
   late AnimationController _pulseController;
 
@@ -49,6 +53,103 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     )..repeat();
 
     _initMapMarkersAndFetchProductionRoute();
+    _startStatusSimulationTimer();
+  }
+
+  @override
+  void dispose() {
+    _statusProgressTimer?.cancel();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  void _startStatusSimulationTimer() {
+    _statusProgressTimer?.cancel();
+    _statusProgressTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (_currentStep < 3) {
+        setState(() {
+          _currentStep++;
+          _updateRiderMarkerForCurrentStep();
+        });
+
+        if (_currentStep == 3) {
+          timer.cancel();
+          Future.delayed(const Duration(milliseconds: 2500), () {
+            if (mounted) {
+              context.push(AppRoutes.deliverySuccess);
+            }
+          });
+        }
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  void _updateRiderMarkerForCurrentStep() {
+    if (_liveRoutePoints.isEmpty) return;
+
+    double progressRatio = 0.0;
+    if (_currentStep == 1) progressRatio = 0.25;
+    if (_currentStep == 2) progressRatio = 0.65;
+    if (_currentStep == 3) progressRatio = 1.0;
+
+    int targetIndex = (progressRatio * (_liveRoutePoints.length - 1)).toInt();
+    if (targetIndex >= _liveRoutePoints.length) targetIndex = _liveRoutePoints.length - 1;
+    if (targetIndex < 0) targetIndex = 0;
+
+    final newDriverLatLng = _liveRoutePoints[targetIndex];
+
+    _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('driver'),
+        position: newDriverLatLng,
+        anchor: const Offset(0.5, 0.5),
+        infoWindow: const InfoWindow(
+          title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
+          snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
+        ),
+        icon: _riderMarkerIcon,
+      ),
+    );
+
+    try {
+      _mapController?.animateCamera(CameraUpdate.newLatLng(newDriverLatLng));
+    } catch (_) {}
+  }
+
+  String _getStatusTitle(int step, bool isEn) {
+    switch (step) {
+      case 0:
+        return isEn ? 'Order Received & Driver En Route' : 'รับออเดอร์เรียบร้อยแล้ว ไรเดอร์กำลังไปรับพัสดุ';
+      case 1:
+        return isEn ? 'Package Picked Up & En Route' : 'ไรเดอร์รับพัสดุเรียบร้อยแล้ว กำลังมุ่งหน้าส่งสินค้า';
+      case 2:
+        return isEn ? 'Expressway Transit (In Progress)' : 'อยู่บนทางพิเศษบูรพาวิถี (กม.22 บางพลี)';
+      case 3:
+      default:
+        return isEn ? 'Package Delivered Successfully! 🎉' : 'จัดส่งพัสดุถึงมือผู้รับสำเร็จเรียบร้อยแล้ว! 🎉';
+    }
+  }
+
+  String _getEtaText(int step, bool isEn) {
+    switch (step) {
+      case 0:
+        return isEn ? 'Est. 45 Mins' : 'ประมาณ 45 นาที';
+      case 1:
+        return isEn ? 'Est. 30 Mins' : 'ประมาณ 30 นาที';
+      case 2:
+        return isEn ? 'Est. 15 Mins' : 'ประมาณ 15 นาที';
+      case 3:
+      default:
+        return isEn ? 'Delivered' : 'จัดส่งสำเร็จ';
+    }
   }
 
   void _recenterMap() {
@@ -186,11 +287,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       });
     }
 
-    BitmapDescriptor riderMarkerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
-
     // Generate custom canvas vehicle icon asynchronously & update rider marker cleanly
     try {
-      riderMarkerIcon = await _createCustomVehicleMarkerIcon(bookingState.vehicleType);
+      _riderMarkerIcon = await _createCustomVehicleMarkerIcon(bookingState.vehicleType);
       if (mounted) {
         setState(() {
           _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
@@ -203,7 +302,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                 title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
                 snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
               ),
-              icon: riderMarkerIcon,
+              icon: _riderMarkerIcon,
             ),
           );
         });
@@ -235,25 +334,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
             ),
           );
 
-          // Snap rider marker position EXACTLY onto the real polyline road route (~45% along the way)
-          final LatLng onRoadDriverLatLng = _liveRoutePoints.length > 2
-              ? _liveRoutePoints[(_liveRoutePoints.length * 0.45).toInt()]
-              : driverLatLng;
-
-          _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
-          _markers.add(
-            Marker(
-              markerId: const MarkerId('driver'),
-              position: onRoadDriverLatLng,
-              anchor: const Offset(0.5, 0.5),
-              infoWindow: const InfoWindow(
-                title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
-                snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
-              ),
-              icon: riderMarkerIcon,
-            ),
-          );
-
+          _updateRiderMarkerForCurrentStep();
           _fitCameraToBounds();
         } else {
           // Fallback straight line polyline if no internet
@@ -331,6 +412,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
+    final isEn = currentLang == AppLanguage.en;
     final bookingState = ref.watch(bookingProvider);
 
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
@@ -692,7 +774,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                       ),
                                     ),
                                     Text(
-                                      'อยู่บนทางพิเศษบูรพาวิถี (กม.22 บางพลี)',
+                                      _getStatusTitle(_currentStep, isEn),
                                       style: GoogleFonts.kanit(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -710,7 +792,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  'ประมาณ 35 นาที',
+                                  _getEtaText(_currentStep, isEn),
                                   style: GoogleFonts.kanit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
