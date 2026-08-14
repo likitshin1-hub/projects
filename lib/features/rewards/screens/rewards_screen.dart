@@ -9,7 +9,7 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../providers/rewards_provider.dart';
 
-enum _RewardLevelStatus { claimed, canClaim, inProgress, locked }
+enum _RewardLevelStatus { claimed, canClaim, inProgress }
 
 class RewardsScreen extends ConsumerStatefulWidget {
   const RewardsScreen({super.key});
@@ -68,30 +68,27 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
 
     String t(String key) => AppTranslations.getText(currentLang, key);
 
+    final pageBg = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
+      backgroundColor: pageBg,
       body: Column(
         children: [
-          // ==========================================
-          // BLUE GRADIENT HEADER
-          // ==========================================
+          // BLUE GRADIENT HEADER (Original Rewards Screen Header)
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF0A6CFF),
-                  Color(0xFF0052CC),
+                  Color(0xFF0052D4),
+                  Color(0xFF1C7FF6),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
             ),
-            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 12, 16, 24),
+            padding: EdgeInsets.fromLTRB(12, statusBarHeight + 8, 12, 28),
             child: Column(
               children: [
                 Row(
@@ -101,7 +98,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                       icon: const Icon(
                         Icons.arrow_back_ios_new_rounded,
                         color: Colors.white,
-                        size: 22,
+                        size: 20,
                       ),
                       onPressed: () {
                         if (context.canPop()) {
@@ -121,9 +118,11 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                       icon: const Icon(
                         Icons.card_giftcard_rounded,
                         color: Colors.white,
-                        size: 24,
+                        size: 22,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        context.push(AppRoutes.coupons);
+                      },
                     ),
                   ],
                 ),
@@ -139,34 +138,48 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
             ),
           ),
 
-          // ==========================================
-          // SCROLLABLE CONTENT
-          // ==========================================
+          // SCROLLABLE CONTENT (Curved Container)
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // MY USAGE CARD
-                  _buildMyUsageCard(currentLang, t),
-                  const SizedBox(height: 24),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: pageBg,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // MY USAGE CARD
+                      _buildMyUsageCard(currentLang, t, isDarkMode),
+                      const SizedBox(height: 24),
 
-                  // REWARDS SECTION TITLE
-                  Text(
-                    t('my_rewards_title'),
-                    style: GoogleFonts.kanit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1F2937),
-                    ),
+                      // REWARDS SECTION TITLE
+                      Text(
+                        t('my_rewards_title'),
+                        style: GoogleFonts.kanit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // TIMELINE OF REWARDS
+                      _buildRewardsTimeline(currentLang, t, isDarkMode),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-
-                  // TIMELINE OF REWARDS
-                  _buildRewardsTimeline(currentLang, t),
-                ],
+                ),
               ),
             ),
           ),
@@ -178,14 +191,16 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
   // ==========================================
   // MY USAGE CARD WIDGET
   // ==========================================
-  Widget _buildMyUsageCard(AppLanguage currentLang, String Function(String) t) {
+  Widget _buildMyUsageCard(AppLanguage currentLang, String Function(String) t, bool isDarkMode) {
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -413,7 +428,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
   // ==========================================
   // REWARDS TIMELINE LIST WIDGET
   // ==========================================
-  Widget _buildRewardsTimeline(AppLanguage currentLang, String Function(String) t) {
+  Widget _buildRewardsTimeline(AppLanguage currentLang, String Function(String) t, bool isDarkMode) {
     final currentTrips = ref.watch(rewardsProvider).state.currentTrips;
     final milestones = ref.watch(rewardsProvider).state.milestones;
 
@@ -454,7 +469,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                     Expanded(
                       child: Container(
                         width: 2,
-                        color: Colors.grey.shade300,
+                        color: isDarkMode ? const Color(0xFF334155) : Colors.grey.shade300,
                       ),
                     ),
                 ],
@@ -465,7 +480,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildTicketCard(level, currentLang, t),
+                  child: _buildTicketCard(level, currentLang, t, isDarkMode),
                 ),
               ),
             ],
@@ -476,123 +491,110 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
   }
 
   Widget _buildTimelineNode(_RewardLevelData level, int milestoneNumber) {
-    switch (level.status) {
-      case _RewardLevelStatus.claimed:
-        return const Icon(
-          Icons.check_circle_rounded,
-          color: Color(0xFF22C55E),
-          size: 24,
-        );
-      case _RewardLevelStatus.canClaim:
-        return const Icon(
-          Icons.stars_rounded,
-          color: Color(0xFF10B981),
-          size: 24,
-        );
-      case _RewardLevelStatus.inProgress:
-        return Container(
-          width: 24,
-          height: 24,
-          decoration: const BoxDecoration(
-            color: Color(0xFF1C7FF6),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            '$milestoneNumber',
-            style: GoogleFonts.kanit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        );
-      case _RewardLevelStatus.locked:
-        return Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade400,
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.lock_rounded,
+    final bool isCompletedOrCanClaim = level.status == _RewardLevelStatus.canClaim || level.status == _RewardLevelStatus.claimed;
+
+    if (isCompletedOrCanClaim) {
+      return Container(
+        width: 26,
+        height: 26,
+        decoration: const BoxDecoration(
+          color: Color(0xFF00B774),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.star_rounded,
+          color: Colors.white,
+          size: 16,
+        ),
+      );
+    } else {
+      return Container(
+        width: 26,
+        height: 26,
+        decoration: const BoxDecoration(
+          color: Color(0xFF1C7FF6),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '$milestoneNumber',
+          style: GoogleFonts.kanit(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
             color: Colors.white,
-            size: 12,
           ),
-        );
+        ),
+      );
     }
   }
 
   // ==========================================
   // TICKET CARD DESIGN WIDGET
   // ==========================================
-  Widget _buildTicketCard(_RewardLevelData level, AppLanguage currentLang, String Function(String) t) {
+  Widget _buildTicketCard(_RewardLevelData level, AppLanguage currentLang, String Function(String) t, bool isDarkMode) {
     final bool isClaimed = level.status == _RewardLevelStatus.claimed;
     final bool isCanClaim = level.status == _RewardLevelStatus.canClaim;
-    final bool isInProgress = level.status == _RewardLevelStatus.inProgress;
-    final bool isLocked = level.status == _RewardLevelStatus.locked;
 
-    // Card Colors based on status
-    final Color badgeBg = isLocked ? Colors.grey.shade400 : (isCanClaim ? const Color(0xFF10B981) : const Color(0xFF1C7FF6));
-    final Color ticketSideBg = isClaimed
-        ? const Color(0xFFE8F8EE)
-        : (isCanClaim
-            ? const Color(0xFFECFDF5)
-            : isInProgress
-                ? const Color(0xFFE8F2FE)
-                : const Color(0xFFF1F5F9));
-    final Color ticketTextColor = isClaimed
-        ? const Color(0xFF16A34A)
-        : (isCanClaim
-            ? const Color(0xFF10B981)
-            : isInProgress
-                ? const Color(0xFF1D4ED8)
-                : const Color(0xFF64748B));
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+
+    final bool isGreenTheme = isClaimed || isCanClaim;
+    final Color ribbonBg = isGreenTheme ? const Color(0xFF00B774) : const Color(0xFF1C7FF6);
+    final Color voucherRightBg = isGreenTheme
+        ? (isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFE8F8EE))
+        : (isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE));
+    final Color voucherTextColor = isGreenTheme ? const Color(0xFF00B774) : const Color(0xFF1C7FF6);
+
+    final currentTrips = ref.watch(rewardsProvider).state.currentTrips;
+    final double progressRatio = (currentTrips / level.times).clamp(0.0, 1.0);
 
     return Container(
+      height: 110,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Row(
           children: [
-            // Left Panel (Pill badge representing number of times)
+            // Left Rotated Ribbon Panel (5 ครั้ง, 10 ครั้ง, 20 ครั้ง)
             Container(
-              width: 56,
-              decoration: BoxDecoration(
-                color: badgeBg,
-              ),
+              width: 66,
+              color: ribbonBg,
               alignment: Alignment.center,
               child: RotatedBox(
                 quarterTurns: 3,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
                       '${level.times}',
                       style: GoogleFonts.kanit(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        height: 1.0,
                       ),
                     ),
-                    const SizedBox(width: 2),
+                    const SizedBox(width: 3),
                     Text(
                       currentLang == AppLanguage.en ? 'Trips' : 'ครั้ง',
                       style: GoogleFonts.kanit(
-                        fontSize: 10,
-                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.95),
                       ),
                     ),
                   ],
@@ -600,7 +602,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
               ),
             ),
 
-            // Middle Description Panel
+            // Middle Info Panel
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -611,65 +613,40 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                     Text(
                       currentLang == AppLanguage.en ? 'Complete ${level.times} deliveries' : 'ใช้บริการครบ ${level.times} ครั้ง',
                       style: GoogleFonts.kanit(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1F2937),
+                        color: textColor,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       currentLang == AppLanguage.en ? 'Get ${level.discount} THB discount' : 'รับส่วนลด ${level.discount} บาท',
                       style: GoogleFonts.kanit(
-                        fontSize: 12,
-                        color: const Color(0xFF4B5563),
+                        fontSize: 12.5,
+                        color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
 
-                    // Status Badge or Progress bar
-                    if (isClaimed)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F8EE),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          t('claimed_status'),
-                          style: GoogleFonts.kanit(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF16A34A),
-                          ),
-                        ),
-                      )
-                    else if (isCanClaim)
+                    if (isCanClaim)
                       InkWell(
                         onTap: () => _claimRewardMilestone(level.times, level.discount),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981),
-                            borderRadius: BorderRadius.circular(6),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                            color: const Color(0xFF00B774),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 12),
+                              const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 14),
                               const SizedBox(width: 4),
                               Text(
-                                currentLang == AppLanguage.en ? 'Claim Coupon' : 'กดรับสิทธิ์',
+                                currentLang == AppLanguage.en ? 'Claim Reward' : 'กดรับสิทธิ์',
                                 style: GoogleFonts.kanit(
-                                  fontSize: 11,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -678,57 +655,52 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                           ),
                         ),
                       )
-                    else if (isInProgress)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F2FE),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              level.progressText,
-                              style: GoogleFonts.kanit(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1D4ED8),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(2),
-                            child: const LinearProgressIndicator(
-                              value: 0.7,
-                              minHeight: 4,
-                              backgroundColor: Color(0xFFF1F5F9),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFF1C7FF6),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    else if (isLocked)
+                    else if (isClaimed)
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(6),
+                          color: const Color(0xFFE8F8EE),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          level.progressText,
+                          t('claimed_status'),
                           style: GoogleFonts.kanit(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey.shade500,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF00B774),
+                          ),
+                        ),
+                      )
+                    else ...[
+                      // In Progress status badge & bar
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$currentTrips / ${level.times} ครั้ง',
+                          style: GoogleFonts.kanit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1C7FF6),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: progressRatio,
+                          minHeight: 5,
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF1C7FF6),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -740,10 +712,10 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
               painter: _DashedLinePainter(),
             ),
 
-            // Right Voucher Coupon Visual Panel
+            // Right Panel (Voucher Discount Display)
             Container(
-              width: 76,
-              color: ticketSideBg,
+              width: 92,
+              color: voucherRightBg,
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -751,25 +723,28 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                   Text(
                     currentLang == AppLanguage.en ? 'Discount' : 'ส่วนลด',
                     style: GoogleFonts.kanit(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: ticketTextColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: voucherTextColor,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     '${level.discount}',
                     style: GoogleFonts.kanit(
-                      fontSize: 22,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: ticketTextColor,
+                      color: voucherTextColor,
+                      height: 1.0,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     t('baht_unit'),
                     style: GoogleFonts.kanit(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: ticketTextColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: voucherTextColor,
                     ),
                   ),
                 ],

@@ -208,37 +208,37 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     IconData illustrationIcon = Icons.local_shipping_outlined,
   }) {
     return Container(
-      height: 124,
+      height: 130,
       decoration: BoxDecoration(
         color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDarkMode ? const Color(0xFF334155) : Colors.transparent),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            // Left Ticket Ribbon Badge
+            // Left Panel (Voucher visual representation)
             Container(
-              width: 76,
+              width: 104,
               color: cardColor,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   // Semi-circle ticket cuts
                   Positioned(
-                    top: -6,
-                    left: -6,
+                    top: -7,
+                    right: -7,
                     child: Container(
-                      width: 12,
-                      height: 12,
+                      width: 14,
+                      height: 14,
                       decoration: BoxDecoration(
                         color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
@@ -246,35 +246,11 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                     ),
                   ),
                   Positioned(
-                    bottom: -6,
-                    left: -6,
+                    bottom: -7,
+                    right: -7,
                     child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: -6,
-                    right: -6,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -6,
-                    right: -6,
-                    child: Container(
-                      width: 12,
-                      height: 12,
+                      width: 14,
+                      height: 14,
                       decoration: BoxDecoration(
                         color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
@@ -282,26 +258,26 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                     ),
                   ),
 
-                  // Voucher Content
+                  // Voucher Left Content
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          t('discount_coupon'),
+                          'ส่วนลด',
                           style: GoogleFonts.kanit(
-                            fontSize: 9,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -310,28 +286,30 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                           Text(
                             discountText,
                             style: GoogleFonts.kanit(
-                              fontSize: 24,
+                              fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              height: 1.1,
+                              height: 1.0,
                             ),
                           ),
-                          const SizedBox(width: 1),
+                          const SizedBox(width: 2),
                           Text(
                             unitText,
                             style: GoogleFonts.kanit(
-                              fontSize: 8.5,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         subtitle,
                         style: GoogleFonts.kanit(
-                          fontSize: 8,
-                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 9.5,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -351,15 +329,15 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: badgeBgColor,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         badgeText,
                         style: GoogleFonts.kanit(
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: badgeTextColor,
                         ),
@@ -369,7 +347,7 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                     Text(
                       title,
                       style: GoogleFonts.kanit(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
                       ),
@@ -377,7 +355,7 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                     Text(
                       subtitle,
                       style: GoogleFonts.kanit(
-                        fontSize: 11,
+                        fontSize: 11.5,
                         color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                       maxLines: 1,
@@ -388,14 +366,14 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                       children: [
                         const Icon(
                           Icons.calendar_month_rounded,
-                          size: 13,
+                          size: 14,
                           color: Color(0xFF94A3B8),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           expiryText,
                           style: GoogleFonts.kanit(
-                            fontSize: 10,
+                            fontSize: 10.5,
                             color: const Color(0xFF94A3B8),
                           ),
                         ),
@@ -406,29 +384,31 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
               ),
             ),
 
-            // Dashed Divider simulation
+            // Vertical Dashed Line
             CustomPaint(
               size: const Size(1, double.infinity),
               painter: _DashedLinePainter(),
             ),
 
-            // Right Action Panel with Illustration Icon + Button
+            // Right Panel (Action Button / Icon)
             Container(
-              width: 96,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              alignment: Alignment.center,
+              width: 106,
+              padding: const EdgeInsets.fromLTRB(8, 12, 12, 12),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Icon(
-                    illustrationIcon,
-                    size: 40,
-                    color: isDarkMode ? const Color(0xFF334155) : Colors.grey.shade100,
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      illustrationIcon,
+                      size: 38,
+                      color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    ),
                   ),
-                  Container(
+                  SizedBox(
+                    height: 34,
                     width: double.infinity,
-                    height: 28,
-                    alignment: Alignment.center,
                     child: ElevatedButton(
                       onPressed: () {
                         ScaffoldMessenger.of(context).clearSnackBars();
@@ -446,18 +426,18 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                         context.push(AppRoutes.booking);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: cardColor,
+                        backgroundColor: const Color(0xFF00B774),
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(18),
                         ),
                         elevation: 0,
                       ),
                       child: Text(
-                        t('use_coupon'),
+                        'ใช้คูปอง',
                         style: GoogleFonts.kanit(
-                          fontSize: 11,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

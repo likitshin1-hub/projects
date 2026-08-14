@@ -422,37 +422,37 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
 
   Widget _buildClaimCard(_ClaimCouponData coupon, int itemIndex, bool isClaimed, bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
     return Container(
-      height: 124,
+      height: 130,
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDarkMode ? const Color(0xFF334155) : Colors.transparent),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
             // Left Panel (Voucher visual representation)
             Container(
-              width: 76,
+              width: 104,
               color: coupon.leftColor,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Semi-circle ticket cuts
+                  // Semi-circle ticket cuts at top and bottom of left panel right side
                   Positioned(
-                    top: -6,
-                    left: -6,
+                    top: -7,
+                    right: -7,
                     child: Container(
-                      width: 12,
-                      height: 12,
+                      width: 14,
+                      height: 14,
                       decoration: BoxDecoration(
                         color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
@@ -460,35 +460,11 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                     ),
                   ),
                   Positioned(
-                    bottom: -6,
-                    left: -6,
+                    bottom: -7,
+                    right: -7,
                     child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: -6,
-                    right: -6,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -6,
-                    right: -6,
-                    child: Container(
-                      width: 12,
-                      height: 12,
+                      width: 14,
+                      height: 14,
                       decoration: BoxDecoration(
                         color: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA),
                         shape: BoxShape.circle,
@@ -496,27 +472,27 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                     ),
                   ),
 
-                  // Voucher Content
+                  // Voucher Left Content
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // White Oval Pill Badge "ส่วนลด"
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           coupon.isFreeShip ? (isEn ? 'Free Ship' : 'ส่งฟรี') : (isEn ? 'Discount' : 'ส่วนลด'),
                           style: GoogleFonts.kanit(
-                            fontSize: 9,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -525,30 +501,32 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                           Text(
                             coupon.amount,
                             style: GoogleFonts.kanit(
-                              fontSize: coupon.isFreeShip ? (isEn ? 18 : 22) : 24,
+                              fontSize: coupon.isFreeShip ? (isEn ? 20 : 24) : 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              height: 1.1,
+                              height: 1.0,
                             ),
                           ),
                           if (!coupon.isFreeShip) ...[
-                            const SizedBox(width: 1),
+                            const SizedBox(width: 2),
                             Text(
                               isEn ? 'THB' : 'บาท',
                               style: GoogleFonts.kanit(
-                                fontSize: 8.5,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
                           ],
                         ],
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         coupon.minSpend,
                         style: GoogleFonts.kanit(
-                          fontSize: 8,
-                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 9.5,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -565,18 +543,17 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Category Badge
+                    // Category Badge (Soft Pill Style)
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: coupon.badgeBg,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         coupon.badge,
                         style: GoogleFonts.kanit(
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: coupon.badgeTextCol,
                         ),
@@ -588,7 +565,7 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                     Text(
                       coupon.title,
                       style: GoogleFonts.kanit(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: coupon.isExpired ? Colors.grey.shade500 : textColor,
                       ),
@@ -597,7 +574,7 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                     Text(
                       coupon.desc,
                       style: GoogleFonts.kanit(
-                        fontSize: 11,
+                        fontSize: 11.5,
                         color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                       maxLines: 1,
@@ -610,14 +587,14 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                       children: [
                         Icon(
                           Icons.calendar_month_rounded,
-                          size: 13,
+                          size: 14,
                           color: coupon.isExpired ? Colors.red : const Color(0xFF94A3B8),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           coupon.expiry,
                           style: GoogleFonts.kanit(
-                            fontSize: 10,
+                            fontSize: 10.5,
                             color: coupon.isExpired ? Colors.red : const Color(0xFF94A3B8),
                             fontWeight: coupon.isExpired ? FontWeight.bold : FontWeight.normal,
                           ),
@@ -629,48 +606,50 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
               ),
             ),
 
-            // Dashed Divider simulation
+            // Vertical Dashed Separator Line
             CustomPaint(
               size: const Size(1, double.infinity),
               painter: _DashedLinePainter(),
             ),
 
-            // Right Action Panel containing Faded Icon + Button
+            // Right Panel (Faded Background Icon + Pill Green Claim Button)
             Container(
-              width: 96,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              alignment: Alignment.center,
+              width: 106,
+              padding: const EdgeInsets.fromLTRB(8, 12, 12, 12),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Illustration icon
-                  Icon(
-                    coupon.illustrationIcon,
-                    size: 40,
-                    color: isDarkMode ? const Color(0xFF334155) : Colors.grey.shade100,
+                  // Faded illustration icon on top right
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      coupon.illustrationIcon,
+                      size: 38,
+                      color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    ),
                   ),
-                  // Button/Badge
+
+                  // Claim Button / Action
                   coupon.isExpired
                       ? Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
                             isEn ? 'Expired' : 'หมดอายุแล้ว',
                             style: GoogleFonts.kanit(
-                              fontSize: 10,
+                              fontSize: 10.5,
                               color: Colors.grey.shade400,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         )
-                      : Container(
+                      : SizedBox(
+                          height: 34,
                           width: double.infinity,
-                          height: 28,
-                          alignment: Alignment.center,
                           child: ElevatedButton(
                             onPressed: () {
                               if (!isClaimed) {
@@ -704,7 +683,7 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                                           : 'เก็บคูปองเรียบร้อยแล้ว! คูปองอยู่ใน คูปองของฉัน',
                                       style: GoogleFonts.kanit(),
                                     ),
-                                    backgroundColor: const Color(0xFF16A34A),
+                                    backgroundColor: const Color(0xFF10B981),
                                     behavior: SnackBarBehavior.floating,
                                     duration: const Duration(seconds: 2),
                                     action: SnackBarAction(
@@ -720,20 +699,20 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                               context.push(AppRoutes.coupons);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isClaimed ? coupon.btnBg : const Color(0xFF10B981),
+                              backgroundColor: isClaimed ? const Color(0xFF0284C7) : const Color(0xFF00B774),
                               foregroundColor: Colors.white,
                               padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(18),
                               ),
                               elevation: 0,
                             ),
                             child: Text(
                               isClaimed
-                                  ? (isEn ? 'Use Coupon' : 'ใช้คูปอง')
-                                  : (isEn ? 'Claim Coupon' : 'เก็บคูปอง'),
+                                  ? (isEn ? 'Use' : 'ใช้คูปอง')
+                                  : (isEn ? 'Claim' : 'เก็บคูปอง'),
                               style: GoogleFonts.kanit(
-                                fontSize: 11,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

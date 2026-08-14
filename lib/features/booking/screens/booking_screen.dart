@@ -9,7 +9,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
-import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/services/directions_service.dart';
@@ -32,15 +31,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   int _currentStep = 1; // 1: ข้อมูลการจัดส่ง, 2: รายละเอียดพัสดุ
 
   // Pickup Details state variables
-  String _pickupName = 'บริษัท เอ็นเทค จำกัด';
-  String _pickupAddress1 = '123 อาคาร ชั้น 5 ถนนสุขุมวิท';
+  String _pickupName = 'ตำแหน่งปัจจุบันของฉัน';
+  String _pickupAddress1 = 'ตำแหน่งปัจจุบันของคุณ (GPS Live Location)';
   String _pickupAddress2 = 'แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพมหานคร 10110';
-  String _pickupTime = 'เวลาทำการ 09:00 - 18:00 น.';
+  String _pickupTime = 'เวลาทำการ 08:30 - 20:00 น.';
 
   // Dropoff Details state variables
-  String _dropoffName = 'คุณสมชาย ใจดี';
-  String _dropoffAddress = '88/9 หมู่ 3 ตำบลแม่เหียะ อำเภอเมืองเชียงใหม่ จังหวัดเชียงใหม่ 50100';
-  String _dropoffPhone = '081-234-5678';
+  String _dropoffName = '';
+  String _dropoffAddress = '';
+  String _dropoffPhone = '';
 
   // Parcel Details state variables
   String _parcelType = 'กล่อง';
@@ -51,7 +50,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   final ImagePicker _picker = ImagePicker();
 
   // Step 3 state variables
-  int _paymentMethodIndex = 0; // 0: COD, 1: โอนเงิน, 2: Wallet ในระบบ
+  int _paymentMethodIndex = 0; // 0: COD, 1: โอนเงิน
+  bool _isTransferPaid = false; // Track if QR code payment has been scanned/confirmed
   String _selectedCouponText = 'เลือกหรือกรอกรหัสคูปอง';
   double _couponDiscount = 0.0;
 
@@ -1212,51 +1212,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 
   Future<void> _submit() async {
-    Widget buildWarningItem(IconData icon, String text) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: const Color(0xFFE53935), size: 24),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                text,
-                style: GoogleFonts.kanit(
-                  fontSize: 14.5,
-                  color: const Color(0xFF1F2937),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget buildActionItem(Widget iconWidget, String text) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            iconWidget,
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                text,
-                style: GoogleFonts.kanit(
-                  fontSize: 14.5,
-                  color: const Color(0xFF1F2937),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final double basePrice = _getVehiclePrice();
+    final double totalPrice = (basePrice - _couponDiscount).clamp(0.0, double.infinity);
+    final isDarkMode = ref.watch(themeProvider);
 
     showDialog(
       context: context,
@@ -1265,230 +1223,474 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         bool isChecked = false;
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-              content: SizedBox(
-                width: MediaQuery.of(dialogContext).size.width * 0.9,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header Warning Icon & Title
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.warning_amber_rounded,
-                          color: Color(0xFFFFB300),
-                          size: 36,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'เพื่อความปลอดภัยของผู้ขับและการจัดส่ง',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 16.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF0F172A),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'หากตรวจพบว่า',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 14.5,
-                                  color: const Color(0xFF4B5563),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Warnings List
-                    buildWarningItem(Icons.location_on_rounded, 'ตำแหน่งรับ-ส่งไม่ตรงตามที่ระบุ'),
-                    buildWarningItem(Icons.scale_rounded, 'น้ำหนักสินค้าไม่ตรงตามจริง'),
-                    buildWarningItem(Icons.inventory_2_rounded, 'ขนาดสินค้าไม่ตรงตามที่แจ้ง'),
-                    buildWarningItem(Icons.description_rounded, 'ขนาดสินค้าไม่ตรงตามที่แจ้ง'),
-
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Divider(color: Color(0xFFE2E8F0), height: 1),
-                    ),
-
-                    // Red Reserves Title
-                    Text(
-                      'TBMOVEHUB ขอสงวนสิทธิ์',
-                      style: GoogleFonts.kanit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFEF4444),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Actions List
-                    buildActionItem(
+            return Dialog(
+              backgroundColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header Blue Gradient Banner (Matching Claim Coupons Screen Header)
                       Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF1F2937), width: 1.8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          '\$',
-                          style: GoogleFonts.kanit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1F2937),
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(20, 20, 16, 20),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF0052D4), Color(0xFF1C7FF6)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.verified_user_rounded,
+                                color: Colors.white,
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'ตรวจสอบข้อมูลก่อนยืนยันการจัดส่ง',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 16.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'กรุณาตรวจสอบข้อมูลให้ถูกต้อง ก่อนยืนยันการจัดส่ง',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 12,
+                                      color: Colors.white.withValues(alpha: 0.85),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => Navigator.pop(dialogContext),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      'เรียกเก็บค่าบริการเพิ่มเติม',
-                    ),
-                    buildActionItem(
-                      const Icon(Icons.block_flipped, color: Color(0xFF1F2937), size: 22),
-                      'ปฏิเสธการรับงาน',
-                    ),
-                    buildActionItem(
-                      Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF1F2937), width: 1.8),
-                        ),
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.person_outline_rounded,
-                          color: Color(0xFF1F2937),
-                          size: 14,
+
+                      // Body Content
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Card 1: ข้อมูลที่ต้องตรวจสอบ
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE0F2FE),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          'ข้อมูลที่ต้องตรวจสอบ',
+                                          style: GoogleFonts.kanit(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF0284C7),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _buildCheckItem(Icons.location_on_rounded, 'ตำแหน่งรับ-ส่งไม่ตรงตามที่ระบุ', isDarkMode),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                                  ),
+                                  _buildCheckItem(Icons.scale_rounded, 'น้ำหนักสินค้าไม่ตรงตามจริง', isDarkMode),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                                  ),
+                                  _buildCheckItem(Icons.inventory_2_rounded, 'ขนาดสินค้าไม่ตรงตามที่แจ้ง', isDarkMode),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                                  ),
+                                  _buildCheckItem(Icons.description_rounded, 'รายละเอียดสินค้าไม่ตรงตามที่แจ้ง', isDarkMode),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Card 2: สรุปค่าบริการ
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE8F8EE),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          'สรุปค่าใช้บริการ',
+                                          style: GoogleFonts.kanit(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF10B981),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'ค่าขนส่ง',
+                                        style: GoogleFonts.kanit(fontSize: 13, color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+                                      ),
+                                      Text(
+                                        '${basePrice.toStringAsFixed(2)} บาท',
+                                        style: GoogleFonts.kanit(fontSize: 13, color: isDarkMode ? Colors.white : const Color(0xFF1E293B)),
+                                      ),
+                                    ],
+                                  ),
+                                  if (_couponDiscount > 0) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'ส่วนลด (คูปอง)',
+                                          style: GoogleFonts.kanit(fontSize: 13, color: const Color(0xFF10B981)),
+                                        ),
+                                        Text(
+                                          '-${_couponDiscount.toStringAsFixed(2)} บาท',
+                                          style: GoogleFonts.kanit(fontSize: 13, color: const Color(0xFF10B981), fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 10),
+                                    child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'ยอดชำระทั้งหมด',
+                                        style: GoogleFonts.kanit(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${totalPrice.toStringAsFixed(2)} บาท',
+                                        style: GoogleFonts.kanit(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF1C7FF6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Card 3: เงื่อนไขการจัดส่ง (Light Blue / Blue Box)
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFF1C7FF6).withValues(alpha: 0.3)),
+                              ),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.info_rounded, color: Color(0xFF1C7FF6), size: 18),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'เงื่อนไขการจัดส่ง',
+                                        style: GoogleFonts.kanit(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF1C7FF6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildBulletPoint('บริษัทสามารถเรียกเก็บค่าบริการเพิ่มเติม หากข้อมูลสินค้าไม่ตรงกับความเป็นจริง', isDarkMode),
+                                  _buildBulletPoint('บริษัทสามารถปฏิเสธการรับงาน หากสินค้าไม่เป็นไปตามเงื่อนไข', isDarkMode),
+                                  _buildBulletPoint('ผู้ใช้ต้องรับผิดชอบข้อมูลที่แจ้งในคำสั่งซื้อ', isDarkMode),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Checkbox Confirmation Row
+                            InkWell(
+                              onTap: () {
+                                setDialogState(() {
+                                  isChecked = !isChecked;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(10),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 22,
+                                      height: 22,
+                                      margin: const EdgeInsets.only(top: 2),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: isChecked ? const Color(0xFF1C7FF6) : const Color(0xFF94A3B8),
+                                          width: 1.8,
+                                        ),
+                                        color: isChecked ? const Color(0xFF1C7FF6) : (isDarkMode ? const Color(0xFF1E293B) : Colors.white),
+                                      ),
+                                      child: isChecked
+                                          ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'ข้าพเจ้ายืนยันว่าข้อมูลทั้งหมดถูกต้อง และยอมรับเงื่อนไขการใช้บริการของ ',
+                                              style: GoogleFonts.kanit(
+                                                fontSize: 12,
+                                                color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                                height: 1.35,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: 'TBMOVEHUB',
+                                              style: GoogleFonts.kanit(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: const Color(0xFF1C7FF6),
+                                                height: 1.35,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+
+                            // Action Buttons Row (ยกเลิก & ยืนยันการจัดส่ง)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: OutlinedButton(
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: Color(0xFF1C7FF6), width: 1.6),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(24),
+                                        ),
+                                      ),
+                                      onPressed: () => Navigator.pop(dialogContext),
+                                      child: Text(
+                                        'ยกเลิก',
+                                        style: GoogleFonts.kanit(
+                                          color: const Color(0xFF1C7FF6),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                                      label: Text(
+                                        'ยืนยันการจัดส่ง',
+                                        style: GoogleFonts.kanit(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isChecked ? const Color(0xFF1C7FF6) : const Color(0xFF94A3B8),
+                                        elevation: isChecked ? 3 : 0,
+                                        shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(24),
+                                        ),
+                                      ),
+                                      onPressed: isChecked
+                                          ? () async {
+                                              Navigator.pop(dialogContext); // Close dialog
+                                              _syncToProvider();
+                                              ref.read(bookingProvider.notifier).submitBooking(); // Call in background
+                                              if (mounted) {
+                                                context.pushReplacement(AppRoutes.searchingRider); // Instant redirection using outer context
+                                              }
+                                            }
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      'ระงับบัญชีผู้ใช้งานตามเงื่อนไขของระบบ',
-                    ),
-
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Divider(color: Color(0xFFE2E8F0), height: 1),
-                    ),
-
-                    // Checkbox Row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Checkbox(
-                          value: isChecked,
-                          activeColor: const Color(0xFF1C7FF6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          onChanged: (val) {
-                            setDialogState(() {
-                              isChecked = val ?? false;
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () {
-                              setDialogState(() {
-                                isChecked = !isChecked;
-                              });
-                            },
-                            child: Text(
-                              'ยอมรับเงื่อนไขการใช้งาน\nและยืนยันข้อมูลการจัดส่งถูกต้องทุกประการ',
-                              style: GoogleFonts.kanit(
-                                fontSize: 13.5,
-                                color: const Color(0xFF1F2937),
-                                height: 1.35,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Buttons Outlined Cancel & Filled Confirm
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFF1C7FF6)),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              onPressed: () => Navigator.pop(dialogContext),
-                              child: Text(
-                                'ยกเลิก',
-                                style: GoogleFonts.kanit(
-                                  color: const Color(0xFF1C7FF6),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isChecked
-                                    ? const Color(0xFF1C7FF6)
-                                    : const Color(0xFFE2E8F0),
-                                foregroundColor: isChecked ? Colors.white : const Color(0xFF94A3B8),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              onPressed: isChecked
-                                  ? () async {
-                                      Navigator.pop(dialogContext); // Close dialog
-                                      _syncToProvider();
-                                      ref.read(bookingProvider.notifier).submitBooking(); // Call in background
-                                      if (mounted) {
-                                        context.pushReplacement(AppRoutes.searchingRider); // Instant redirection using outer context
-                                      }
-                                    }
-                                  : null,
-                              child: Text(
-                                'ยืนยันการจัดส่ง',
-                                style: GoogleFonts.kanit(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildCheckItem(IconData icon, String title, bool isDarkMode) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE0F2FE),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: const Color(0xFF0284C7), size: 16),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.kanit(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: const BoxDecoration(
+            color: Color(0xFF10B981),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 12),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBulletPoint(String text, bool isDarkMode) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('• ', style: GoogleFonts.kanit(fontSize: 12, color: const Color(0xFF1C7FF6), fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.kanit(
+                fontSize: 11.5,
+                color: isDarkMode ? const Color(0xFF93C5FD) : const Color(0xFF0369A1),
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1870,17 +2072,47 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          _dropoffName,
-                          style: GoogleFonts.kanit(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                        if (_dropoffName.isEmpty && _dropoffAddress.isEmpty)
+                          InkWell(
+                            onTap: _editDropoffBottomSheet,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.add_location_alt_rounded, color: Color(0xFF10B981), size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'แตะเพื่อกรอกข้อมูลผู้รับและจุดส่งพัสดุ',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF10B981),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else ...[
+                          Text(
+                            _dropoffName,
+                            style: GoogleFonts.kanit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        _buildDetailRow(Icons.home_rounded, _dropoffAddress),
-                        _buildDetailRow(Icons.phone_iphone_rounded, _dropoffPhone),
+                          const SizedBox(height: 4),
+                          _buildDetailRow(Icons.home_rounded, _dropoffAddress),
+                          _buildDetailRow(Icons.phone_iphone_rounded, _dropoffPhone),
+                        ],
                       ],
                     ),
                   ),
@@ -1888,193 +2120,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-
-          // FASTEST ROUTE REVIEW & APPROVAL CARD
-          Container(
-            decoration: BoxDecoration(
-              color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFF10B981).withValues(alpha: 0.4),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE8F8EE),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.bolt_rounded,
-                        color: Color(0xFF10B981),
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ref.watch(languageProvider) == AppLanguage.en
-                                ? 'Fastest Delivery Route Calculated'
-                                : 'สรุปเส้นทางจัดส่งที่เร็วที่สุด',
-                            style: GoogleFonts.kanit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: isDarkMode ? Colors.white : const Color(0xFF065F46),
-                            ),
-                          ),
-                          Text(
-                            ref.watch(languageProvider) == AppLanguage.en
-                                ? 'Review duration & route before approval'
-                                : 'คำนวณเส้นทางถนนและเวลาให้ตรวจสอบก่อนอนุมัติสั่งงาน',
-                            style: GoogleFonts.kanit(
-                              fontSize: 11.5,
-                              color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF047857),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                if (_isCalculatingFastestRoute)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        ref.watch(languageProvider) == AppLanguage.en
-                            ? 'Calculating fastest road route...'
-                            : 'กำลังประมวลผลเส้นทางจัดส่งที่ไวที่สุด...',
-                        style: GoogleFonts.kanit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF10B981),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF0FDF4),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.timer_outlined, color: Color(0xFF10B981), size: 18),
-                                const SizedBox(width: 6),
-                                Text(
-                                  ref.watch(languageProvider) == AppLanguage.en ? 'Est. Duration:' : 'เวลาจัดส่งโดยประมาณ:',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 12.5,
-                                    color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF047857),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              '$_estimatedDurationMinutes นาที (${(_estimatedDurationMinutes / 60.0).toStringAsFixed(1)} ชม.)',
-                              style: GoogleFonts.kanit(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF10B981),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.alt_route_rounded, color: Color(0xFF1C7FF6), size: 18),
-                                const SizedBox(width: 6),
-                                Text(
-                                  ref.watch(languageProvider) == AppLanguage.en ? 'Road Distance:' : 'ระยะทางถนนจริง:',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 12.5,
-                                    color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF1E40AF),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              '$_distanceKm กม.',
-                              style: GoogleFonts.kanit(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1C7FF6),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF8B5CF6), size: 18),
-                                const SizedBox(width: 6),
-                                Text(
-                                  ref.watch(languageProvider) == AppLanguage.en ? 'Calculated Fare:' : 'ค่าบริการสุทธิ:',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 12.5,
-                                    color: isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF6D28D9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              '${_calculateDynamicFare().toInt()} บาท',
-                              style: GoogleFonts.kanit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF10B981),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 24),
           const SizedBox(height: 20),
 
           // Security Trust Banner
@@ -2224,23 +2270,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     }
   }
 
-  Color _getParcelBgColor() {
-    switch (_parcelType) {
-      case 'กล่อง':
-        return const Color(0xFFFFF3E0); // Light orange
-      case 'ซองเอกสาร':
-        return const Color(0xFFE3F2FD); // Light blue
-      case 'เครื่องใช้ไฟฟ้า':
-        return const Color(0xFFFFEBEE); // Light red
-      case 'อาหาร / ผลไม้':
-        return const Color(0xFFE8F5E9); // Light green
-      case 'เฟอร์นิเจอร์':
-        return const Color(0xFFEFEBE9); // Light brown
-      default:
-        return const Color(0xFFF3E5F5); // Light purple
-    }
-  }
-
   String _getVehicleEmoji() {
     switch (_selectedVehicle) {
       case 'มอเตอร์ไซค์':
@@ -2254,22 +2283,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         return '❄️';
       default:
         return '📦';
-    }
-  }
-
-  Color _getVehicleBgColor() {
-    switch (_selectedVehicle) {
-      case 'มอเตอร์ไซค์':
-        return const Color(0xFFE3F2FD); // Light blue
-      case 'รถเก๋ง 4 ประตู':
-        return const Color(0xFFEFF6FF); // Light blue-purple
-      case 'รถกระบะ':
-      case 'รถกระบะขนของ':
-        return const Color(0xFFFFF3E0); // Light orange
-      case 'รถห้องเย็น':
-        return const Color(0xFFE0F7FA); // Light cyan
-      default:
-        return const Color(0xFFF1F5F9); // Light grey
     }
   }
 
@@ -2312,6 +2325,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     }
     if (_descriptionController.text.trim().isEmpty) {
       _showValidationError('กรุณากรอกรายละเอียดสินค้า');
+      return false;
+    }
+    if (_parcelImageBytes == null) {
+      _showValidationError('กรุณาแนบรูปภาพพัสดุก่อนดำเนินขั้นตอนถัดไป');
       return false;
     }
     return true;
@@ -2797,17 +2814,26 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           ),
           const SizedBox(height: 14),
 
-          // 4. รูปภาพพัสดุ
+          // 4. รูปภาพพัสดุ (จำเป็นต้องแนบ)
           Row(
             children: [
-              const Icon(Icons.photo_size_select_actual_rounded, color: Color(0xFF1C7FF6), size: 18),
+              const Icon(Icons.camera_alt_rounded, color: Color(0xFF1C7FF6), size: 18),
               const SizedBox(width: 6),
               Text(
                 isEn ? 'Parcel Photo' : 'รูปภาพพัสดุ',
                 style: GoogleFonts.kanit(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: subTextColor,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '* (จำเป็นต้องแนบ)',
+                style: GoogleFonts.kanit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFEF4444),
                 ),
               ),
             ],
@@ -2822,40 +2848,74 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               }
             },
             child: Container(
-              width: 100,
-              height: 100,
+              width: 110,
+              height: 110,
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: borderColor,
-                  style: BorderStyle.solid,
-                  width: 1.2,
+                  color: _parcelImageBytes == null
+                      ? const Color(0xFFEF4444).withValues(alpha: 0.6)
+                      : const Color(0xFF10B981),
+                  width: 1.5,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (_parcelImageBytes == null ? const Color(0xFFEF4444) : const Color(0xFF10B981))
+                        .withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: _parcelImageBytes != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Image.memory(
-                        _parcelImageBytes!,
-                        fit: BoxFit.cover,
-                      ),
+                  ? Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Image.memory(
+                            _parcelImageBytes!,
+                            width: 110,
+                            height: 110,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF10B981),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
+                          ),
+                        ),
+                      ],
                     )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.camera_alt_rounded,
-                          color: Color(0xFF1C7FF6),
-                          size: 28,
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add_a_photo_rounded,
+                            color: Color(0xFFEF4444),
+                            size: 24,
+                          ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
-                          isEn ? 'Add Photo' : 'เพิ่มรูปภาพ',
+                          isEn ? 'Add Photo *' : 'แนบรูปภาพ *',
                           style: GoogleFonts.kanit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: subTextColor,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFEF4444),
                           ),
                         ),
                       ],
@@ -2960,6 +3020,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   // Open coupon selection bottom sheet
   void _selectCouponBottomSheet() {
     final userCoupons = ref.read(rewardsProvider).state.userCoupons;
+    final isDarkMode = ref.read(themeProvider);
 
     showModalBottomSheet(
       context: context,
@@ -3029,46 +3090,110 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: userCoupons.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    separatorBuilder: (context, index) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final coupon = userCoupons[index];
-                      // Extract numeric discount value if possible
                       final double discVal = double.tryParse(coupon.discountText) ?? 20.0;
-                      return ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: coupon.badgeBgColor,
-                            shape: BoxShape.circle,
+                      return Container(
+                        height: 110,
+                        decoration: BoxDecoration(
+                          color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Row(
+                            children: [
+                              // Left panel
+                              Container(
+                                width: 88,
+                                color: coupon.cardColor,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.25),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        'ส่วนลด',
+                                        style: GoogleFonts.kanit(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${coupon.discountText} ${coupon.unitText}',
+                                      style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                    Text(
+                                      coupon.subtitle,
+                                      style: GoogleFonts.kanit(fontSize: 8.5, color: Colors.white.withValues(alpha: 0.9)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Middle description
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        coupon.title,
+                                        style: GoogleFonts.kanit(fontSize: 13.5, fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        coupon.subtitle,
+                                        style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey.shade600),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        coupon.expiryText,
+                                        style: GoogleFonts.kanit(fontSize: 9.5, color: const Color(0xFF94A3B8)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // Right use button
+                              Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: SizedBox(
+                                  height: 32,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _selectedCouponText = '${coupon.title} (${coupon.badgeText})';
+                                        _couponDiscount = discVal;
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF00B774),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Text(
+                                      'ใช้คูปอง',
+                                      style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          child: Icon(coupon.illustrationIcon, color: coupon.cardColor, size: 20),
                         ),
-                        title: Text(
-                          coupon.title,
-                          style: GoogleFonts.kanit(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          '${coupon.subtitle} • ${coupon.expiryText}',
-                          style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey.shade600),
-                        ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: coupon.cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'ใช้คูปอง',
-                            style: GoogleFonts.kanit(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        onTap: () {
-                          setState(() {
-                            _selectedCouponText = '${coupon.title} (${coupon.badgeText})';
-                            _couponDiscount = discVal;
-                          });
-                          Navigator.pop(context);
-                        },
                       );
                     },
                   ),
@@ -3424,6 +3549,196 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           ),
           const SizedBox(height: 16),
 
+          // FASTEST ROUTE REVIEW & APPROVAL CARD (STEP 3)
+          Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF1C7FF6).withValues(alpha: 0.35),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1C7FF6).withValues(alpha: isDarkMode ? 0.2 : 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.bolt_rounded,
+                        color: Color(0xFF1C7FF6),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isEn ? 'Fastest Delivery Route Calculated' : 'สรุปเส้นทางจัดส่งที่เร็วที่สุด',
+                            style: GoogleFonts.kanit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                          Text(
+                            isEn
+                                ? 'Calculated by route, weight, and size'
+                                : 'คำนวณเส้นทางถนนและเวลาให้ตรวจสอบก่อนอนุมัติสั่งงาน',
+                            style: GoogleFonts.kanit(
+                              fontSize: 11.5,
+                              color: subTextColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.timer_outlined, color: Color(0xFF10B981), size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                isEn ? 'Est. Duration:' : 'เวลาจัดส่งโดยประมาณ:',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 12.5,
+                                  color: subTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '$_estimatedDurationMinutes นาที (${(_estimatedDurationMinutes / 60.0).toStringAsFixed(1)} ชม.)',
+                            style: GoogleFonts.kanit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF10B981),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.alt_route_rounded, color: Color(0xFF1C7FF6), size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                isEn ? 'Road Distance:' : 'ระยะทางถนนจริง:',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 12.5,
+                                  color: subTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '$_distanceKm กม.',
+                            style: GoogleFonts.kanit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1C7FF6),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.inventory_2_outlined, color: Color(0xFF0284C7), size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                isEn ? 'Weight & Size Specs:' : 'สเปคพัสดุ (น้ำหนัก/ขนาด):',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 12.5,
+                                  color: subTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '$_parcelWeight กก. | $_parcelSize ซม.',
+                            style: GoogleFonts.kanit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0284C7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF1C7FF6), size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                isEn ? 'Calculated Net Fare:' : 'ค่าบริการสุทธิ:',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '${_calculateDynamicFare().toInt()} บาท',
+                            style: GoogleFonts.kanit(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1C7FF6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // 3. Discount Coupon Selection Card
           GestureDetector(
             onTap: _selectCouponBottomSheet,
@@ -3528,9 +3843,196 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   index: 1,
                   icon: Icons.account_balance_rounded,
                   title: isEn ? 'Bank Transfer' : 'โอนเงิน',
-                  subtitle: isEn ? 'Transfer to company account' : 'โอนเข้าบัญชีบริษัท',
+                  subtitle: isEn ? 'Transfer to company account (PromptPay QR)' : 'โอนเข้าบัญชีบริษัท (สแกน QR Code)',
                   isDarkMode: isDarkMode,
                 ),
+                if (_paymentMethodIndex == 1) ...[
+                  const SizedBox(height: 12),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: _isTransferPaid
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.qr_code_2_rounded, color: Color(0xFF1C7FF6), size: 20),
+                            const SizedBox(width: 6),
+                            Text(
+                              isEn ? 'PromptPay QR Code' : 'สแกน QR Code เพื่อชำระเงิน',
+                              style: GoogleFonts.kanit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // QR Code Image Container
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              // PromptPay Logo Banner
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C355E),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'PromptPay  พร้อมเพย์',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              // QR Pattern Graphic / Simulated QR Code
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Container(
+                                    width: 160,
+                                    height: 160,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey.shade300),
+                                    ),
+                                    child: Icon(
+                                      Icons.qr_code_2_rounded,
+                                      size: 140,
+                                      color: _isTransferPaid ? const Color(0xFF10B981) : const Color(0xFF1F2937),
+                                    ),
+                                  ),
+                                  if (_isTransferPaid)
+                                    Container(
+                                      width: 160,
+                                      height: 160,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF10B981).withValues(alpha: 0.9),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 48),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            isEn ? 'Payment Verified!' : 'ชำระเงินเรียบร้อย',
+                                            style: GoogleFonts.kanit(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'ยอดชำระสุทธิ: ${totalPrice.toInt()} บาท',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1C7FF6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        if (!_isTransferPaid)
+                          SizedBox(
+                            width: double.infinity,
+                            height: 44,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.verified_rounded, color: Colors.white, size: 18),
+                              label: Text(
+                                isEn ? 'Simulate QR Scan & Payment' : 'จำลองสแกน QR และยืนยันโอนเงิน',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF10B981),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isTransferPaid = true;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isEn ? 'Payment verified successfully!' : 'สแกน QR และยืนยันการโอนเงินสำเร็จแล้ว!',
+                                      style: GoogleFonts.kanit(),
+                                    ),
+                                    backgroundColor: const Color(0xFF10B981),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        else
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B), size: 16),
+                            label: Text(
+                              isEn ? 'Reset Payment Status' : 'สแกนใหม่อีกครั้ง',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 38),
+                              side: BorderSide(color: Colors.grey.shade300),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isTransferPaid = false;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -3702,7 +4204,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       elevation: 4,
                       shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
                     ),
-                    onPressed: _submit,
+                    onPressed: () {
+                      if (_paymentMethodIndex == 1 && !_isTransferPaid) {
+                        _showValidationError('กรุณาสแกน QR Code และยืนยันการชำระเงินก่อนกดกดยืนยันการจัดส่ง');
+                        return;
+                      }
+                      _submit();
+                    },
                   ),
                 ),
               ),
