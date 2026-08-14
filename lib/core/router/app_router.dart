@@ -32,10 +32,12 @@ import '../../features/chat/screens/call_screen.dart';
 // History
 import '../../features/history/screens/delivery_history_page.dart';
 
-// Profile & Settings
-import '../../features/profile/screens/settings_screen.dart';
+// Profile
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
+import '../../features/profile/screens/settings_screen.dart';
+import '../../features/profile/screens/change_password_screen.dart';
+import '../../features/profile/screens/legal_content_screen.dart';
 
 // Coupons & Rewards
 import '../../features/coupons/screens/coupons_screen.dart';
@@ -190,6 +192,18 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.editProfile,
       builder: (context, state) => const EditProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.changePassword,
+      builder: (context, state) => const ChangePasswordScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.legal,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        final isPrivacy = extra['isPrivacy'] as bool? ?? true;
+        return LegalContentScreen(isPrivacy: isPrivacy);
+      },
     ),
 
     // Coupons & Rewards

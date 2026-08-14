@@ -127,4 +127,6 @@ class AppRoutes {
   // =========================
 
   static const String settings = '/settings';
+  static const String changePassword = '/profile/change-password';
+  static const String legal = '/legal';
 }

@@ -7,9 +7,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'core/constants/app_strings.dart';
-import 'core/providers/theme_provider.dart';
-import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
+import 'core/providers/theme_provider.dart';
+import 'core/providers/language_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,7 @@ class TBMoveHubApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
 
     return MaterialApp.router(
       title: AppStrings.appName,
@@ -47,6 +49,11 @@ class TBMoveHubApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      locale: Locale(currentLang == AppLanguage.en ? 'en' : 'th'),
+      supportedLocales: const [
+        Locale('th', ''),
+        Locale('en', ''),
+      ],
       routerConfig: appRouter,
     );
   }
