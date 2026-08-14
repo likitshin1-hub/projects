@@ -964,7 +964,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
 
             // Dashed Divider simulation
             CustomPaint(
-              size: const Size(1, double.infinity),
+              size: const Size(1, 60),
               painter: _DashedLinePainter(),
             ),
 
