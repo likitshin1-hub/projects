@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
 class DeliveryHistoryPage extends ConsumerStatefulWidget {
@@ -20,8 +21,6 @@ class DeliveryHistoryPage extends ConsumerStatefulWidget {
 class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
   int _selectedTab = 0; // 0: การจัดส่งทั้งหมด, 1: ประวัติการจัดส่ง
   int _selectedSubFilter = 0; // 0: ทั้งหมด, 1: กำลังดำเนินการ, 2: เสร็จสิ้น, 3: ยกเลิก
-
-  final List<String> _subFilters = ['ทั้งหมด', 'กำลังดำเนินการ', 'เสร็จสิ้น', 'ยกเลิก'];
 
   // Mock data list matching the mockup image exactly
   final List<_HistoryItemData> _allHistoryItems = [
@@ -72,6 +71,13 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    final isEn = currentLang == AppLanguage.en;
+
+    final subFilters = isEn
+        ? ['All', 'In Progress', 'Completed', 'Cancelled']
+        : ['ทั้งหมด', 'กำลังดำเนินการ', 'เสร็จสิ้น', 'ยกเลิก'];
 
     // Filter items based on tab
     List<_HistoryItemData> tabFiltered = _allHistoryItems;
@@ -93,8 +99,6 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
     } else if (_selectedSubFilter == 3) {
       finalFiltered = tabFiltered.where((item) => item.status == _HistoryStatus.cancelled).toList();
     }
-
-    final isDarkMode = ref.watch(themeProvider);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
@@ -146,7 +150,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                           },
                         ),
                         Text(
-                          'ประวัติการขนส่ง',
+                          isEn ? 'Delivery History' : 'ประวัติการขนส่ง',
                           style: GoogleFonts.kanit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -222,8 +226,8 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                   ),
                   child: Row(
                     children: [
-                      _buildMainTabItem(0, 'การจัดส่งทั้งหมด', Icons.inventory_2_outlined),
-                      _buildMainTabItem(1, 'ประวัติการจัดส่ง', Icons.access_time_rounded),
+                      _buildMainTabItem(0, isEn ? 'All Deliveries' : 'การจัดส่งทั้งหมด', Icons.inventory_2_outlined),
+                      _buildMainTabItem(1, isEn ? 'Delivery History' : 'ประวัติการจัดส่ง', Icons.access_time_rounded),
                     ],
                   ),
                 ),
@@ -246,14 +250,14 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
-                      itemCount: _subFilters.length,
+                      itemCount: subFilters.length,
                       itemBuilder: (context, index) {
                         final bool isSelected = _selectedSubFilter == index;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: ChoiceChip(
                             label: Text(
-                              _subFilters[index],
+                              subFilters[index],
                               style: GoogleFonts.kanit(
                                 fontSize: 12.5,
                                 color: isSelected
@@ -282,24 +286,35 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 6),
                 // Filter "ตัวกรอง" Button
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.filter_list_rounded,
-                      size: 16,
-                      color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'ตัวกรอง',
-                      style: GoogleFonts.kanit(
-                        fontSize: 12,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.filter_list_rounded,
+                        size: 16,
                         color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        isEn ? 'Filter' : 'ตัวกรอง',
+                        style: GoogleFonts.kanit(
+                          fontSize: 12,
+                          color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -382,6 +397,9 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
   // ==========================================
   Widget _buildHistoryOrderCard(_HistoryItemData item) {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    final isEn = currentLang == AppLanguage.en;
+
     Color sideColor;
     Color iconColor;
     Color iconBg;
@@ -396,7 +414,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
         iconColor = const Color(0xFF1C7FF6);
         iconBg = isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE);
         icon = Icons.local_shipping_outlined;
-        statusLabel = 'กำลังดำเนินการ';
+        statusLabel = isEn ? 'In Progress' : 'กำลังดำเนินการ';
         statusTextCol = const Color(0xFF38BDF8);
         statusBg = isDarkMode ? const Color(0xFF0369A1).withValues(alpha: 0.3) : const Color(0xFFE8F2FE);
         break;
@@ -405,7 +423,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
         iconColor = const Color(0xFF22C55E);
         iconBg = isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFE8F8EE);
         icon = Icons.check_rounded;
-        statusLabel = 'เสร็จสิ้น';
+        statusLabel = isEn ? 'Completed' : 'เสร็จสิ้น';
         statusTextCol = const Color(0xFF4ADE80);
         statusBg = isDarkMode ? const Color(0xFF047857).withValues(alpha: 0.3) : const Color(0xFFE8F8EE);
         break;
@@ -414,7 +432,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
         iconColor = const Color(0xFFEF4444);
         iconBg = isDarkMode ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2);
         icon = Icons.close_rounded;
-        statusLabel = 'ยกเลิก';
+        statusLabel = isEn ? 'Cancelled' : 'ยกเลิก';
         statusTextCol = const Color(0xFFF87171);
         statusBg = isDarkMode ? const Color(0xFFB91C1C).withValues(alpha: 0.3) : const Color(0xFFFEE2E2);
         break;
@@ -439,121 +457,127 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Row(
-          children: [
-            // Left color side bar indicator
-            Container(
-              width: 4,
-              height: 104,
-              color: sideColor,
-            ),
-            const SizedBox(width: 14),
-
-            // Circle Icon
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: iconBg,
-                shape: BoxShape.circle,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            context.push('${AppRoutes.tracking}/${item.orderNo}');
+          },
+          child: Row(
+            children: [
+              // Left color side bar indicator
+              Container(
+                width: 4,
+                height: 104,
+                color: sideColor,
               ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(width: 14),
+              const SizedBox(width: 14),
 
-            // Details middle section
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+              // Circle Icon
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 14),
+
+              // Details middle section
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEn ? 'Order #${item.orderNo}' : 'เลขที่ออเดอร์ : ${item.orderNo}',
+                        style: GoogleFonts.kanit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.route,
+                        style: GoogleFonts.kanit(
+                          fontSize: 12,
+                          color: subTextColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_rounded,
+                            size: 12,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            item.dateTime,
+                            style: GoogleFonts.kanit(
+                              fontSize: 11,
+                              color: const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Status badge and Price on the right
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        statusLabel,
+                        style: GoogleFonts.kanit(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: statusTextCol,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
-                      'เลขที่ออเดอร์ : ${item.orderNo}',
+                      isEn ? '${item.price} THB' : '${item.price} บาท',
                       style: GoogleFonts.kanit(
-                        fontSize: 13,
+                        fontSize: 13.5,
                         fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.route,
-                      style: GoogleFonts.kanit(
-                        fontSize: 12,
-                        color: subTextColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_rounded,
-                          size: 12,
-                          color: Color(0xFF94A3B8),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          item.dateTime,
-                          style: GoogleFonts.kanit(
-                            fontSize: 11,
-                            color: const Color(0xFF94A3B8),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
-            ),
 
-            // Status badge and Price on the right
-            Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusBg,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      statusLabel,
-                      style: GoogleFonts.kanit(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: statusTextCol,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${item.price} บาท',
-                    style: GoogleFonts.kanit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1F2937),
-                    ),
-                  ),
-                ],
+              // Chevron on far right
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: const Color(0xFF1C7FF6).withValues(alpha: 0.8),
+                ),
               ),
-            ),
-
-            // Chevron on far right
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: const Color(0xFF1C7FF6).withValues(alpha: 0.8),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -563,13 +587,21 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
   // BOTTOM MAP TRACKING BANNER CARD HELPER
   // ==========================================
   Widget _buildTrackingBannerCard() {
+    final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    final isEn = currentLang == AppLanguage.en;
+
+    final bannerBg = isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF);
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFDBEAFE);
+    final titleColor = isDarkMode ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF);
+
     return Container(
       margin: const EdgeInsets.only(top: 14, bottom: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: bannerBg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFDBEAFE),
+          color: borderColor,
           width: 1,
         ),
       ),
@@ -579,8 +611,8 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
           // 3D Box Map Illustration (Emoji / text mock style)
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Color(0xFFDBEAFE),
+            decoration: BoxDecoration(
+              color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFDBEAFE),
               shape: BoxShape.circle,
             ),
             child: const Text('📍', style: TextStyle(fontSize: 28)),
@@ -593,18 +625,18 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ติดตามสถานะพัสดุได้แบบเรียลไทม์',
+                  isEn ? 'Track Delivery Live' : 'ติดตามสถานะพัสดุได้แบบเรียลไทม์',
                   style: GoogleFonts.kanit(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E40AF),
+                    color: titleColor,
                   ),
                 ),
                 Text(
-                  'เช็คตำแหน่งและความคืบหน้าการจัดส่ง ได้ตลอด 24 ชั่วโมง',
+                  isEn ? 'Check location & progress 24/7' : 'เช็คตำแหน่งและความคืบหน้าการจัดส่ง ได้ตลอด 24 ชั่วโมง',
                   style: GoogleFonts.kanit(
                     fontSize: 10.5,
-                    color: const Color(0xFF1E40AF),
+                    color: titleColor,
                     height: 1.3,
                   ),
                 ),
@@ -624,9 +656,11 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage> {
               ),
               elevation: 0,
             ),
-            onPressed: () {},
+            onPressed: () {
+              context.push('${AppRoutes.tracking}/TB504321-5598');
+            },
             child: Text(
-              'ดูแผนที่',
+              isEn ? 'View Map' : 'ดูแผนที่',
               style: GoogleFonts.kanit(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,

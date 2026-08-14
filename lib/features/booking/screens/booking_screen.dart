@@ -134,6 +134,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     return basePrice + distanceCharge + weightCharge;
   }
 
+  String _getAppBarTitle(AppLanguage currentLang) {
+    final isEn = currentLang == AppLanguage.en;
+    if (_currentStep == 1) {
+      return isEn ? 'Delivery Information' : 'ข้อมูลการจัดส่ง';
+    } else if (_currentStep == 2) {
+      return isEn ? 'Parcel Details' : 'รายละเอียดพัสดุ';
+    } else {
+      return isEn ? 'Booking Summary' : 'สรุปการจัดส่ง';
+    }
+  }
+
   late String _selectedVehicle;
 
   @override
@@ -965,9 +976,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   // Open Bottom Sheet to Choose Parcel Type
   void _selectParcelTypeSheet() {
-    final types = ['กล่อง', 'ซองเอกสาร', 'เครื่องใช้ไฟฟ้า', 'อาหาร / ผลไม้', 'เฟอร์นิเจอร์', 'อื่น ๆ'];
+    final isDarkMode = ref.read(themeProvider);
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
+
+    final types = isEn
+        ? ['Box', 'Envelope', 'Electrical Appliance', 'Food / Fruit', 'Furniture', 'Others']
+        : ['กล่อง', 'ซองเอกสาร', 'เครื่องใช้ไฟฟ้า', 'อาหาร / ผลไม้', 'เฟอร์นิเจอร์', 'อื่น ๆ'];
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -979,11 +997,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'เลือกประเภทพัสดุ',
+                isEn ? 'Select Parcel Type' : 'เลือกประเภทพัสดุ',
                 style: GoogleFonts.kanit(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1F2937),
+                  color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1017,6 +1035,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 
   Future<void> _pickImage() async {
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -1032,7 +1051,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('เพิ่มรูปภาพพัสดุแล้ว', style: GoogleFonts.kanit()),
+              content: Text(isEn ? 'Parcel photo added!' : 'เพิ่มรูปภาพพัสดุแล้ว', style: GoogleFonts.kanit()),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -1044,8 +1063,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 
   void _showImageOptions() {
+    final isDarkMode = ref.read(themeProvider);
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -1058,7 +1081,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_library_rounded, color: Color(0xFF1C7FF6)),
-                  title: Text('เปลี่ยนรูปภาพ', style: GoogleFonts.kanit(fontWeight: FontWeight.w500)),
+                  title: Text(
+                    isEn ? 'Change Photo' : 'เปลี่ยนรูปภาพ',
+                    style: GoogleFonts.kanit(
+                      fontWeight: FontWeight.w500,
+                      color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                    ),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage();
@@ -1066,7 +1095,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.delete_rounded, color: Colors.red),
-                  title: Text('ลบรูปภาพ', style: GoogleFonts.kanit(color: Colors.red, fontWeight: FontWeight.w500)),
+                  title: Text(
+                    isEn ? 'Remove Photo' : 'ลบรูปภาพ',
+                    style: GoogleFonts.kanit(color: Colors.red, fontWeight: FontWeight.w500),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     setState(() {
@@ -1074,7 +1106,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('ลบรูปภาพพัสดุแล้ว', style: GoogleFonts.kanit()),
+                        content: Text(isEn ? 'Parcel photo removed' : 'ลบรูปภาพพัสดุแล้ว', style: GoogleFonts.kanit()),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -1090,24 +1122,32 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   // Edit Weight dialog
   void _editWeightDialog() {
+    final isDarkMode = ref.read(themeProvider);
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
     final ctrl = TextEditingController(text: _parcelWeight.toString());
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('ระบุน้ำหนัก', style: GoogleFonts.kanit()),
+          backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+          title: Text(
+            isEn ? 'Set Weight' : 'ระบุน้ำหนัก',
+            style: GoogleFonts.kanit(color: isDarkMode ? Colors.white : const Color(0xFF1F2937)),
+          ),
           content: TextField(
             controller: ctrl,
             keyboardType: TextInputType.number,
+            style: GoogleFonts.kanit(color: isDarkMode ? Colors.white : const Color(0xFF1F2937)),
             decoration: InputDecoration(
-              suffixText: 'กก.',
-              suffixStyle: GoogleFonts.kanit(),
+              suffixText: isEn ? 'kg' : 'กก.',
+              suffixStyle: GoogleFonts.kanit(color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('ยกเลิก', style: GoogleFonts.kanit()),
+              child: Text(isEn ? 'Cancel' : 'ยกเลิก', style: GoogleFonts.kanit()),
             ),
             TextButton(
               onPressed: () {
@@ -1119,7 +1159,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 }
                 Navigator.pop(context);
               },
-              child: Text('ตกลง', style: GoogleFonts.kanit()),
+              child: Text(isEn ? 'OK' : 'ตกลง', style: GoogleFonts.kanit()),
             ),
           ],
         );
@@ -1129,23 +1169,31 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   // Edit Size dialog
   void _editSizeDialog() {
+    final isDarkMode = ref.read(themeProvider);
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
     final ctrl = TextEditingController(text: _parcelSize);
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('ระบุขนาด (กว้าง x ยาว x สูง)', style: GoogleFonts.kanit()),
+          backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+          title: Text(
+            isEn ? 'Set Dimensions (W x L x H)' : 'ระบุขนาด (กว้าง x ยาว x สูง)',
+            style: GoogleFonts.kanit(color: isDarkMode ? Colors.white : const Color(0xFF1F2937)),
+          ),
           content: TextField(
             controller: ctrl,
+            style: GoogleFonts.kanit(color: isDarkMode ? Colors.white : const Color(0xFF1F2937)),
             decoration: InputDecoration(
-              suffixText: 'ซม.',
-              suffixStyle: GoogleFonts.kanit(),
+              suffixText: isEn ? 'cm' : 'ซม.',
+              suffixStyle: GoogleFonts.kanit(color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('ยกเลิก', style: GoogleFonts.kanit()),
+              child: Text(isEn ? 'Cancel' : 'ยกเลิก', style: GoogleFonts.kanit()),
             ),
             TextButton(
               onPressed: () {
@@ -1154,7 +1202,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 });
                 Navigator.pop(context);
               },
-              child: Text('ตกลง', style: GoogleFonts.kanit()),
+              child: Text(isEn ? 'OK' : 'ตกลง', style: GoogleFonts.kanit()),
             ),
           ],
         );
@@ -1500,7 +1548,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           },
                         ),
                         Text(
-                          currentLang == AppLanguage.en ? 'Booking Summary' : 'สรุปการจัดส่ง',
+                          _getAppBarTitle(currentLang),
                           style: GoogleFonts.kanit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -1569,7 +1617,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final isDarkMode = ref.watch(themeProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2285,6 +2333,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   // ==========================================
   Widget _buildStep2Form() {
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    final isEn = currentLang == AppLanguage.en;
+
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -2309,11 +2364,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'รายละเอียดพัสดุ',
+                isEn ? 'Parcel Details' : 'รายละเอียดพัสดุ',
                 style: GoogleFonts.kanit(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                  color: textColor,
                 ),
               ),
             ],
@@ -2322,11 +2377,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
           // 1. ประเภทพัสดุ
           Text(
-            'ประเภทพัสดุ',
+            isEn ? 'Parcel Type' : 'ประเภทพัสดุ',
             style: GoogleFonts.kanit(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF64748B),
+              color: subTextColor,
             ),
           ),
           const SizedBox(height: 8),
@@ -2335,11 +2390,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
+                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -2361,14 +2417,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     style: GoogleFonts.kanit(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1F2937),
+                      color: textColor,
                     ),
                   ),
                   const Spacer(),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 16,
-                    color: Color(0xFF94A3B8),
+                    color: subTextColor,
                   ),
                 ],
               ),
@@ -2385,11 +2441,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'น้ำหนัก',
+                      isEn ? 'Weight' : 'น้ำหนัก',
                       style: GoogleFonts.kanit(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B),
+                        color: subTextColor,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -2398,11 +2454,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderColor),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
+                              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -2412,8 +2469,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           children: [
                             Container(
                               padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFE8F2FE),
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -2436,16 +2493,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                         style: GoogleFonts.kanit(
                                           fontSize: 22,
                                           fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF1F2937),
+                                          color: textColor,
                                           height: 1.1,
                                         ),
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        'กก.',
+                                        isEn ? 'kg' : 'กก.',
                                         style: GoogleFonts.kanit(
                                           fontSize: 12,
-                                          color: const Color(0xFF64748B),
+                                          color: subTextColor,
                                         ),
                                       ),
                                     ],
@@ -2468,11 +2525,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ขนาด  ( กว้าง x ยาว x สูง )',
+                      isEn ? 'Dimensions ( W x L x H )' : 'ขนาด  ( กว้าง x ยาว x สูง )',
                       style: GoogleFonts.kanit(
-                        fontSize: 13,
+                        fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B),
+                        color: subTextColor,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -2481,11 +2538,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderColor),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
+                              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -2495,8 +2553,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           children: [
                             Container(
                               padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFE8F2FE),
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -2513,17 +2571,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                   Text(
                                     _parcelSize,
                                     style: GoogleFonts.kanit(
-                                      fontSize: 15,
+                                      fontSize: 14.5,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF1F2937),
+                                      color: textColor,
                                       height: 1.1,
                                     ),
                                   ),
                                   Text(
-                                    'ซม.',
+                                    isEn ? 'cm' : 'ซม.',
                                     style: GoogleFonts.kanit(
                                       fontSize: 11,
-                                      color: const Color(0xFF64748B),
+                                      color: subTextColor,
                                     ),
                                   ),
                                 ],
@@ -2546,11 +2604,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const Icon(Icons.description_rounded, color: Color(0xFF1C7FF6), size: 18),
               const SizedBox(width: 6),
               Text(
-                'รายละเอียดพัสดุ',
+                isEn ? 'Parcel Description' : 'รายละเอียดพัสดุ',
                 style: GoogleFonts.kanit(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: subTextColor,
                 ),
               ),
             ],
@@ -2558,11 +2616,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -2575,11 +2634,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               maxLength: 100,
               style: GoogleFonts.kanit(
                 fontSize: 14,
-                color: const Color(0xFF334155),
+                color: textColor,
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: InputBorder.none,
                 counterText: '', // Hide standard counter
+                hintText: isEn ? 'e.g. Electrical appliances (Air Fryer)' : 'เช่น เครื่องใช้ไฟฟ้า (หม้อทอดไร้น้ำมัน)',
+                hintStyle: GoogleFonts.kanit(
+                  fontSize: 13,
+                  color: isDarkMode ? const Color(0xFF64748B) : Colors.grey.shade400,
+                ),
               ),
               onChanged: (text) {
                 setState(() {});
@@ -2595,7 +2659,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 '${_descriptionController.text.length}/100',
                 style: GoogleFonts.kanit(
                   fontSize: 11,
-                  color: const Color(0xFF94A3B8),
+                  color: subTextColor,
                 ),
               ),
             ),
@@ -2608,11 +2672,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const Icon(Icons.photo_size_select_actual_rounded, color: Color(0xFF1C7FF6), size: 18),
               const SizedBox(width: 6),
               Text(
-                'รูปภาพพัสดุ',
+                isEn ? 'Parcel Photo' : 'รูปภาพพัสดุ',
                 style: GoogleFonts.kanit(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: subTextColor,
                 ),
               ),
             ],
@@ -2630,10 +2694,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFFCBD5E1),
+                  color: borderColor,
                   style: BorderStyle.solid,
                   width: 1.2,
                 ),
@@ -2656,11 +2720,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'เพิ่มรูปภาพ',
+                          isEn ? 'Add Photo' : 'เพิ่มรูปภาพ',
                           style: GoogleFonts.kanit(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFF64748B),
+                            color: subTextColor,
                           ),
                         ),
                       ],
@@ -2692,7 +2756,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       });
                     },
                     child: Text(
-                      'ย้อนกลับ',
+                      isEn ? 'Back' : 'ย้อนกลับ',
                       style: GoogleFonts.kanit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -2729,7 +2793,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'ถัดไป',
+                          isEn ? 'Next' : 'ถัดไป',
                           style: GoogleFonts.kanit(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -2845,8 +2909,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
+    required bool isDarkMode,
   }) {
     final bool isSelected = _paymentMethodIndex == index;
+    final cardBg = isSelected
+        ? (isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF))
+        : (isDarkMode ? const Color(0xFF0F172A) : Colors.white);
+    final borderColor = isSelected
+        ? const Color(0xFF3B82F6)
+        : (isDarkMode ? const Color(0xFF334155) : Colors.grey.shade200);
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -2857,10 +2929,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+          color: cardBg,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? const Color(0xFF3B82F6) : Colors.grey.shade200,
+            color: borderColor,
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -2877,12 +2949,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white : const Color(0xFFF1F5F9),
+                color: isSelected
+                    ? (isDarkMode ? const Color(0xFF1D4ED8) : Colors.white)
+                    : (isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? const Color(0xFF1C7FF6) : const Color(0xFF64748B),
+                color: isSelected ? (isDarkMode ? Colors.white : const Color(0xFF1C7FF6)) : const Color(0xFF64748B),
                 size: 20,
               ),
             ),
@@ -2897,14 +2971,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     style: GoogleFonts.kanit(
                       fontSize: 14.5,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? const Color(0xFF1E3A8A) : const Color(0xFF1F2937),
+                      color: isSelected
+                          ? (isDarkMode ? Colors.white : const Color(0xFF1E3A8A))
+                          : (isDarkMode ? Colors.white : const Color(0xFF1F2937)),
                     ),
                   ),
                   Text(
                     subtitle,
                     style: GoogleFonts.kanit(
                       fontSize: 11,
-                      color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
+                      color: isSelected
+                          ? (isDarkMode ? const Color(0xFF93C5FD) : const Color(0xFF3B82F6))
+                          : (isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     ),
                   ),
                 ],
@@ -2920,9 +2998,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final double basePrice = _getVehiclePrice();
     final double totalPrice = (basePrice - _couponDiscount).clamp(0.0, double.infinity);
     final isDarkMode = ref.watch(themeProvider);
+    final currentLang = ref.watch(languageProvider);
+    final isEn = currentLang == AppLanguage.en;
+
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2944,11 +3030,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'สรุปการจัดส่ง',
+                isEn ? 'Booking Summary' : 'สรุปการจัดส่ง',
                 style: GoogleFonts.kanit(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                  color: textColor,
                 ),
               ),
             ],
@@ -2958,11 +3044,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           // 1. Delivery Summary Route Card
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -3002,7 +3089,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'จุดรับสินค้า',
+                              isEn ? 'Pickup Point' : 'จุดรับสินค้า',
                               style: GoogleFonts.kanit(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -3012,7 +3099,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             GestureDetector(
                               onTap: () => setState(() => _currentStep = 1),
                               child: Text(
-                                ref.watch(languageProvider) == AppLanguage.en ? 'Edit' : 'แก้ไข',
+                                isEn ? 'Edit' : 'แก้ไข',
                                 style: GoogleFonts.kanit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -3028,28 +3115,44 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           style: GoogleFonts.kanit(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1F2937),
+                            color: textColor,
                           ),
                         ),
                         Text(
                           '$_pickupAddress1 $_pickupAddress2',
                           style: GoogleFonts.kanit(
                             fontSize: 12,
-                            color: const Color(0xFF64748B),
+                            color: subTextColor,
                             height: 1.3,
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Divider(height: 1, thickness: 1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Divider(height: 1, thickness: 1, color: dividerColor),
                         ),
-                        Text(
-                          'จุดส่งสินค้า',
-                          style: GoogleFonts.kanit(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF22C55E),
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              isEn ? 'Dropoff Point' : 'จุดส่งสินค้า',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF22C55E),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => setState(() => _currentStep = 1),
+                              child: Text(
+                                isEn ? 'Edit' : 'แก้ไข',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1C7FF6),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -3057,14 +3160,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           style: GoogleFonts.kanit(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1F2937),
+                            color: textColor,
                           ),
                         ),
                         Text(
                           _dropoffAddress,
                           style: GoogleFonts.kanit(
                             fontSize: 12,
-                            color: const Color(0xFF64748B),
+                            color: subTextColor,
                             height: 1.3,
                           ),
                         ),
@@ -3081,11 +3184,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -3096,7 +3200,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _getVehicleBgColor(),
+                    color: isDarkMode ? const Color(0xFF1E3A8A) : Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(_getVehicleEmoji(), style: const TextStyle(fontSize: 24)),
@@ -3106,10 +3210,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'บริการจัดส่ง',
+                      isEn ? 'Delivery Service' : 'บริการจัดส่ง',
                       style: GoogleFonts.kanit(
                         fontSize: 11,
-                        color: const Color(0xFF64748B),
+                        color: subTextColor,
                       ),
                     ),
                     Text(
@@ -3117,7 +3221,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       style: GoogleFonts.kanit(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1F2937),
+                        color: textColor,
                       ),
                     ),
                   ],
@@ -3126,15 +3230,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '${basePrice.toInt()} บาท',
+                    isEn ? '${basePrice.toInt()} THB' : '${basePrice.toInt()} บาท',
                     style: GoogleFonts.kanit(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1F2937),
+                      color: textColor,
                     ),
                   ),
                 ),
@@ -3149,11 +3253,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
+                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -3172,28 +3277,30 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'คูปองส่วนลด',
+                          isEn ? 'Discount Coupon' : 'คูปองส่วนลด',
                           style: GoogleFonts.kanit(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1F2937),
+                            color: textColor,
                           ),
                         ),
                         Text(
-                          _selectedCouponText,
+                          _selectedCouponText == 'เลือกหรือกรอกรหัสคูปอง'
+                              ? (isEn ? 'Select or enter coupon code' : 'เลือกหรือกรอกรหัสคูปอง')
+                              : _selectedCouponText,
                           style: GoogleFonts.kanit(
                             fontSize: 12,
-                            color: _couponDiscount > 0 ? const Color(0xFF8B5CF6) : const Color(0xFF64748B),
+                            color: _couponDiscount > 0 ? const Color(0xFF8B5CF6) : subTextColor,
                             fontWeight: _couponDiscount > 0 ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 16,
-                    color: Color(0xFF94A3B8),
+                    color: subTextColor,
                   ),
                 ],
               ),
@@ -3207,11 +3314,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const Icon(Icons.payment_rounded, color: Color(0xFF1C7FF6), size: 18),
               const SizedBox(width: 6),
               Text(
-                'วิธีการชำระเงิน',
+                isEn ? 'Payment Method' : 'วิธีการชำระเงิน',
                 style: GoogleFonts.kanit(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: subTextColor,
                 ),
               ),
             ],
@@ -3219,11 +3326,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -3235,14 +3343,23 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 _buildPaymentOptionRow(
                   index: 0,
                   icon: Icons.credit_card_rounded,
-                  title: 'เก็บเงินปลายทาง (COD)',
-                  subtitle: 'ชำระเงินเมื่อได้รับพัสดุ',
+                  title: isEn ? 'Cash on Delivery (COD)' : 'เก็บเงินปลายทาง (COD)',
+                  subtitle: isEn ? 'Pay upon package arrival' : 'ชำระเงินเมื่อได้รับพัสดุ',
+                  isDarkMode: isDarkMode,
                 ),
                 _buildPaymentOptionRow(
                   index: 1,
                   icon: Icons.account_balance_rounded,
-                  title: 'โอนเงิน',
-                  subtitle: 'โอนเข้าบัญชีบริษัท',
+                  title: isEn ? 'Bank Transfer' : 'โอนเงิน',
+                  subtitle: isEn ? 'Transfer to company account' : 'โอนเข้าบัญชีบริษัท',
+                  isDarkMode: isDarkMode,
+                ),
+                _buildPaymentOptionRow(
+                  index: 2,
+                  icon: Icons.wallet_rounded,
+                  title: isEn ? 'In-App Wallet' : 'Wallet ในระบบ',
+                  subtitle: isEn ? 'Balance: ฿350' : 'ยอดคงเหลือ: 350 บาท',
+                  isDarkMode: isDarkMode,
                 ),
               ],
             ),
@@ -3252,11 +3369,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           // 5. สรุปค่าใช้จ่าย
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -3267,11 +3385,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'สรุปค่าใช้จ่าย',
+                  isEn ? 'Fee Breakdown' : 'สรุปค่าใช้จ่าย',
                   style: GoogleFonts.kanit(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1F2937),
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -3279,17 +3397,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'ค่าจัดส่ง ($_selectedVehicle)',
+                      isEn ? 'Delivery Fee ($_selectedVehicle)' : 'ค่าจัดส่ง ($_selectedVehicle)',
                       style: GoogleFonts.kanit(
                         fontSize: 13.5,
-                        color: const Color(0xFF64748B),
+                        color: subTextColor,
                       ),
                     ),
                     Text(
-                      '${basePrice.toInt()} บาท',
+                      isEn ? '${basePrice.toInt()} THB' : '${basePrice.toInt()} บาท',
                       style: GoogleFonts.kanit(
                         fontSize: 13.5,
-                        color: const Color(0xFF64748B),
+                        color: subTextColor,
                       ),
                     ),
                   ],
@@ -3300,14 +3418,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'ส่วนลดคูปอง',
+                        isEn ? 'Coupon Discount' : 'ส่วนลดคูปอง',
                         style: GoogleFonts.kanit(
                           fontSize: 13.5,
                           color: const Color(0xFF22C55E),
                         ),
                       ),
                       Text(
-                        '- ${_couponDiscount.toInt()} บาท',
+                        isEn ? '- ${_couponDiscount.toInt()} THB' : '- ${_couponDiscount.toInt()} บาท',
                         style: GoogleFonts.kanit(
                           fontSize: 13.5,
                           color: const Color(0xFF22C55E),
@@ -3317,23 +3435,23 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     ],
                   ),
                 ],
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(height: 1, thickness: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1, thickness: 1, color: dividerColor),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'รวมทั้งหมด',
+                      isEn ? 'Total Amount' : 'รวมทั้งหมด',
                       style: GoogleFonts.kanit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1F2937),
+                        color: textColor,
                       ),
                     ),
                     Text(
-                      '${totalPrice.toInt()} บาท',
+                      isEn ? '${totalPrice.toInt()} THB' : '${totalPrice.toInt()} บาท',
                       style: GoogleFonts.kanit(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -3361,7 +3479,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       size: 20,
                     ),
                     label: Text(
-                      ref.watch(languageProvider) == AppLanguage.en ? 'Go Back & Edit' : 'ย้อนกลับไปแก้ไข',
+                      isEn ? 'Go Back & Edit' : 'ย้อนกลับไปแก้ไข',
                       style: GoogleFonts.kanit(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,

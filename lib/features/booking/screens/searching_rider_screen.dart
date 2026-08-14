@@ -9,6 +9,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../providers/booking_provider.dart';
 
 class SearchingRiderScreen extends ConsumerStatefulWidget {
   const SearchingRiderScreen({super.key});
@@ -58,18 +59,36 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
     super.dispose();
   }
 
+  IconData _getVehicleIcon(String vehicleType) {
+    switch (vehicleType) {
+      case 'มอเตอร์ไซค์':
+        return Icons.two_wheeler_rounded;
+      case 'รถเก๋ง 4 ประตู':
+        return Icons.directions_car_rounded;
+      case 'รถกระบะ':
+        return Icons.airport_shuttle_rounded;
+      case 'รถห้องเย็น':
+        return Icons.ac_unit_rounded;
+      case 'รถบรรทุกมีลิฟท์ท้าย':
+        return Icons.local_shipping_rounded;
+      default:
+        return Icons.local_shipping_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
-    String t(String key) => AppTranslations.getText(currentLang, key);
+    final bookingState = ref.watch(bookingProvider);
 
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF);
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final displayOrderNo = bookingState.bookingId ?? 'TB504321-5598';
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -120,8 +139,8 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                       ),
                       Text(
                         currentLang == AppLanguage.en
-                            ? 'Order #TB504321-5598'
-                            : 'หมายเลขคำสั่งซื้อ #TB504321-5598',
+                            ? 'Order #$displayOrderNo'
+                            : 'หมายเลขคำสั่งซื้อ #$displayOrderNo',
                         style: GoogleFonts.kanit(
                           fontSize: 12,
                           color: Colors.white.withValues(alpha: 0.85),
@@ -146,55 +165,64 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                 children: [
                   const SizedBox(height: 20),
 
-                  // RADAR PULSE ANIMATION CONTAINER
+                  // RADAR PULSE ANIMATION CONTAINER (FIXED BOUNDS TO PREVENT STUTTERING/JERKING)
                   Center(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Animated Radar Rings
-                        ...List.generate(3, (index) {
-                          return AnimatedBuilder(
-                            animation: _radarController,
-                            builder: (context, child) {
-                              final progress = (_radarController.value + (index * 0.33)) % 1.0;
-                              return Container(
-                                width: 140 + (progress * 130),
-                                height: 140 + (progress * 130),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: (_isDriverFound
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFF1C7FF6))
-                                      .withValues(alpha: (1.0 - progress) * 0.25),
-                                ),
-                              );
-                            },
-                          );
-                        }),
+                    child: SizedBox(
+                      width: 280,
+                      height: 280,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Animated Radar Rings inside RepaintBoundary
+                          RepaintBoundary(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: List.generate(3, (index) {
+                                return AnimatedBuilder(
+                                  animation: _radarController,
+                                  builder: (context, child) {
+                                    final progress = (_radarController.value + (index * 0.33)) % 1.0;
+                                    return Container(
+                                      width: 130 + (progress * 140),
+                                      height: 130 + (progress * 140),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: (_isDriverFound
+                                                ? const Color(0xFF10B981)
+                                                : const Color(0xFF1C7FF6))
+                                            .withValues(alpha: (1.0 - progress) * 0.25),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }),
+                            ),
+                          ),
 
-                        // Center Icon / Avatar Box
-                        Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _isDriverFound ? const Color(0xFF10B981) : const Color(0xFF1C7FF6),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (_isDriverFound ? const Color(0xFF10B981) : const Color(0xFF1C7FF6))
-                                    .withValues(alpha: 0.4),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
+                          // Center Icon / Avatar Box
+                          Container(
+                            width: 110,
+                            height: 110,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _isDriverFound ? const Color(0xFF10B981) : const Color(0xFF1C7FF6),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (_isDriverFound ? const Color(0xFF10B981) : const Color(0xFF1C7FF6))
+                                      .withValues(alpha: 0.4),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              _isDriverFound ? Icons.check_rounded : _getVehicleIcon(bookingState.vehicleType),
+                              color: Colors.white,
+                              size: 50,
+                            ),
                           ),
-                          child: Icon(
-                            _isDriverFound ? Icons.check_rounded : Icons.two_wheeler_rounded,
-                            color: Colors.white,
-                            size: 54,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
 

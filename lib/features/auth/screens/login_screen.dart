@@ -401,7 +401,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Social Buttons
+                    // Social Buttons (Google and Facebook)
                     Row(
                       children: [
                         Expanded(
@@ -423,29 +423,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 : () => ref.read(authProvider.notifier).loginWithGoogle(),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildSocialPill(
-                            label: 'LINE',
-                            icon: Image.asset(
-                              'assets/images/line.png',
-                              width: 20,
-                              height: 20,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.chat_bubble_outline,
-                                size: 18,
-                                color: Color(0xFF06C755),
-                              ),
-                            ),
-                            bgColor: socialBtnBgColor,
-                            borderColor: cardBorderColor,
-                            textColor: primaryTextColor,
-                            onTap: isLoading
-                                ? null
-                                : () => ref.read(authProvider.notifier).loginWithLine(),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: _buildSocialPill(
                             label: 'Facebook',
