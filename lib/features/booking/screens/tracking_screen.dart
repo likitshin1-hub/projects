@@ -73,25 +73,25 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   Future<BitmapDescriptor> _createCustomVehicleMarkerIcon(String vehicleType) async {
     final pictureRecorder = ui.PictureRecorder();
     final canvas = Canvas(pictureRecorder);
-    const double size = 120.0;
+    const double size = 110.0;
 
     // Outer shadow glow
     final shadowPaint = Paint()
       ..color = const Color(0xFF1C7FF6).withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12.0);
-    canvas.drawCircle(const Offset(size / 2, size / 2), 48, shadowPaint);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10.0);
+    canvas.drawCircle(const Offset(size / 2, size / 2), 44, shadowPaint);
 
     // Outer white border circle
     final borderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(const Offset(size / 2, size / 2), 44, borderPaint);
+    canvas.drawCircle(const Offset(size / 2, size / 2), 40, borderPaint);
 
     // Inner primary blue circle
     final circlePaint = Paint()
       ..color = const Color(0xFF1C7FF6)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(const Offset(size / 2, size / 2), 38, circlePaint);
+    canvas.drawCircle(const Offset(size / 2, size / 2), 34, circlePaint);
 
     // Motorbike icon by default
     IconData iconData = Icons.two_wheeler_rounded;
@@ -107,7 +107,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     textPainter.text = TextSpan(
       text: String.fromCharCode(iconData.codePoint),
       style: TextStyle(
-        fontSize: 44,
+        fontSize: 38,
         fontFamily: iconData.fontFamily,
         package: iconData.fontPackage,
         color: Colors.white,
@@ -124,7 +124,10 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
 
     final ui.Image image = await pictureRecorder.endRecording().toImage(size.toInt(), size.toInt());
     final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    final Uint8List pngBytes = byteData!.buffer.asUint8List();
+    if (byteData == null) {
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
+    }
+    final Uint8List pngBytes = byteData.buffer.asUint8List();
 
     return BitmapDescriptor.bytes(pngBytes);
   }
@@ -140,44 +143,70 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       (pickupLatLng.longitude + dropoffLatLng.longitude) / 2,
     );
 
-    final riderMarkerIcon = await _createCustomVehicleMarkerIcon(bookingState.vehicleType);
+    // Immediately show initial map markers synchronously to prevent flashing/glitching
+    if (mounted) {
+      setState(() {
+        _markers.clear();
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('pickup'),
+            position: pickupLatLng,
+            infoWindow: InfoWindow(
+              title: 'จุดรับสินค้า',
+              snippet: bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'จุดรับพัสดุ',
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          ),
+        );
 
-    _markers.clear();
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('pickup'),
-        position: pickupLatLng,
-        infoWindow: InfoWindow(
-          title: 'จุดรับสินค้า',
-          snippet: bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'จุดรับพัสดุ',
-        ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-      ),
-    );
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('dropoff'),
+            position: dropoffLatLng,
+            infoWindow: InfoWindow(
+              title: 'จุดส่งสินค้า',
+              snippet: bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'จุดส่งพัสดุ',
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          ),
+        );
 
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('dropoff'),
-        position: dropoffLatLng,
-        infoWindow: InfoWindow(
-          title: 'จุดส่งสินค้า',
-          snippet: bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'จุดส่งพัสดุ',
-        ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-      ),
-    );
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('driver'),
+            position: driverLatLng,
+            anchor: const Offset(0.5, 0.5),
+            infoWindow: const InfoWindow(
+              title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
+              snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          ),
+        );
+      });
+    }
 
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('driver'),
-        position: driverLatLng,
-        infoWindow: const InfoWindow(
-          title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
-          snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
-        ),
-        icon: riderMarkerIcon,
-      ),
-    );
+    // Generate custom canvas vehicle icon asynchronously & update rider marker cleanly
+    try {
+      final riderMarkerIcon = await _createCustomVehicleMarkerIcon(bookingState.vehicleType);
+      if (mounted) {
+        setState(() {
+          _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
+          _markers.add(
+            Marker(
+              markerId: const MarkerId('driver'),
+              position: driverLatLng,
+              anchor: const Offset(0.5, 0.5),
+              infoWindow: const InfoWindow(
+                title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
+                snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
+              ),
+              icon: riderMarkerIcon,
+            ),
+          );
+        });
+      }
+    } catch (_) {}
 
     // Fetch Real Production Driving Route from Routing Engine (OSRM / Google)
     final result = await DirectionsService.getDrivingRoute(
