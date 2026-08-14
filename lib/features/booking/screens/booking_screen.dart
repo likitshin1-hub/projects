@@ -1260,16 +1260,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
+      builder: (dialogContext) {
         bool isChecked = false;
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (dialogContext, setDialogState) {
             return AlertDialog(
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
               content: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9,
+                width: MediaQuery.of(dialogContext).size.width * 0.9,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1432,7 +1432,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Navigator.pop(dialogContext),
                               child: Text(
                                 'ยกเลิก',
                                 style: GoogleFonts.kanit(
@@ -1461,10 +1461,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               ),
                               onPressed: isChecked
                                   ? () async {
-                                      Navigator.pop(context); // Close dialog
+                                      Navigator.pop(dialogContext); // Close dialog
                                       _syncToProvider();
                                       ref.read(bookingProvider.notifier).submitBooking(); // Call in background
-                                      context.pushReplacement(AppRoutes.searchingRider); // Instant redirection
+                                      if (mounted) {
+                                        context.pushReplacement(AppRoutes.searchingRider); // Instant redirection using outer context
+                                      }
                                     }
                                   : null,
                               child: Text(
