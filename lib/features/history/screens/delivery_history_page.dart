@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/network/dio_client.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
@@ -22,57 +23,55 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
     with SingleTickerProviderStateMixin {
   int _selectedTab = 0;
   int _selectedSubFilter = 0;
+  final DioClient _dioClient = DioClient();
 
-  final List<_HistoryItemData> _allHistoryItems = [
-    _HistoryItemData(
-      orderNo: 'TB504321-5598',
-      route: 'บ้าน > ชลบุรี',
-      dateTime: '20 เม.ย. 2569 14:00',
-      price: '1,290.00',
-      status: _HistoryStatus.inProgress,
-      vehicle: '🚚',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB668511-6648',
-      route: 'ชลบุรี > ชลบุรี',
-      dateTime: '19 เม.ย. 2569 14:00',
-      price: '500.00',
-      status: _HistoryStatus.completed,
-      vehicle: '🏍️',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB592488-2621',
-      route: 'เก้ากิโล 5 > หน้าตึกคอนศรีราชา',
-      dateTime: '11 เม.ย. 2569 11:00',
-      price: '250.00',
-      status: _HistoryStatus.cancelled,
-      vehicle: '🚐',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB595688-2621',
-      route: 'เก้ากิโล > บางพระ',
-      dateTime: '9 เม.ย. 2569 11:00',
-      price: '542.00',
-      status: _HistoryStatus.completed,
-      vehicle: '🚚',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB595688-2321',
-      route: 'สุรศักดิ์ 2 > สุรศักดิ์ 11',
-      dateTime: '3 เม.ย. 2569 15:00',
-      price: '300.00',
-      status: _HistoryStatus.inProgress,
-      vehicle: '🏍️',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB506331-3622',
-      route: 'สวนเสือ > โรบินสันศรีราชา',
-      dateTime: '2 เม.ย. 2569 10:00',
-      price: '420.00',
-      status: _HistoryStatus.completed,
-      vehicle: '🚐',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchRealOrders();
+  }
+
+  Future<void> _fetchRealOrders() async {
+    try {
+      final response = await _dioClient.get('/orders');
+      if (response.data is List) {
+        final List list = response.data as List;
+        final List<_HistoryItemData> realItems = list.map((item) {
+          final statusStr = item['status'] as String? ?? 'waiting_driver';
+          _HistoryStatus status = _HistoryStatus.inProgress;
+          if (statusStr == 'completed' || statusStr == 'delivered') {
+            status = _HistoryStatus.completed;
+          } else if (statusStr == 'cancelled') {
+            status = _HistoryStatus.cancelled;
+          }
+
+          final priceVal = item['total_price'] != null ? '${item['total_price']}' : '0.00';
+          final pickupStr = item['pickup_address'] as String? ?? 'จุดรับ';
+          final destStr = item['destination_address'] as String? ?? 'จุดส่ง';
+          final rawDate = item['created_at'] as String?;
+          String formattedDate = 'เมื่อสักครู่';
+          if (rawDate != null && rawDate.length >= 16) {
+            formattedDate = rawDate.substring(0, 16).replaceAll('T', ' ');
+          }
+
+          return _HistoryItemData(
+            orderNo: item['order_no'] as String? ?? 'TB-${item['id']}',
+            route: '$pickupStr > $destStr',
+            dateTime: formattedDate,
+            price: priceVal,
+            status: status,
+            vehicle: '📦',
+          );
+        }).toList();
+
+        setState(() {
+          _allHistoryItems = realItems;
+        });
+      }
+    } catch (_) {}
+  }
+
+  List<_HistoryItemData> _allHistoryItems = [];
 
   @override
   Widget build(BuildContext context) {
@@ -92,22 +91,13 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
     final secondaryTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
     final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE5E7EB);
 
-    List<_HistoryItemData> tabFiltered = _allHistoryItems;
-    if (_selectedTab == 1) {
-      tabFiltered = _allHistoryItems
-          .where((item) =>
-              item.status == _HistoryStatus.completed ||
-              item.status == _HistoryStatus.cancelled)
-          .toList();
-    }
-
-    List<_HistoryItemData> finalFiltered = tabFiltered;
+    List<_HistoryItemData> finalFiltered = _allHistoryItems;
     if (_selectedSubFilter == 1) {
-      finalFiltered = tabFiltered.where((item) => item.status == _HistoryStatus.inProgress).toList();
+      finalFiltered = _allHistoryItems.where((item) => item.status == _HistoryStatus.inProgress).toList();
     } else if (_selectedSubFilter == 2) {
-      finalFiltered = tabFiltered.where((item) => item.status == _HistoryStatus.completed).toList();
+      finalFiltered = _allHistoryItems.where((item) => item.status == _HistoryStatus.completed).toList();
     } else if (_selectedSubFilter == 3) {
-      finalFiltered = tabFiltered.where((item) => item.status == _HistoryStatus.cancelled).toList();
+      finalFiltered = _allHistoryItems.where((item) => item.status == _HistoryStatus.cancelled).toList();
     }
 
 

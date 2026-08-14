@@ -4,10 +4,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../core/network/api_result.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
-/// Backend พร้อมใช้งานจริงแล้ว
-const bool _useMock = true;
+/// Backend พร้อมใช้งานจริง 100%
+const bool _useMock = false;
 
 class AuthRepository {
   final AuthService _authService;
@@ -47,6 +48,10 @@ class AuthRepository {
         email: email,
         password: password,
       );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return ApiResult.failure(_extractResponseError(response.data));
+      }
 
       final token = response.data['token'] as String? ?? '';
 
@@ -190,6 +195,10 @@ class AuthRepository {
         confirmPassword: confirmPassword,
       );
 
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return ApiResult.failure(_extractResponseError(response.data));
+      }
+
       final token = response.data['token'] as String? ?? '';
 
       if (token.isEmpty) {
@@ -243,26 +252,51 @@ class AuthRepository {
   // Profile
   // =========================
 
-  Future<dynamic> profile() async {
+  Future<UserModel?> getProfileUser() async {
     try {
-      return await _authService.profile();
-    } catch (e) {
-      if (e is DioException &&
-          (e.type == DioExceptionType.connectionError ||
-              e.type == DioExceptionType.connectionTimeout)) {
-        return {
-          'data': {
-            'id': 1,
-            'name': 'User Test',
-            'email': 'user@example.com',
-            'role': 'customer',
-          }
-        };
+      final response = await _authService.profile();
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return UserModel(
+          id: '${data['id'] ?? ''}',
+          name: data['full_name'] ?? data['name'] ?? '',
+          email: data['email'] ?? '',
+          phone: data['phone'],
+          photoUrl: data['profile_image'],
+          role: data['role'],
+        );
       }
-      throw Exception(
-        _handleError(e),
+    } catch (_) {}
+    return null;
+  }
+
+  Future<UserModel?> updateProfile({
+    String? fullName,
+    String? phone,
+    MultipartFile? imageFile,
+    String? profileImage,
+  }) async {
+    try {
+      final response = await _authService.updateProfile(
+        fullName: fullName,
+        phone: phone,
+        imageFile: imageFile,
+        profileImage: profileImage,
       );
-    }
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['user'] is Map<String, dynamic>) {
+        final uData = data['user'] as Map<String, dynamic>;
+        return UserModel(
+          id: '${uData['id'] ?? ''}',
+          name: uData['full_name'] ?? uData['name'] ?? '',
+          email: uData['email'] ?? '',
+          phone: uData['phone'],
+          photoUrl: uData['profile_image'],
+          role: uData['role'],
+        );
+      }
+    } catch (_) {}
+    return null;
   }
 
   // =========================
@@ -288,7 +322,36 @@ class AuthRepository {
   // Error Handler
   // =========================
 
+  String _extractResponseError(dynamic data) {
+    if (data is Map) {
+      if (data['errors'] != null && data['errors'] is Map) {
+        final Map errors = data['errors'] as Map;
+        if (errors.isNotEmpty) {
+          final firstKey = errors.keys.first;
+          final val = errors[firstKey];
+          if (val is List && val.isNotEmpty) {
+            return val.first.toString();
+          }
+          return val.toString();
+        }
+      }
+      if (data['message'] != null) {
+        return data['message'].toString();
+      }
+    }
+    return 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
+  }
+
   String _handleError(dynamic e) {
+    if (e is DioException) {
+      if (e.response != null && e.response?.data != null) {
+        return _extractResponseError(e.response!.data);
+      }
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout) {
+        return 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต';
+      }
+    }
     return e.toString();
   }
 }

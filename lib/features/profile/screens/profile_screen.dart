@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
@@ -34,6 +37,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       duration: const Duration(milliseconds: 150),
     );
     _avatarScale = Tween<double>(begin: 1.0, end: 0.92).animate(_avatarController);
+    Future.microtask(() => ref.read(authProvider.notifier).fetchProfileOnLaunch());
   }
 
   @override
@@ -42,7 +46,87 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     super.dispose();
   }
 
+  String? _formatPhotoUrl(String? rawUrl) {
+    if (rawUrl == null || rawUrl.isEmpty) return null;
+    if (rawUrl.contains('/storage/profiles/') && !rawUrl.contains('/api/storage/profiles/')) {
+      return rawUrl.replaceFirst('/storage/profiles/', '/api/storage/profiles/');
+    }
+    return rawUrl;
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final XFile? file = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (file != null) {
+        final bytes = await file.readAsBytes();
+        final multipartFile = MultipartFile.fromBytes(
+          bytes,
+          filename: file.name.isNotEmpty ? file.name : 'avatar.jpg',
+        );
+
+        // Instantly show selected image on screen
+        final currentUser = ref.read(authProvider).user;
+        if (currentUser != null) {
+          ref.read(authProvider.notifier).updateUser(
+            currentUser.copyWith(photoUrl: file.path),
+          );
+        }
+
+        await ref.read(authProvider.notifier).updateProfilePhoto(imageFile: multipartFile);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('อัปเดตรูปโปรไฟล์เรียบร้อยแล้ว', style: GoogleFonts.kanit()),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('เกิดข้อผิดพลาดในการเลือกรูปภาพ', style: GoogleFonts.kanit()),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _selectPresetAvatar(String avatarUrl) async {
+    await ref.read(authProvider.notifier).updateProfilePhoto(avatarUrl: avatarUrl);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('เปลี่ยนรูปอวตารเรียบร้อยแล้ว', style: GoogleFonts.kanit()),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _showChangePhotoSheet(bool isDarkMode, String Function(String) t) {
+    final presetAvatars = [
+      'https://i.pravatar.cc/300?img=11',
+      'https://i.pravatar.cc/300?img=12',
+      'https://i.pravatar.cc/300?img=33',
+      'https://i.pravatar.cc/300?img=47',
+      'https://i.pravatar.cc/300?img=60',
+      'https://i.pravatar.cc/300?img=68',
+    ];
+
     showModalBottomSheet(
       context: context,
       backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
@@ -55,16 +139,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  t('edit_profile'),
-                  style: GoogleFonts.kanit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                Center(
+                  child: Text(
+                    'ตั้งค่ารูปโปรไฟล์',
+                    style: GoogleFonts.kanit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(10),
@@ -84,6 +171,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   onTap: () {
                     Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
                   },
                 ),
                 ListTile(
@@ -105,7 +193,40 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   onTap: () {
                     Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
                   },
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'หรือเลือกรูปอวตารสำเร็จรูป:',
+                  style: GoogleFonts.kanit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 60,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: presetAvatars.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final url = presetAvatars[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                          _selectPresetAvatar(url);
+                        },
+                        child: CircleAvatar(
+                          radius: 28,
+                          backgroundImage: NetworkImage(url),
+                          backgroundColor: Colors.grey.shade300,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -316,21 +437,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                                       ],
                                     ),
                                   ),
-                                  Container(
-                                    width: 100,
-                                    height: 100,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(50),
+                                    child: Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                        ),
                                       ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.person_rounded,
-                                      color: Colors.white,
-                                      size: 70,
+                                      child: () {
+                                        final formattedUrl = _formatPhotoUrl(user?.photoUrl);
+                                        return formattedUrl != null && formattedUrl.isNotEmpty
+                                            ? Image.network(
+                                                formattedUrl,
+                                                width: 100,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => const Icon(
+                                                  Icons.person_rounded,
+                                                  color: Colors.white,
+                                                  size: 70,
+                                                ),
+                                              )
+                                            : const Icon(
+                                                Icons.person_rounded,
+                                                color: Colors.white,
+                                                size: 70,
+                                              );
+                                      }(),
                                     ),
                                   ),
                                   Positioned(
@@ -364,7 +503,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
                           // Name
                           Text(
-                            user?.name ?? 'กิตติพัฒน์ ราษฎร์นิยม',
+                            user?.name.isNotEmpty == true ? user!.name : 'ผู้ใช้งาน TB MoveHub',
                             style: GoogleFonts.kanit(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -375,7 +514,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
                           // Phone
                           Text(
-                            user?.phone ?? '097-117-9446',
+                            user?.phone?.isNotEmpty == true ? user!.phone! : 'ยังไม่ได้ระบุเบอร์โทรศัพท์',
                             style: GoogleFonts.kanit(
                               fontSize: 14,
                               color: subTextColor,
@@ -385,7 +524,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
                           // Email
                           Text(
-                            user?.email ?? 'kuslkitiphathn@gmail.com',
+                            user?.email.isNotEmpty == true ? user!.email : 'ยังไม่ได้ระบุอีเมล',
                             style: GoogleFonts.kanit(
                               fontSize: 14,
                               color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),

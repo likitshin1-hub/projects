@@ -29,7 +29,6 @@ class _CallScreenState extends State<CallScreen> {
   static const Color _bgTop    = Color(0xFFF4F5F7); // light gray top
   static const Color _bgBottom = Color(0xFFE2E6EA); // slightly deeper gray bottom
   static const Color _cardBg   = Color(0xFFFFFFFF); // white card
-  static const Color _btnBg    = Color(0xFFEAECF0); // button background
   static const Color _textMain = Color(0xFF1A1A2E); // dark text
   static const Color _textSub  = Color(0xFF6B7280); // muted gray text
   static const Color _accent   = Color(0xFF3B82F6); // blue accent

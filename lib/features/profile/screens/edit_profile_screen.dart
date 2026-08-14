@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
-import '../../auth/models/user_model.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -29,9 +28,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.initState();
     final user = ref.read(authProvider).user;
     
-    _nameController = TextEditingController(text: user?.name ?? 'กิตติพัฒน์ ราษฎร์นิยม');
-    _phoneController = TextEditingController(text: user?.phone ?? '097-117-9446');
-    _emailController = TextEditingController(text: user?.email ?? 'kuslkitiphathn@gmail.com');
+    _nameController = TextEditingController(text: user?.name ?? '');
+    _phoneController = TextEditingController(text: user?.phone ?? '');
+    _emailController = TextEditingController(text: user?.email ?? '');
     _birthdayController = TextEditingController(text: '18 พฤษภาคม 2549');
   }
 
@@ -75,27 +74,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
-  void _onSave() {
+  Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final updatedUser = UserModel(
-      id: ref.read(authProvider).user?.id ?? 'mock_123',
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    await ref.read(authProvider.notifier).updateUserProfile(
+      name: name,
+      phone: phone,
     );
 
-    ref.read(authProvider.notifier).updateUser(updatedUser);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว', style: GoogleFonts.kanit()),
-        backgroundColor: const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-
-    context.pop();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('บันทึกข้อมูลส่วนตัวลงฐานข้อมูลเรียบร้อยแล้ว', style: GoogleFonts.kanit()),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      context.pop();
+    }
   }
 
   @override
@@ -103,6 +102,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
+    final user = ref.watch(authProvider).user;
 
     String t(String key) => AppTranslations.getText(currentLang, key);
 
@@ -216,11 +216,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 child: CircleAvatar(
                                   radius: 54,
                                   backgroundColor: Colors.transparent,
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 64,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
+                                  backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                                      ? NetworkImage(user.photoUrl!)
+                                      : null,
+                                  child: user?.photoUrl == null || user!.photoUrl!.isEmpty
+                                      ? Icon(
+                                          Icons.person,
+                                          size: 64,
+                                          color: Colors.white.withValues(alpha: 0.9),
+                                        )
+                                      : null,
                                 ),
                               ),
                               Container(

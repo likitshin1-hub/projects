@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -50,7 +51,22 @@ class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
     _repository = AuthRepository();
+    // Auto-fetch user profile if token exists
+    Future.microtask(() => fetchProfileOnLaunch());
     return const AuthState();
+  }
+
+  Future<void> fetchProfileOnLaunch() async {
+    final token = await _repository.getToken();
+    if (token != null && token.isNotEmpty) {
+      final user = await _repository.getProfileUser();
+      if (user != null) {
+        state = state.copyWith(
+          status: AuthStatus.success,
+          user: user,
+        );
+      }
+    }
   }
 
   // =======================
@@ -72,13 +88,13 @@ class AuthNotifier extends Notifier<AuthState> {
     );
 
     if (result.isSuccess) {
+      final user = await _repository.getProfileUser();
       state = state.copyWith(
         status: AuthStatus.success,
-        user: UserModel(
-          id: 'mock_123',
-          name: 'กิตติพัฒน์ ราษฎร์นิยม',
+        user: user ?? UserModel(
+          id: 'u_1',
+          name: email.split('@').first,
           email: email,
-          phone: '097-117-9446',
         ),
       );
     } else {
@@ -90,8 +106,36 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   // =======================
-  // Update User
+  // Update User Profile
   // =======================
+
+  Future<void> updateUserProfile({required String name, required String phone}) async {
+    final updated = await _repository.updateProfile(fullName: name, phone: phone);
+    if (updated != null) {
+      state = state.copyWith(user: updated);
+    } else if (state.user != null) {
+      state = state.copyWith(
+        user: state.user!.copyWith(name: name, phone: phone),
+      );
+    }
+  }
+
+  Future<void> updateProfilePhoto({
+    MultipartFile? imageFile,
+    String? avatarUrl,
+  }) async {
+    final updated = await _repository.updateProfile(
+      imageFile: imageFile,
+      profileImage: avatarUrl,
+    );
+    if (updated != null) {
+      state = state.copyWith(user: updated);
+    } else if (avatarUrl != null && state.user != null) {
+      state = state.copyWith(
+        user: state.user!.copyWith(photoUrl: avatarUrl),
+      );
+    }
+  }
 
   void updateUser(UserModel updatedUser) {
     state = state.copyWith(user: updatedUser);
@@ -242,8 +286,16 @@ class AuthNotifier extends Notifier<AuthState> {
     );
 
     if (result.isSuccess) {
+      final user = await _repository.getProfileUser();
       state = state.copyWith(
         status: AuthStatus.success,
+        user: user ?? UserModel(
+          id: 'u_new',
+          name: fullName,
+          email: email,
+          phone: phone,
+          role: role,
+        ),
       );
     } else {
       state = state.copyWith(

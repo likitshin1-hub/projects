@@ -144,7 +144,7 @@ class BookingNotifier extends Notifier<BookingState> {
     );
   }
 
-  Future<void> _calculatePrice() async {
+  Future<void> calculatePrice() async {
     state = state.copyWith(status: BookingStatus.calculating);
     try {
       final price = await _repository.calculatePrice(

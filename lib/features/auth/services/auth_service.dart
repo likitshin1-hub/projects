@@ -93,6 +93,31 @@ class AuthService {
     return _dioClient.get(ApiConstants.profile);
   }
 
+  Future<Response> updateProfile({
+    String? fullName,
+    String? phone,
+    MultipartFile? imageFile,
+    String? profileImage,
+  }) {
+    if (imageFile != null) {
+      final formData = FormData.fromMap({
+        if (fullName != null) 'full_name': fullName,
+        if (phone != null) 'phone': phone,
+        'profile_image': imageFile,
+      });
+      return _dioClient.post(ApiConstants.profile, data: formData);
+    }
+
+    return _dioClient.post(
+      ApiConstants.profile,
+      data: {
+        if (fullName != null) 'full_name': fullName,
+        if (phone != null) 'phone': phone,
+        if (profileImage != null) 'profile_image': profileImage,
+      },
+    );
+  }
+
   Future<Response> logout() {
     return _dioClient.post(ApiConstants.logout);
   }

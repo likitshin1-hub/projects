@@ -1626,9 +1626,114 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
+                      'ระงับบัญชีผู้ใช้งานตามเงื่อนไขของระบบ',
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Divider(color: Color(0xFFE2E8F0), height: 1),
+                    ),
+
+                    // Checkbox Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: isChecked,
+                          activeColor: const Color(0xFF1C7FF6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          onChanged: (val) {
+                            setDialogState(() {
+                              isChecked = val ?? false;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {
+                              setDialogState(() {
+                                isChecked = !isChecked;
+                              });
+                            },
+                            child: Text(
+                              'ยอมรับเงื่อนไขการใช้งาน\nและยืนยันข้อมูลการจัดส่งถูกต้องทุกประการ',
+                              style: GoogleFonts.kanit(
+                                fontSize: 13.5,
+                                color: const Color(0xFF1F2937),
+                                height: 1.35,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Buttons Outlined Cancel & Filled Confirm
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF1C7FF6)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: Text(
+                                'ยกเลิก',
+                                style: GoogleFonts.kanit(
+                                  color: const Color(0xFF1C7FF6),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isChecked
+                                    ? const Color(0xFF1C7FF6)
+                                    : const Color(0xFFE2E8F0),
+                                foregroundColor: isChecked ? Colors.white : const Color(0xFF94A3B8),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: isChecked
+                                  ? () async {
+                                      Navigator.pop(dialogContext); // Close dialog
+                                      _syncToProvider();
+                                      await ref.read(bookingProvider.notifier).submitBooking();
+                                      if (mounted) {
+                                        context.pushReplacement(AppRoutes.searchingRider); // Instant redirection using outer context
+                                      }
+                                    }
+                                  : null,
+                              child: Text(
+                                'ยืนยันการจัดส่ง',
+                                style: GoogleFonts.kanit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             );

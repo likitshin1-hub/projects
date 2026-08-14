@@ -16,6 +16,9 @@ class DioProvider {
         sendTimeout: ApiConstants.sendTimeout,
         contentType: ApiConstants.applicationJson,
         responseType: ResponseType.json,
+        validateStatus: (status) {
+          return status != null && status < 500;
+        },
       ),
     );
 

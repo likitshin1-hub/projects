@@ -8,12 +8,34 @@ import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../partner/providers/partner_application_provider.dart';
+import '../repositories/user_repository.dart';
 
-class NotificationsListScreen extends ConsumerWidget {
+class NotificationsListScreen extends ConsumerStatefulWidget {
   const NotificationsListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsListScreen> createState() => _NotificationsListScreenState();
+}
+
+class _NotificationsListScreenState extends ConsumerState<NotificationsListScreen> {
+  final UserRepository _userRepo = UserRepository();
+  List<AppNotificationModel> _apiNotifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    final list = await _userRepo.getNotifications();
+    setState(() {
+      _apiNotifications = list;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
@@ -145,6 +167,21 @@ class NotificationsListScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               physics: const BouncingScrollPhysics(),
               children: [
+                ..._apiNotifications.map((notif) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildNotificationCard(
+                        context: context,
+                        icon: notif.type == 'order' ? Icons.local_shipping_rounded : Icons.notifications_active_rounded,
+                        iconBgColor: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
+                        iconColor: const Color(0xFF1C7FF6),
+                        title: notif.title,
+                        subtitle: notif.message,
+                        time: notif.timeText,
+                        isUnread: !notif.isRead,
+                        isDarkMode: isDarkMode,
+                        onTap: () {},
+                      ),
+                    )),
                 if (partnerApp != null) ...[
                   _buildNotificationCard(
                     context: context,

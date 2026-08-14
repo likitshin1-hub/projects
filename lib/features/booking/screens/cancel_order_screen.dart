@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/network/dio_client.dart';
 
 class CancelOrderScreen extends StatefulWidget {
   const CancelOrderScreen({super.key});
@@ -14,6 +15,20 @@ class CancelOrderScreen extends StatefulWidget {
 class _CancelOrderScreenState extends State<CancelOrderScreen> {
   int _selectedReason = -1;
   final TextEditingController _otherReasonController = TextEditingController();
+
+  Future<void> _handleCancel() async {
+    try {
+      final dio = DioClient();
+      final res = await dio.get('/orders');
+      if (res.data is List && (res.data as List).isNotEmpty) {
+        final latestId = res.data[0]['id'];
+        await dio.post('/orders/$latestId/cancel', data: {
+          'reason': 'ยกเลิกโดยผู้ใช้',
+        });
+      }
+    } catch (_) {}
+    _showSuccessDialog();
+  }
 
   void _showSuccessDialog() {
     showDialog(
@@ -287,7 +302,7 @@ class _CancelOrderScreenState extends State<CancelOrderScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _selectedReason != -1 ? _showSuccessDialog : null,
+                    onPressed: _selectedReason != -1 ? _handleCancel : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor:

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../providers/booking_provider.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final double amount;
@@ -91,8 +92,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       _isSubmitting = true;
     });
 
+    // Create order record in Laravel Backend MySQL
+    await ref.read(bookingProvider.notifier).submitBooking();
+
     // Simulate transaction validation delay
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
 
     if (mounted) {
       setState(() {

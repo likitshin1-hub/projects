@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/constants/app_routes.dart';
-import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/services/directions_service.dart';
@@ -32,13 +31,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   late AnimationController _pulseController;
 
   bool _isLoadingRoute = true;
-  String _distanceText = '82.9 กิโลเมตร';
-  String _durationText = '1 ชั่วโมง 10 นาที';
-
-  // Real GPS Coordinates: Central Chonburi (Origin) -> CentralWorld Bangkok (Destination)
-  static const LatLng _centralChonburiLocation = LatLng(13.3361, 100.9702);
-  static const LatLng _expresswayDriverLocation = LatLng(13.5412, 100.7510); // Burapha Withi Expressway (Bang Phli)
-  static const LatLng _centralWorldLocation = LatLng(13.7466, 100.5393);
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};

@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_routes.dart';
-import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 
@@ -16,7 +15,6 @@ class DriverPartnerLandingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
-    String t(String key) => AppTranslations.getText(currentLang, key);
 
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
