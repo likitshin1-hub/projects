@@ -151,10 +151,45 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.history_rounded, color: Colors.white, size: 20),
+                      label: Text(
+                        'ดูประวัติการขนส่ง',
+                        style: GoogleFonts.kanit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1C7FF6),
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 2,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context); // Close Dialog
+                        context.pushReplacement(AppRoutes.history);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.my_location_rounded, color: Color(0xFF10B981), size: 18),
+                      label: Text(
+                        'ติดตามพัสดุเรียลไทม์',
+                        style: GoogleFonts.kanit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF10B981), width: 1.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -163,13 +198,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                         Navigator.pop(context); // Close Dialog
                         context.pushReplacement(AppRoutes.searchingRider);
                       },
-                      child: Text(
-                        'ค้นหาผู้ขับขี่ต่อ',
-                        style: GoogleFonts.kanit(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
                     ),
                   ),
                 ],

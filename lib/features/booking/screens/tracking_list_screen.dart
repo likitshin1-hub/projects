@@ -7,6 +7,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../providers/booking_provider.dart';
 
 class TrackingListScreen extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
@@ -18,43 +19,64 @@ class TrackingListScreen extends ConsumerWidget {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
+    final bookingState = ref.watch(bookingProvider);
 
     String t(String key) => AppTranslations.getText(currentLang, key);
 
-    final List<_TrackingItemData> items = [
-      _TrackingItemData(
+    // Active in-progress orders list (พัสดุที่กำลังดำเนินการอยู่)
+    final List<_ActiveTrackingData> activeItems = [
+      _ActiveTrackingData(
         orderNo: 'TB504321-5598',
-        route: 'กรุงเทพฯ • ชลบุรี',
-        routeEn: 'Bangkok • Chonburi',
-        dateTime: '8 พ.ค. 2568 10:00',
-        dateTimeEn: '8 May 2025 10:00',
-        isInProgress: true,
+        pickupName: '123 อาคารสุขุมวิท กรุงเทพฯ',
+        dropoffName: '88/9 หมู่ 3 อ.เมือง เชียงใหม่',
+        route: 'สุขุมวิท (กทม.) ➔ อ.เมือง (เชียงใหม่)',
+        vehicle: '🛵',
+        vehicleName: 'มอเตอร์ไซค์',
+        dateTime: 'วันนี้ 14:30 น.',
+        statusStep: 'ไรเดอร์กำลังมุ่งหน้าไปจุดส่ง',
+        driverName: 'สมชาย ใจดี',
+        driverPhone: '089-999-8888',
       ),
-      _TrackingItemData(
-        orderNo: 'TB668511-6448',
-        route: 'เชียงใหม่ • บางกอกฯ',
-        routeEn: 'Chiang Mai • Bangkok',
-        dateTime: '28 เม.ย. 2568 14:00',
-        dateTimeEn: '28 Apr 2025 14:00',
-        isInProgress: false,
-      ),
-      _TrackingItemData(
-        orderNo: 'TB649993-9995',
-        route: 'ระยอง • ดอน 12',
-        routeEn: 'Rayong • Don 12',
-        dateTime: '12 ก.พ. 2568 14:00',
-        dateTimeEn: '12 Feb 2025 14:00',
-        isInProgress: false,
-      ),
-      _TrackingItemData(
-        orderNo: 'TB908808-2023',
-        route: 'เชียงราย • ลำพูน',
-        routeEn: 'Chiang Rai • Lamphun',
-        dateTime: '3 ม.ค. 2568 11:00',
-        dateTimeEn: '3 Jan 2025 11:00',
-        isInProgress: false,
+      _ActiveTrackingData(
+        orderNo: 'TB504320-1124',
+        pickupName: 'คลังสินค้า บางนา กม.4',
+        dropoffName: '45/2 ถนนสาทร กรุงเทพฯ',
+        route: 'บางนา (สมุทรปราการ) ➔ ถนนสาทร (กทม.)',
+        vehicle: '🚗',
+        vehicleName: 'รถเก๋ง 4 ประตู',
+        dateTime: 'วันนี้ 11:15 น.',
+        statusStep: 'กำลังรับสินค้าที่จุดรับ',
+        driverName: 'วิชัย มั่นคง',
+        driverPhone: '081-222-3333',
       ),
     ];
+
+    // Prepend user created booking if active
+    if (bookingState.bookingId != null && bookingState.bookingId!.isNotEmpty) {
+      final exists = activeItems.any((i) => i.orderNo == bookingState.bookingId);
+      if (!exists) {
+        String emoji = '🛵';
+        if (bookingState.vehicleType.contains('กระบะ') || bookingState.vehicleType.contains('บรรทุก')) emoji = '🚚';
+        if (bookingState.vehicleType.contains('เก๋ง')) emoji = '🚗';
+        if (bookingState.vehicleType.contains('ห้องเย็น')) emoji = '🚛';
+
+        activeItems.insert(
+          0,
+          _ActiveTrackingData(
+            orderNo: bookingState.bookingId!,
+            pickupName: bookingState.pickupName,
+            dropoffName: bookingState.dropoffName,
+            route: '${bookingState.pickupName} ➔ ${bookingState.dropoffName}',
+            vehicle: emoji,
+            vehicleName: bookingState.vehicleType,
+            dateTime: 'เมื่อสักครู่',
+            statusStep: 'ชำระเงินแล้ว - กำลังค้นหาไรเดอร์และดำเนินงาน',
+            driverName: 'สมชาย ใจดี',
+            driverPhone: '089-999-8888',
+          ),
+        );
+      }
+    }
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
@@ -65,7 +87,7 @@ class TrackingListScreen extends ConsumerWidget {
           // ==========================================
           Container(
             width: double.infinity,
-            height: 150 + statusBarHeight,
+            height: 155 + statusBarHeight,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -80,11 +102,11 @@ class TrackingListScreen extends ConsumerWidget {
                 bottomRight: Radius.circular(32),
               ),
             ),
-            padding: EdgeInsets.fromLTRB(12, statusBarHeight + 8, 12, 16),
+            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Standard top bar Row
+                // Top bar Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -94,6 +116,14 @@ class TrackingListScreen extends ConsumerWidget {
                       icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
                       onPressed: () => onMenuPressed?.call(),
                     ),
+                    Text(
+                      currentLang == AppLanguage.en ? 'Live Parcel Tracking' : 'ติดตามพัสดุเรียลไทม์',
+                      style: GoogleFonts.kanit(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                     GestureDetector(
                       onTap: () => context.push(AppRoutes.notification),
                       child: Stack(
@@ -101,12 +131,17 @@ class TrackingListScreen extends ConsumerWidget {
                         children: [
                           const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
                           Positioned(
-                            top: -1, right: -1,
+                            top: -1,
+                            right: -1,
                             child: Container(
                               padding: const EdgeInsets.all(2),
                               decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                               constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                              child: Text('3', style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                              child: Text(
+                                '3',
+                                style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ],
@@ -115,7 +150,6 @@ class TrackingListScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Title + Subtitle and 3D Graphic
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -123,39 +157,38 @@ class TrackingListScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            t('tracking_list_title'),
-                            style: GoogleFonts.kanit(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
+                          Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF22C55E),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${activeItems.length} ออเดอร์ที่กำลังดำเนินการอยู่',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 4),
                           Text(
-                            t('realtime_status_sub'),
-                            style: GoogleFonts.kanit(fontSize: 12.5, color: Colors.white.withValues(alpha: 0.8)),
+                            currentLang == AppLanguage.en
+                                ? 'Track live driver location and delivery progress 24/7'
+                                : 'เช็คตำแหน่งคนขับและสถานะพัสดุเรียลไทม์บนแผนที่ได้ 24 ชม.',
+                            style: GoogleFonts.kanit(fontSize: 12, color: Colors.white.withValues(alpha: 0.85)),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      width: 80,
-                      height: 60,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned(
-                            right: 0, top: -10,
-                            child: Icon(Icons.location_on_rounded, size: 70, color: Colors.white.withValues(alpha: 0.15)),
-                          ),
-                          Positioned(
-                            right: 5, bottom: 5,
-                            child: Icon(Icons.inventory_2_rounded, size: 36, color: Colors.orange.shade300),
-                          ),
-                          Positioned(
-                            right: 35, bottom: 2,
-                            child: Icon(Icons.inventory_2_rounded, size: 28, color: Colors.orange.shade400),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const Icon(Icons.my_location_rounded, size: 40, color: Colors.white24),
                   ],
                 ),
               ],
@@ -163,11 +196,11 @@ class TrackingListScreen extends ConsumerWidget {
           ),
 
           // ==========================================
-          // BODY LIST
+          // ACTIVE IN-PROGRESS ORDERS LIST
           // ==========================================
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,45 +208,49 @@ class TrackingListScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        t('latest_parcels'),
-                        style: GoogleFonts.kanit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
-                        ),
+                      Row(
+                        children: [
+                          const Icon(Icons.alt_route_rounded, color: Color(0xFF1C7FF6), size: 20),
+                          const SizedBox(width: 6),
+                          Text(
+                            currentLang == AppLanguage.en ? 'Active Deliveries' : 'พัสดุที่กำลังดำเนินการ',
+                            style: GoogleFonts.kanit(
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                            ),
+                          ),
+                        ],
                       ),
                       GestureDetector(
                         onTap: () => context.push(AppRoutes.history),
                         child: Row(
                           children: [
                             Text(
-                              t('view_all'),
+                              currentLang == AppLanguage.en ? 'View History >' : 'ดูประวัติทั้งหมด >',
                               style: GoogleFonts.kanit(
-                                fontSize: 13,
+                                fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF1C7FF6),
                               ),
-                            ),
-                            const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 12,
-                              color: Color(0xFF1C7FF6),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
-                  // List Cards
-                  ...items.map((item) => _buildTrackingCard(item, isDarkMode, currentLang, t, context)),
+                  // Active Orders List Cards
+                  if (activeItems.isEmpty)
+                    _buildEmptyActiveState(isDarkMode, currentLang)
+                  else
+                    ...activeItems.map((item) => _buildActiveTrackingCard(item, isDarkMode, currentLang, context)),
 
                   const SizedBox(height: 16),
 
-                  // Dynamic Expressway Banner Card
-                  _buildInterprovincialBannerCard(isDarkMode, currentLang, context),
+                  // Live Map Banner Card
+                  _buildLiveMapBannerCard(isDarkMode, currentLang, context),
 
                   const SizedBox(height: 24),
                 ],
@@ -225,20 +262,21 @@ class TrackingListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTrackingCard(
-      _TrackingItemData item, bool isDarkMode, AppLanguage currentLang, String Function(String) t, BuildContext context) {
+  Widget _buildActiveTrackingCard(
+      _ActiveTrackingData item, bool isDarkMode, AppLanguage currentLang, BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
+          color: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
-            blurRadius: 10,
+            color: const Color(0xFF1C7FF6).withValues(alpha: 0.08),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
@@ -246,103 +284,178 @@ class TrackingListScreen extends ConsumerWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => context.push(AppRoutes.tracking),
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => context.push('${AppRoutes.tracking}/${item.orderNo}'),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon Status Box
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: item.isInProgress
-                        ? const Color(0xFF1C7FF6).withValues(alpha: 0.1)
-                        : const Color(0xFF10B981).withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    item.isInProgress
-                        ? Icons.inventory_2_rounded
-                        : Icons.check_circle_rounded,
-                    color: item.isInProgress
-                        ? const Color(0xFF1C7FF6)
-                        : const Color(0xFF10B981),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-
-                // Info Column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.orderNo,
-                        style: GoogleFonts.kanit(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
-                        ),
+                // Top Row: Vehicle, OrderNo, LIVE Badge
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        currentLang == AppLanguage.en ? item.routeEn : item.route,
-                        style: GoogleFonts.kanit(
-                          fontSize: 13,
-                          color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF4B5563),
-                        ),
+                      child: Center(
+                        child: Text(item.vehicle, style: const TextStyle(fontSize: 22)),
                       ),
-                      const SizedBox(height: 2),
-                      Row(
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.calendar_today_rounded,
-                            size: 11,
-                            color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
+                          Row(
+                            children: [
+                              Text(
+                                'รหัส: ${item.orderNo}',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF22C55E).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF22C55E),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'กำลังส่งสด',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF16A34A),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(height: 2),
                           Text(
-                            currentLang == AppLanguage.en ? item.dateTimeEn : item.dateTime,
+                            '${item.vehicleName} • ${item.dateTime}',
                             style: GoogleFonts.kanit(
-                              fontSize: 11,
-                              color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
+                              fontSize: 11.5,
+                              color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Divider(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE5E7EB), height: 1),
+                const SizedBox(height: 10),
+
+                // Route (Pickup > Dropoff)
+                Row(
+                  children: [
+                    const Icon(Icons.near_me_rounded, size: 16, color: Color(0xFF1C7FF6)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        item.route,
+                        style: GoogleFonts.kanit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Current Step Status
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C7FF6).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF1C7FF6)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          item.statusStep,
+                          style: GoogleFonts.kanit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1C7FF6),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 12),
 
-                // Status Badge Chip
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: item.isInProgress
-                        ? const Color(0xFF1C7FF6).withValues(alpha: 0.12)
-                        : const Color(0xFF10B981).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    item.isInProgress ? t('status_in_progress') : t('status_delivered'),
-                    style: GoogleFonts.kanit(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: item.isInProgress
-                          ? const Color(0xFF1C7FF6)
-                          : const Color(0xFF10B981),
+                // Action Buttons: Call / Chat / Track Live GPS Map
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.call_rounded, color: Color(0xFF10B981), size: 16),
+                      label: Text('โทรหาคนขับ', style: GoogleFonts.kanit(fontSize: 11.5, color: const Color(0xFF10B981), fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: const Size(0, 36),
+                        side: const BorderSide(color: Color(0xFF10B981)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => context.push('${AppRoutes.call}/driver_somchai'),
                     ),
-                  ),
-                ),
-
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: isDarkMode ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF1C7FF6), size: 16),
+                      label: Text('แชท', style: GoogleFonts.kanit(fontSize: 11.5, color: const Color(0xFF1C7FF6), fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: const Size(0, 36),
+                        side: const BorderSide(color: Color(0xFF1C7FF6)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => context.push('${AppRoutes.chat}/driver_somchai'),
+                    ),
+                    const Spacer(),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.my_location_rounded, size: 16, color: Colors.white),
+                      label: Text('ติดตามสด 📍', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        minimumSize: const Size(0, 36),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 2,
+                      ),
+                      onPressed: () => context.push('${AppRoutes.tracking}/${item.orderNo}'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -352,7 +465,30 @@ class TrackingListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInterprovincialBannerCard(bool isDarkMode, AppLanguage currentLang, BuildContext context) {
+  Widget _buildEmptyActiveState(bool isDarkMode, AppLanguage currentLang) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 30),
+        child: Column(
+          children: [
+            const Icon(Icons.check_circle_outline_rounded, size: 48, color: Color(0xFF10B981)),
+            const SizedBox(height: 12),
+            Text(
+              'ไม่มีพัสดุที่กำลังดำเนินการอยู่',
+              style: GoogleFonts.kanit(fontSize: 15, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1F2937)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'สร้างออเดอร์ใหม่เพื่อเรียกรถขนส่งสินค้าได้ทันทีครับ',
+              style: GoogleFonts.kanit(fontSize: 12, color: const Color(0xFF94A3B8)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLiveMapBannerCard(bool isDarkMode, AppLanguage currentLang, BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -374,7 +510,7 @@ class TrackingListScreen extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () => context.push(AppRoutes.tracking),
+          onTap: () => context.push('${AppRoutes.tracking}/TB504321-5598'),
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Row(
@@ -398,10 +534,10 @@ class TrackingListScreen extends ConsumerWidget {
                     children: [
                       Text(
                         currentLang == AppLanguage.en
-                            ? 'Chonburi ➔ CentralWorld (Bangkok)'
-                            : 'ชลบุรี ➔ เซ็นทรัลเวิลด์ (กทม.)',
+                            ? 'Bangkok ➔ Chiang Mai (Live GPS)'
+                            : 'สุขุมวิท ➔ อ.เมือง (เชียงใหม่)',
                         style: GoogleFonts.kanit(
-                          fontSize: 15,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -409,8 +545,8 @@ class TrackingListScreen extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(
                         currentLang == AppLanguage.en
-                            ? 'In transit on Burapha Withi Expressway (Live GPS)'
-                            : 'กำลังขนส่งบนทางพิเศษบูรพาวิถี (Live GPS)',
+                            ? 'In transit (Live GPS Tracking)'
+                            : 'กำลังขนส่งบนเส้นทางหลัก (Live GPS)',
                         style: GoogleFonts.kanit(
                           fontSize: 12,
                           color: const Color(0xFF38BDF8),
@@ -433,20 +569,28 @@ class TrackingListScreen extends ConsumerWidget {
   }
 }
 
-class _TrackingItemData {
+class _ActiveTrackingData {
   final String orderNo;
+  final String pickupName;
+  final String dropoffName;
   final String route;
-  final String routeEn;
+  final String vehicle;
+  final String vehicleName;
   final String dateTime;
-  final String dateTimeEn;
-  final bool isInProgress;
+  final String statusStep;
+  final String driverName;
+  final String driverPhone;
 
-  _TrackingItemData({
+  _ActiveTrackingData({
     required this.orderNo,
+    required this.pickupName,
+    required this.dropoffName,
     required this.route,
-    required this.routeEn,
+    required this.vehicle,
+    required this.vehicleName,
     required this.dateTime,
-    required this.dateTimeEn,
-    required this.isInProgress,
+    required this.statusStep,
+    required this.driverName,
+    required this.driverPhone,
   });
 }
