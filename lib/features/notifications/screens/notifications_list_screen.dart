@@ -203,25 +203,6 @@ class _NotificationsListScreenState extends ConsumerState<NotificationsListScree
                 ],
                 _buildNotificationCard(
                   context: context,
-                  icon: Icons.local_shipping_rounded,
-                  iconBgColor: const Color(0xFF10B981).withValues(alpha: 0.12),
-                  iconColor: const Color(0xFF10B981),
-                  title: currentLang == AppLanguage.en
-                      ? 'Interprovincial Delivery In Progress'
-                      : 'พัสดุของคุณอยู่ระหว่างการขนส่งข้ามจังหวัด',
-                  subtitle: currentLang == AppLanguage.en
-                      ? 'Driver on Burapha Withi Expressway (ETA 35m)'
-                      : 'พนักงานขับรถเดินทางถึงทางด่วนบูรพาวิถีแล้ว (คาดว่าจะถึงใน 35 นาที)',
-                  time: '10 นาทีที่แล้ว',
-                  isUnread: true,
-                  isDarkMode: isDarkMode,
-                  onTap: () {
-                    context.push(AppRoutes.tracking);
-                  },
-                ),
-                const SizedBox(height: 12),
-                _buildNotificationCard(
-                  context: context,
                   icon: Icons.local_offer_rounded,
                   iconBgColor: const Color(0xFFF59E0B).withValues(alpha: 0.12),
                   iconColor: const Color(0xFFF59E0B),
@@ -236,25 +217,6 @@ class _NotificationsListScreenState extends ConsumerState<NotificationsListScree
                   isDarkMode: isDarkMode,
                   onTap: () {
                     context.push(AppRoutes.coupons);
-                  },
-                ),
-                const SizedBox(height: 12),
-                _buildNotificationCard(
-                  context: context,
-                  icon: Icons.check_circle_rounded,
-                  iconBgColor: const Color(0xFF6366F1).withValues(alpha: 0.12),
-                  iconColor: const Color(0xFF6366F1),
-                  title: currentLang == AppLanguage.en
-                      ? 'Delivery Completed Successfully'
-                      : 'การจัดส่งออเดอร์ TB668511 สำเร็จเรียบร้อย',
-                  subtitle: currentLang == AppLanguage.en
-                      ? 'Recipient received item and signed'
-                      : 'ผู้รับปลายทางเซ็นรับพัสดุเรียบร้อยแล้ว ขอบคุณที่ใช้บริการ',
-                  time: 'เมื่อวานนี้ 14:00',
-                  isUnread: false,
-                  isDarkMode: isDarkMode,
-                  onTap: () {
-                    context.push(AppRoutes.history);
                   },
                 ),
               ],
