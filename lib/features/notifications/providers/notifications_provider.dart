@@ -21,6 +21,22 @@ class NotificationsNotifier extends Notifier<List<AppNotificationModel>> {
     required String message,
     required String type,
   }) {
+    // Check if a notification with identical title already exists
+    final existingIndex = state.indexWhere((n) => n.title == title);
+    if (existingIndex != -1) {
+      final updatedList = List<AppNotificationModel>.from(state);
+      updatedList[existingIndex] = AppNotificationModel(
+        id: updatedList[existingIndex].id,
+        title: title,
+        message: message,
+        timeText: 'เมื่อสักครู่',
+        type: type,
+        isRead: false,
+      );
+      state = updatedList;
+      return;
+    }
+
     final newNotif = AppNotificationModel(
       id: DateTime.now().millisecondsSinceEpoch,
       title: title,

@@ -7,6 +7,7 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../home/widgets/bottom_navigation.dart';
+import '../../notifications/providers/notifications_provider.dart';
 
 class DeliveryHistoryPage extends ConsumerStatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -23,7 +24,7 @@ class DeliveryHistoryPage extends ConsumerStatefulWidget {
 class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
     with SingleTickerProviderStateMixin {
   int _selectedTab = 0; // 0 = ประวัติทั้งหมด, 1 = จัดส่งสำเร็จ, 2 = ยกเลิก
-  int _selectedSubFilter = 0; // 0 = ทั้งหมด (เสร็จสิ้น+ยกเลิก), 1 = เสร็จสิ้น, 2 = ยกเลิก
+  int _selectedSubFilter = 0; // 0 = ทั้งหมด, 1 = กำลังดำเนินการ, 2 = เสร็จสิ้น, 3 = ยกเลิก
   final DioClient _dioClient = DioClient();
 
   // Search & Filter State
@@ -31,8 +32,22 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
   String _searchQuery = '';
   String _vehicleFilter = 'all'; // all, 🛵, 🚗, 🚚, 🚛
 
-  // History dataset containing ONLY completed and cancelled orders
+  // History dataset
   final List<_HistoryItemData> _defaultHistoryItems = [
+    _HistoryItemData(
+      orderNo: 'TB668511',
+      pickupAddress: 'ตำแหน่งปัจจุบันของคุณ (GPS Live Location)',
+      destinationAddress: 'วิทยาลัยอาชีวศึกษาชลบุรี',
+      route: 'กรุงเทพฯ > ชลบุรี',
+      dateTime: 'วันนี้ 15:30 น.',
+      price: '865.00',
+      status: _HistoryStatus.inProgress,
+      vehicle: '🛵',
+      vehicleName: 'มอเตอร์ไซค์',
+      statusText: 'กำลังขนส่งพัสดุข้ามจังหวัด (Real-Time GPS)',
+      driverName: 'สมปอง มีดี',
+      driverPhone: '081-234-5678',
+    ),
     _HistoryItemData(
       orderNo: 'TB491022-1029',
       pickupAddress: 'นิคมอุตสาหกรรมบางปู สมุทรปราการ',
@@ -348,11 +363,13 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
     final isEn = currentLang == AppLanguage.en;
+    final notifications = ref.watch(notificationsProvider);
+    final notificationCount = notifications.where((n) => !n.isRead).length;
 
-    // Subfilters only feature: ทั้งหมด, เสร็จสิ้น, ยกเลิก
+    // Subfilters: ทั้งหมด, กำลังดำเนินการ, เสร็จสิ้น, ยกเลิก
     final subFilters = isEn
-        ? ['All History', 'Completed', 'Cancelled']
-        : ['ทั้งหมด', 'เสร็จสิ้น', 'ยกเลิก'];
+        ? ['All History', 'In Progress', 'Completed', 'Cancelled']
+        : ['ทั้งหมด', 'กำลังดำเนินการ', 'เสร็จสิ้น', 'ยกเลิก'];
 
     // Theme Colors
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
@@ -361,7 +378,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
     final secondaryTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
     final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE5E7EB);
 
-    // Filter Logic — ONLY Completed & Cancelled orders in history!
+    // Filter Logic
     List<_HistoryItemData> filteredList = _allHistoryItems;
 
     // Filter by Tab (0 = ทั้งหมด, 1 = เสร็จสิ้น, 2 = ยกเลิก)
@@ -371,10 +388,12 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
       filteredList = filteredList.where((item) => item.status == _HistoryStatus.cancelled).toList();
     }
 
-    // Filter by Subfilter chips (0 = ทั้งหมด, 1 = เสร็จสิ้น, 2 = ยกเลิก)
+    // Filter by Subfilter chips (0 = ทั้งหมด, 1 = กำลังดำเนินการ, 2 = เสร็จสิ้น, 3 = ยกเลิก)
     if (_selectedSubFilter == 1) {
-      filteredList = filteredList.where((item) => item.status == _HistoryStatus.completed).toList();
+      filteredList = filteredList.where((item) => item.status == _HistoryStatus.inProgress).toList();
     } else if (_selectedSubFilter == 2) {
+      filteredList = filteredList.where((item) => item.status == _HistoryStatus.completed).toList();
+    } else if (_selectedSubFilter == 3) {
       filteredList = filteredList.where((item) => item.status == _HistoryStatus.cancelled).toList();
     }
 
@@ -487,27 +506,31 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
                                     color: Colors.white,
                                     size: 26,
                                   ),
-                                  Positioned(
-                                    top: -1,
-                                    right: -1,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                                      child: Text(
-                                        '3',
-                                        style: GoogleFonts.kanit(
-                                          fontSize: 8,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                  if (notificationCount > 0)
+                                    Positioned(
+                                      top: -1,
+                                      right: -1,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
                                         ),
-                                        textAlign: TextAlign.center,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 14,
+                                          minHeight: 14,
+                                        ),
+                                        child: Text(
+                                          '$notificationCount',
+                                          style: GoogleFonts.kanit(
+                                            fontSize: 8,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
