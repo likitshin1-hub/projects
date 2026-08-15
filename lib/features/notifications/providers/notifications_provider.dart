@@ -76,6 +76,14 @@ class NotificationsNotifier extends Notifier<List<AppNotificationModel>> {
             ))
         .toList();
   }
+
+  void removeNotification(int id) {
+    state = state.where((n) => n.id != id).toList();
+  }
+
+  void clearAll() {
+    state = [];
+  }
 }
 
 final notificationsProvider =
