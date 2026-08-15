@@ -12,6 +12,7 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/services/directions_service.dart';
 import '../providers/booking_provider.dart';
+import '../../notifications/providers/notifications_provider.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final String bookingId;
@@ -46,6 +47,11 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
 
     _initMapMarkersAndFetchProductionRoute();
     _startStatusSimulationTimer();
+
+    // Trigger initial notification for Step 0
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pushStatusNotification(0);
+    });
   }
 
   @override
@@ -55,9 +61,75 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     super.dispose();
   }
 
+  void _pushStatusNotification(int step) {
+    String title = '';
+    String message = '';
+
+    switch (step) {
+      case 0:
+        title = 'รับออเดอร์เรียบร้อยแล้ว';
+        message = 'คนขับ สมชาย มั่นคง กำลังเดินทางไปรับพัสดุของคุณ';
+        break;
+      case 1:
+        title = 'ไรเดอร์รับพัสดุเรียบร้อยแล้ว';
+        message = 'พัสดุของคุณถูกรับขึ้นรถและออกเดินทางมุ่งหน้าสู่จุดส่งสินค้า';
+        break;
+      case 2:
+        title = 'พัสดุของคุณอยู่ระหว่างการขนส่ง';
+        message = 'พนักงานขับรถเดินทางถึงทางด่วนบูรพาวิถีแล้ว (คาดว่าจะถึงใน 15 นาที)';
+        break;
+      case 3:
+        title = 'การจัดส่งออเดอร์สำเร็จเรียบร้อย';
+        message = 'ผู้รับปลายทางเซ็นรับพัสดุเรียบร้อยแล้ว ขอบคุณที่ใช้บริการ TB MOVE HUB';
+        break;
+    }
+
+    if (title.isNotEmpty) {
+      ref.read(notificationsProvider.notifier).addNotification(
+            title: title,
+            message: message,
+            type: 'order',
+          );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      Text(
+                        message,
+                        style: GoogleFonts.kanit(fontSize: 11),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF1C7FF6),
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   void _startStatusSimulationTimer() {
     _statusProgressTimer?.cancel();
-    _statusProgressTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _statusProgressTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -69,9 +141,11 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
           _updateRiderMarkerForCurrentStep();
         });
 
+        _pushStatusNotification(_currentStep);
+
         if (_currentStep == 3) {
           timer.cancel();
-          Future.delayed(const Duration(milliseconds: 2500), () {
+          Future.delayed(const Duration(milliseconds: 3000), () {
             if (mounted) {
               context.push(AppRoutes.deliverySuccess);
             }
@@ -84,18 +158,33 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 
   void _updateRiderMarkerForCurrentStep() {
-    if (_liveRoutePoints.isEmpty) return;
+    LatLng newDriverLatLng;
 
-    double progressRatio = 0.0;
-    if (_currentStep == 1) progressRatio = 0.25;
-    if (_currentStep == 2) progressRatio = 0.65;
-    if (_currentStep == 3) progressRatio = 1.0;
+    if (_liveRoutePoints.isNotEmpty) {
+      double progressRatio = 0.0;
+      if (_currentStep == 1) progressRatio = 0.25;
+      if (_currentStep == 2) progressRatio = 0.65;
+      if (_currentStep == 3) progressRatio = 1.0;
 
-    int targetIndex = (progressRatio * (_liveRoutePoints.length - 1)).toInt();
-    if (targetIndex >= _liveRoutePoints.length) targetIndex = _liveRoutePoints.length - 1;
-    if (targetIndex < 0) targetIndex = 0;
+      int targetIndex = (progressRatio * (_liveRoutePoints.length - 1)).toInt();
+      if (targetIndex >= _liveRoutePoints.length) targetIndex = _liveRoutePoints.length - 1;
+      if (targetIndex < 0) targetIndex = 0;
 
-    final newDriverLatLng = _liveRoutePoints[targetIndex];
+      newDriverLatLng = _liveRoutePoints[targetIndex];
+    } else {
+      final bookingState = ref.read(bookingProvider);
+      final pickupLatLng = LatLng(bookingState.pickupLat, bookingState.pickupLng);
+      final dropoffLatLng = LatLng(bookingState.dropoffLat, bookingState.dropoffLng);
+      double progressRatio = 0.0;
+      if (_currentStep == 1) progressRatio = 0.25;
+      if (_currentStep == 2) progressRatio = 0.65;
+      if (_currentStep == 3) progressRatio = 1.0;
+
+      newDriverLatLng = LatLng(
+        pickupLatLng.latitude + (dropoffLatLng.latitude - pickupLatLng.latitude) * progressRatio,
+        pickupLatLng.longitude + (dropoffLatLng.longitude - pickupLatLng.longitude) * progressRatio,
+      );
+    }
 
     _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
     _markers.add(
@@ -103,6 +192,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
         markerId: const MarkerId('driver'),
         position: newDriverLatLng,
         anchor: const Offset(0.5, 0.5),
+        flat: true,
         infoWindow: const InfoWindow(
           title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
           snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
@@ -112,7 +202,14 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     );
 
     try {
-      _mapController?.animateCamera(CameraUpdate.newLatLng(newDriverLatLng));
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: newDriverLatLng,
+            zoom: 12.5,
+          ),
+        ),
+      );
     } catch (_) {}
   }
 

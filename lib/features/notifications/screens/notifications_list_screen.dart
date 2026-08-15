@@ -8,7 +8,7 @@ import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../partner/providers/partner_application_provider.dart';
-import '../repositories/user_repository.dart';
+import '../providers/notifications_provider.dart';
 
 class NotificationsListScreen extends ConsumerStatefulWidget {
   const NotificationsListScreen({super.key});
@@ -18,20 +18,9 @@ class NotificationsListScreen extends ConsumerStatefulWidget {
 }
 
 class _NotificationsListScreenState extends ConsumerState<NotificationsListScreen> {
-  final UserRepository _userRepo = UserRepository();
-  List<AppNotificationModel> _apiNotifications = [];
-
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
-  }
-
-  Future<void> _loadNotifications() async {
-    final list = await _userRepo.getNotifications();
-    setState(() {
-      _apiNotifications = list;
-    });
   }
 
   @override
@@ -40,6 +29,7 @@ class _NotificationsListScreenState extends ConsumerState<NotificationsListScree
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
     final partnerApp = ref.watch(partnerApplicationProvider);
+    final notificationsList = ref.watch(notificationsProvider);
 
     String t(String key) => AppTranslations.getText(currentLang, key);
 
@@ -167,21 +157,6 @@ class _NotificationsListScreenState extends ConsumerState<NotificationsListScree
               padding: const EdgeInsets.all(16),
               physics: const BouncingScrollPhysics(),
               children: [
-                ..._apiNotifications.map((notif) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildNotificationCard(
-                        context: context,
-                        icon: notif.type == 'order' ? Icons.local_shipping_rounded : Icons.notifications_active_rounded,
-                        iconBgColor: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
-                        iconColor: const Color(0xFF1C7FF6),
-                        title: notif.title,
-                        subtitle: notif.message,
-                        time: notif.timeText,
-                        isUnread: !notif.isRead,
-                        isDarkMode: isDarkMode,
-                        onTap: () {},
-                      ),
-                    )),
                 if (partnerApp != null) ...[
                   _buildNotificationCard(
                     context: context,
@@ -201,24 +176,44 @@ class _NotificationsListScreenState extends ConsumerState<NotificationsListScree
                   ),
                   const SizedBox(height: 12),
                 ],
-                _buildNotificationCard(
-                  context: context,
-                  icon: Icons.local_offer_rounded,
-                  iconBgColor: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                  iconColor: const Color(0xFFF59E0B),
-                  title: currentLang == AppLanguage.en
-                      ? 'Special Discount Coupon Received!'
-                      : 'คุณได้รับคูปองส่วนลดพิเศษ 50 บาท!',
-                  subtitle: currentLang == AppLanguage.en
-                      ? 'Use code FOR YOU for next interprovincial trip'
-                      : 'กดใช้คูปองส่วนลดได้ทันทีเมื่อใช้บริการส่งของข้ามจังหวัด',
-                  time: '2 ชั่วโมงที่แล้ว',
-                  isUnread: false,
-                  isDarkMode: isDarkMode,
-                  onTap: () {
-                    context.push(AppRoutes.coupons);
-                  },
-                ),
+                ...notificationsList.map((notif) {
+                  IconData icon = Icons.notifications_active_rounded;
+                  Color iconBg = const Color(0xFF1C7FF6).withValues(alpha: 0.12);
+                  Color iconColor = const Color(0xFF1C7FF6);
+
+                  if (notif.type == 'order') {
+                    icon = Icons.local_shipping_rounded;
+                    iconBg = const Color(0xFF10B981).withValues(alpha: 0.12);
+                    iconColor = const Color(0xFF10B981);
+                  } else if (notif.type == 'promo') {
+                    icon = Icons.local_offer_rounded;
+                    iconBg = const Color(0xFFF59E0B).withValues(alpha: 0.12);
+                    iconColor = const Color(0xFFF59E0B);
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildNotificationCard(
+                      context: context,
+                      icon: icon,
+                      iconBgColor: iconBg,
+                      iconColor: iconColor,
+                      title: notif.title,
+                      subtitle: notif.message,
+                      time: notif.timeText,
+                      isUnread: !notif.isRead,
+                      isDarkMode: isDarkMode,
+                      onTap: () {
+                        ref.read(notificationsProvider.notifier).markAsRead(notif.id);
+                        if (notif.type == 'order') {
+                          context.push(AppRoutes.notificationDetail);
+                        } else if (notif.type == 'promo') {
+                          context.push(AppRoutes.coupons);
+                        }
+                      },
+                    ),
+                  );
+                }),
               ],
             ),
           ),

@@ -1,11 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
 
-class DeliverySuccessScreen extends StatelessWidget {
+class DeliverySuccessScreen extends StatefulWidget {
   const DeliverySuccessScreen({super.key});
+
+  @override
+  State<DeliverySuccessScreen> createState() => _DeliverySuccessScreenState();
+}
+
+class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
+  int _rating = 0;
+  bool _isSubmitted = false;
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  String _getRatingText(int stars) {
+    switch (stars) {
+      case 1:
+        return 'ต้องปรับปรุง 😞';
+      case 2:
+        return 'พอใช้ 🙂';
+      case 3:
+        return 'ปานกลาง 😊';
+      case 4:
+        return 'ดีมาก 😃';
+      case 5:
+        return 'ประทับใจสุดๆ! ⭐';
+      default:
+        return 'แตะดาวเพื่อให้คะแนน';
+    }
+  }
+
+  void _submitRating() {
+    if (_rating == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'กรุณาเลือกดาวเพื่อให้คะแนนไรเดอร์',
+            style: GoogleFonts.kanit(),
+          ),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitted = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'ขอบคุณสำหรับคะแนน $_rating ดาว! บันทึกข้อมูลเรียบร้อยแล้ว',
+                style: GoogleFonts.kanit(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +91,9 @@ class DeliverySuccessScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'จัดส่งสำเร็จ',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
       ),
@@ -31,9 +103,13 @@ class DeliverySuccessScreen extends StatelessWidget {
           Positioned(
             bottom: -20,
             right: -20,
-            child: Icon(Icons.inventory, size: 150, color: Colors.orange.withOpacity(0.2)),
+            child: Icon(
+              Icons.inventory,
+              size: 150,
+              color: Colors.orange.withValues(alpha: 0.2),
+            ),
           ),
-          
+
           SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -51,18 +127,18 @@ class DeliverySuccessScreen extends StatelessWidget {
                   child: const Icon(Icons.check, size: 64, color: Colors.white),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'จัดส่งสำเร็จแล้ว!',
-                  style: TextStyle(
+                  style: GoogleFonts.kanit(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2ECC71),
+                    color: const Color(0xFF2ECC71),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'ขอบคุณที่ใช้บริการของเรา',
-                  style: TextStyle(
+                  style: GoogleFonts.kanit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -79,7 +155,7 @@ class DeliverySuccessScreen extends StatelessWidget {
                     border: Border.all(color: Colors.grey[300]!),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
+                        color: Colors.black.withValues(alpha: 0.02),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       )
@@ -88,9 +164,9 @@ class DeliverySuccessScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'รายละเอียดการจัดส่ง',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const SizedBox(height: 16),
                       _buildDetailRow(Icons.inventory_2, 'หมายเลขพัสดุ', 'TH2154966541A', Colors.orange),
@@ -101,22 +177,25 @@ class DeliverySuccessScreen extends StatelessWidget {
                       const Divider(height: 24),
                       _buildDetailRow(Icons.calendar_today, 'วันที่จัดส่ง', '18 พ.ค 2569 15.30น.', AppColors.primary),
                       const Divider(height: 24),
-                      _buildDetailRow(Icons.directions_car, 'ผู้จัดส่ง', 'นาย สมปอง มีดี', Colors.black),
+                      _buildDetailRow(Icons.directions_car, 'ผู้จัดส่ง', 'คนขับ สมชาย มั่นคง', Colors.black),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Rating Card
+                // Interactive Rating Card
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(
+                      color: _isSubmitted ? const Color(0xFF10B981) : Colors.grey[300]!,
+                      width: _isSubmitted ? 1.5 : 1,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
+                        color: Colors.black.withValues(alpha: 0.02),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       )
@@ -133,15 +212,15 @@ class DeliverySuccessScreen extends StatelessWidget {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
                                   'ให้คะแนนการให้บริการของไรเดอร์',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
                                   'ความพึงพอใจของคุณ ช่วยพัฒนาเราให้ดียิ่งขึ้น',
-                                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                                  style: GoogleFonts.kanit(color: Colors.grey, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -149,13 +228,112 @@ class DeliverySuccessScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 20),
+
+                      // Interactive Star Selection
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(5, (index) => const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Icon(Icons.star_border, size: 40, color: Colors.grey),
-                        )),
+                        children: List.generate(5, (index) {
+                          final starNumber = index + 1;
+                          final isSelected = starNumber <= _rating;
+                          return GestureDetector(
+                            onTap: _isSubmitted
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _rating = starNumber;
+                                    });
+                                  },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: Icon(
+                                isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
+                                size: 42,
+                                color: isSelected ? Colors.amber : Colors.grey.shade400,
+                              ),
+                            ),
+                          );
+                        }),
                       ),
+                      const SizedBox(height: 10),
+
+                      // Rating Sentiment Label
+                      Text(
+                        _getRatingText(_rating),
+                        style: GoogleFonts.kanit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: _rating > 0 ? Colors.amber.shade900 : Colors.grey,
+                        ),
+                      ),
+
+                      if (!_isSubmitted && _rating > 0) ...[
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _commentController,
+                          maxLines: 2,
+                          style: GoogleFonts.kanit(fontSize: 13),
+                          decoration: InputDecoration(
+                            hintText: 'เขียนข้อความชมเชยหรือติชมเพิ่มเติม (ถ้ามี)...',
+                            hintStyle: GoogleFonts.kanit(fontSize: 12, color: Colors.grey.shade400),
+                            contentPadding: const EdgeInsets.all(12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 44,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.send_rounded, size: 18),
+                            label: Text(
+                              'ส่งคะแนนประเมิน',
+                              style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            onPressed: _submitRating,
+                          ),
+                        ),
+                      ],
+
+                      if (_isSubmitted) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                'ส่งคะแนนประเมินเรียบร้อยแล้ว',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF10B981),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -175,9 +353,9 @@ class DeliverySuccessScreen extends StatelessWidget {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
+                    child: Text(
                       'กลับไปหน้าหลัก',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
@@ -197,13 +375,13 @@ class DeliverySuccessScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+          child: Text(label, style: GoogleFonts.kanit(color: Colors.grey, fontSize: 14)),
         ),
         Expanded(
           flex: 3,
           child: Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14),
             textAlign: TextAlign.right,
           ),
         ),

@@ -120,9 +120,13 @@ final appRouter = GoRouter(
 
     // Tracking
     GoRoute(
+      path: AppRoutes.tracking,
+      builder: (context, state) => const TrackingScreen(bookingId: 'TB668511'),
+    ),
+    GoRoute(
       path: '${AppRoutes.tracking}/:id',
       builder: (context, state) {
-        final bookingId = state.pathParameters['id'] ?? '';
+        final bookingId = state.pathParameters['id'] ?? 'TB668511';
         return TrackingScreen(
           bookingId: bookingId,
         );

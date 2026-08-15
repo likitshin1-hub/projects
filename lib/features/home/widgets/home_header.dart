@@ -6,6 +6,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../partner/providers/partner_application_provider.dart';
+import '../../notifications/providers/notifications_provider.dart';
 
 class HomeHeader extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
@@ -19,7 +20,9 @@ class HomeHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final partnerApp = ref.watch(partnerApplicationProvider);
-    final notificationCount = partnerApp != null ? 4 : 3;
+    final notifications = ref.watch(notificationsProvider);
+    final unreadNotifs = notifications.where((n) => !n.isRead).length;
+    final notificationCount = partnerApp != null ? unreadNotifs + 1 : unreadNotifs;
     final currentLang = ref.watch(languageProvider);
     String t(String key) => AppTranslations.getText(currentLang, key);
 
@@ -87,30 +90,31 @@ class HomeHeader extends ConsumerWidget {
                       color: Colors.white,
                       size: 26,
                     ),
-                    Positioned(
-                      top: -1,
-                      right: -1,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 14,
-                          minHeight: 14,
-                        ),
-                        child: Text(
-                          '$notificationCount',
-                          style: GoogleFonts.kanit(
-                            fontSize: 8,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                    if (notificationCount > 0)
+                      Positioned(
+                        top: -1,
+                        right: -1,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
                           ),
-                          textAlign: TextAlign.center,
+                          constraints: const BoxConstraints(
+                            minWidth: 14,
+                            minHeight: 14,
+                          ),
+                          child: Text(
+                            '$notificationCount',
+                            style: GoogleFonts.kanit(
+                              fontSize: 8,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

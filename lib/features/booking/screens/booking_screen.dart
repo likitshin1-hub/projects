@@ -282,16 +282,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ),
             };
 
-            // Set Polyline
-            final Set<Polyline> modalPolylines = {
-              Polyline(
-                polylineId: const PolylineId('route_line'),
-                points: [tempPickupLatLng, tempDropoffLatLng],
-                color: const Color(0xFF1C7FF6),
-                width: 4,
-              ),
-            };
-
             return Container(
               height: MediaQuery.of(context).size.height * 0.88,
               decoration: BoxDecoration(
@@ -423,7 +413,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             zoom: 11.5,
                           ),
                           markers: modalMarkers,
-                          polylines: modalPolylines,
+                          polylines: const {},
                           onTap: (LatLng tappedLatLng) async {
                             setModalState(() {
                               if (activePinTab == 0) {

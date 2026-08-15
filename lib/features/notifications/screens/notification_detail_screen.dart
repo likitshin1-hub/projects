@@ -8,6 +8,8 @@ import '../../booking/providers/booking_provider.dart';
 
 import '../../../core/providers/theme_provider.dart';
 
+import '../providers/notifications_provider.dart';
+
 class NotificationDetailScreen extends ConsumerWidget {
   const NotificationDetailScreen({super.key});
 
@@ -15,6 +17,8 @@ class NotificationDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
+    final notifications = ref.watch(notificationsProvider);
+    final notificationCount = notifications.where((n) => !n.isRead).length;
     final bookingState = ref.watch(bookingProvider);
     final String bookingId = bookingState.bookingId ?? 'B2553';
 
@@ -86,30 +90,31 @@ class NotificationDetailScreen extends ConsumerWidget {
                         color: Colors.white,
                         size: 26,
                       ),
-                      Positioned(
-                        top: -1,
-                        right: -1,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 14,
-                            minHeight: 14,
-                          ),
-                          child: Text(
-                            '3',
-                            style: GoogleFonts.kanit(
-                              fontSize: 8,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                      if (notificationCount > 0)
+                        Positioned(
+                          top: -1,
+                          right: -1,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
                             ),
-                            textAlign: TextAlign.center,
+                            constraints: const BoxConstraints(
+                              minWidth: 14,
+                              minHeight: 14,
+                            ),
+                            child: Text(
+                              '$notificationCount',
+                              style: GoogleFonts.kanit(
+                                fontSize: 8,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
