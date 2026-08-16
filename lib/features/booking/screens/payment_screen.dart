@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../providers/booking_provider.dart';
+import '../services/payment_service.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final double amount;
@@ -25,7 +27,46 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   Uint8List? _slipImageBytes;
   bool _isSavingQr = false;
   bool _isSubmitting = false;
+  int _remainingSeconds = 900; // 15 minutes
+  Timer? _countdownTimer;
   final ImagePicker _picker = ImagePicker();
+  final PaymentService _paymentService = PaymentService();
+  late final String _referenceId = 'REF-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdownTimer();
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startCountdownTimer() {
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_remainingSeconds > 0) {
+        setState(() {
+          _remainingSeconds--;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  String _formatCountdown() {
+    final int minutes = _remainingSeconds ~/ 60;
+    final int seconds = _remainingSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
 
   Future<void> _pickSlipImage() async {
     try {
@@ -92,7 +133,15 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       _isSubmitting = true;
     });
 
-    // Create order record in Laravel Backend MySQL
+    if (_slipImageBytes != null) {
+      await _paymentService.verifyPaymentSlip(
+        imageBytes: _slipImageBytes!,
+        orderId: _referenceId,
+        expectedAmount: widget.amount,
+      );
+    }
+
+    // Create order record in Backend MySQL API
     await ref.read(bookingProvider.notifier).submitBooking();
 
     // Simulate transaction validation delay
@@ -331,6 +380,30 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF1E3A8A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.timer_outlined, size: 15, color: _remainingSeconds < 180 ? Colors.red : Colors.grey.shade600),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'หมดอายุภายใน: ${_formatCountdown()}',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: _remainingSeconds < 180 ? Colors.red : Colors.grey.shade700,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'อ้างอิง: $_referenceId',
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade500,
                                   ),
                                 ),
                               ],
