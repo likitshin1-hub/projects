@@ -14,6 +14,8 @@ import '../../../core/services/directions_service.dart';
 import '../providers/booking_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
 
+import '../../../core/services/tracking_service.dart';
+
 class TrackingScreen extends ConsumerStatefulWidget {
   final String bookingId;
 
@@ -26,6 +28,8 @@ class TrackingScreen extends ConsumerStatefulWidget {
 class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTickerProviderStateMixin {
   int _currentStep = 0; // 0=รับออเดอร์, 1=กำลังไปรับ, 2=กำลังส่ง, 3=สำเร็จ
   Timer? _statusProgressTimer;
+  StreamSubscription<DriverTrackingData>? _trackingSubscription;
+  final TrackingService _trackingService = TrackingService();
   BitmapDescriptor _riderMarkerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
 
   GoogleMapController? _mapController;
@@ -47,6 +51,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
 
     _initMapMarkersAndFetchProductionRoute();
     _startStatusSimulationTimer();
+    _listenToRealtimeGPS();
 
     // Trigger initial notification for Step 0
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -54,8 +59,25 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     });
   }
 
+  void _listenToRealtimeGPS() {
+    _trackingSubscription?.cancel();
+    _trackingSubscription = _trackingService
+        .getDriverTrackingStream(widget.bookingId, _liveRoutePoints)
+        .listen((data) {
+      if (!mounted) return;
+      if (data.step != _currentStep) {
+        setState(() {
+          _currentStep = data.step;
+          _updateRiderMarkerForCurrentStep();
+        });
+        _pushStatusNotification(_currentStep);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _trackingSubscription?.cancel();
     _statusProgressTimer?.cancel();
     _pulseController.dispose();
     super.dispose();

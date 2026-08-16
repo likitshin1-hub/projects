@@ -177,8 +177,17 @@ class BookingNotifier extends Notifier<BookingState> {
     try {
       final bId = await _repository.submitBooking(
         pickup: state.pickup,
+        pickupName: state.pickupName,
+        pickupLat: state.pickupLat,
+        pickupLng: state.pickupLng,
         dropoff: state.dropoff,
+        dropoffName: state.dropoffName,
+        dropoffLat: state.dropoffLat,
+        dropoffLng: state.dropoffLng,
+        receiverPhone: state.receiverPhone,
         vehicleType: state.vehicleType,
+        parcelType: state.parcelType,
+        parcelWeight: state.parcelWeight,
         details: state.details,
         price: state.estimatedPrice,
       );

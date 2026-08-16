@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../repositories/partner_repository.dart';
 
 enum ApplicationStatus {
   submitted,
@@ -105,15 +107,36 @@ class SystemNotification {
 }
 
 class PartnerApplicationNotifier extends Notifier<PartnerApplicationModel?> {
+  late final PartnerRepository _repository;
   Timer? _statusTimer;
 
   @override
-  PartnerApplicationModel? build() => null;
+  PartnerApplicationModel? build() {
+    _repository = PartnerRepository();
+    return null;
+  }
 
-  void submitApplication(PartnerApplicationModel app) {
+  Future<void> submitApplication(
+    PartnerApplicationModel app, {
+    File? idCardFile,
+    File? driverLicenseFile,
+    File? vehicleDocFile,
+    File? bankBookFile,
+    List<File>? vehiclePhotos,
+  }) async {
     state = app.copyWith(
       status: ApplicationStatus.submitted,
       currentStatusText: 'ยื่นใบสมัครเรียบร้อยแล้ว อยู่ระหว่างตรวจสอบเอกสาร',
+    );
+
+    // Call backend API repository
+    await _repository.submitDriverApplication(
+      application: app,
+      idCardFile: idCardFile,
+      driverLicenseFile: driverLicenseFile,
+      vehicleDocFile: vehicleDocFile,
+      bankBookFile: bankBookFile,
+      vehiclePhotos: vehiclePhotos,
     );
 
     // Cancel existing timer if any
@@ -140,3 +163,4 @@ final partnerApplicationProvider =
     NotifierProvider<PartnerApplicationNotifier, PartnerApplicationModel?>(
   PartnerApplicationNotifier.new,
 );
+
