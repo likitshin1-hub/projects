@@ -129,4 +129,10 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String changePassword = '/profile/change-password';
   static const String legal = '/legal';
+
+  // =========================
+  // Admin Web Dashboard
+  // =========================
+
+  static const String admin = '/admin';
 }

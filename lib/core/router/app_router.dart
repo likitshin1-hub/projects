@@ -57,6 +57,9 @@ import '../../features/partner/screens/driver_partner_landing_screen.dart';
 import '../../features/partner/screens/register_partner_screen.dart';
 import '../../features/partner/screens/driver_register_success_screen.dart';
 
+// Admin
+import '../../features/admin/screens/admin_dashboard_screen.dart';
+
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   routes: [
@@ -260,6 +263,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.partnerSuccess,
       builder: (context, state) => const DriverRegisterSuccessScreen(),
+    ),
+
+    // Admin
+    GoRoute(
+      path: AppRoutes.admin,
+      builder: (context, state) => const AdminDashboardScreen(),
     ),
   ],
 );
