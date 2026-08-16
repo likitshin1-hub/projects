@@ -60,13 +60,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   LatLng _dropoffLatLng = const LatLng(13.3361, 100.9702); // Chonburi
   double _distanceKm = 82.5; // Real calculated distance in km
   int _estimatedDurationMinutes = 45; // Real calculated duration in mins
-  bool _isCalculatingFastestRoute = false;
-
   Future<void> _calculateFastestRoute() async {
-    setState(() {
-      _isCalculatingFastestRoute = true;
-    });
-
     final routeResult = await DirectionsService.getDrivingRoute(
       origin: _pickupLatLng,
       destination: _dropoffLatLng,
@@ -75,7 +69,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     if (!mounted) return;
 
     setState(() {
-      _isCalculatingFastestRoute = false;
       if (routeResult != null) {
         _distanceKm = routeResult.distanceKm;
         _estimatedDurationMinutes = routeResult.durationMinutes;

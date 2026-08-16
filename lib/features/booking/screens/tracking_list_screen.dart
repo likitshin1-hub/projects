@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_routes.dart';
-import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../providers/booking_provider.dart';
@@ -20,8 +19,6 @@ class TrackingListScreen extends ConsumerWidget {
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
     final bookingState = ref.watch(bookingProvider);
-
-    String t(String key) => AppTranslations.getText(currentLang, key);
 
     // Active in-progress orders list (พัสดุที่กำลังดำเนินการอยู่)
     final List<_ActiveTrackingData> activeItems = [
