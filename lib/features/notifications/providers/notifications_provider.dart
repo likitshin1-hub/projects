@@ -1,9 +1,26 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/push_notification_service.dart';
 import '../repositories/user_repository.dart';
 
 class NotificationsNotifier extends Notifier<List<AppNotificationModel>> {
+  StreamSubscription<PushNotificationData>? _pushSubscription;
+
   @override
   List<AppNotificationModel> build() {
+    _pushSubscription?.cancel();
+    _pushSubscription = PushNotificationService().notificationStream.listen((push) {
+      addNotification(
+        title: push.title,
+        message: push.body,
+        type: push.data['type'] as String? ?? 'system',
+      );
+    });
+
+    ref.onDispose(() {
+      _pushSubscription?.cancel();
+    });
+
     return [
       AppNotificationModel(
         id: 1,

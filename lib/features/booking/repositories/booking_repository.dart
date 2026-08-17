@@ -21,41 +21,58 @@ class BookingRepository {
     return basePrice + (distanceMock * 5);
   }
 
-  /// ส่งคำขอจองรถไปยัง Laravel Backend API (POST /api/orders)
+  /// ส่งคำขอจองรถไปยัง Backend API (POST /api/orders)
   Future<String> submitBooking({
     required String pickup,
+    String? pickupName,
+    double? pickupLat,
+    double? pickupLng,
     required String dropoff,
+    String? dropoffName,
+    double? dropoffLat,
+    double? dropoffLng,
+    String? receiverPhone,
     required String vehicleType,
+    String? parcelType,
+    int? parcelWeight,
     required String details,
     required double price,
   }) async {
     try {
       final response = await _bookingService.createOrder({
-        'pickup_name': 'จุดรับสินค้า',
+        'pickup_name': pickupName ?? 'จุดรับสินค้า',
         'pickup_phone': '0812345678',
         'pickup_address': pickup.isEmpty ? 'กรุงเทพมหานคร' : pickup,
-        'pickup_lat': 13.7563,
-        'pickup_lng': 100.5018,
-        'receiver_name': 'ผู้รับสินค้า',
-        'receiver_phone': '0898765432',
-        'destination_address': dropoff.isEmpty ? 'นนทบุรี' : dropoff,
-        'destination_lat': 13.8563,
-        'destination_lng': 100.5218,
-        'item_name': details.isNotEmpty ? details : 'พัสดุทั่วไป ($vehicleType)',
+        'pickup_lat': pickupLat ?? 13.7466,
+        'pickup_lng': pickupLng ?? 100.5393,
+        'receiver_name': dropoffName ?? 'ผู้รับสินค้า',
+        'receiver_phone': receiverPhone ?? '0898765432',
+        'destination_address': dropoff.isEmpty ? 'เชียงใหม่' : dropoff,
+        'destination_lat': dropoffLat ?? 18.7883,
+        'destination_lng': dropoffLng ?? 98.9853,
+        'vehicle_type': vehicleType,
+        'parcel_type': parcelType ?? 'กล่อง',
+        'item_name': details.isNotEmpty ? details : 'พัสดุ ($vehicleType)',
         'item_description': details,
-        'item_weight': 5.0,
+        'item_weight': parcelWeight != null ? parcelWeight.toDouble() : 5.0,
         'delivery_fee': price > 0 ? price : 150.0,
         'platform_fee': 0.0,
         'total_price': price > 0 ? price : 150.0,
         'payment_method': 'promptpay',
       });
 
-      if (response.data != null && response.data['order'] != null) {
-        return response.data['order']['order_no'] as String? ??
-            'TB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+      if (response.data != null) {
+        final data = response.data;
+        if (data is Map<String, dynamic>) {
+          if (data['order'] != null && data['order']['order_no'] != null) {
+            return data['order']['order_no'] as String;
+          } else if (data['order_no'] != null) {
+            return data['order_no'] as String;
+          }
+        }
       }
     } catch (e) {
-      // Fallback
+      // Fallback fallback ID when API is unreachable
     }
     return 'TB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
   }

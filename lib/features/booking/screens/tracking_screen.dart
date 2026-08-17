@@ -15,6 +15,8 @@ import '../providers/booking_provider.dart';
 import '../providers/driver_provider.dart';
 import '../providers/tracking_provider.dart';
 
+import '../../../core/services/tracking_service.dart';
+
 class TrackingScreen extends ConsumerStatefulWidget {
   final String bookingId;
 
@@ -51,6 +53,22 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       final bookingState = ref.read(bookingProvider);
       ref.read(driverProvider.notifier).generateRandomDriver(bookingState.vehicleType);
       ref.read(trackingProvider.notifier).startTrackingTimer(ref);
+    });
+  }
+
+  void _listenToRealtimeGPS() {
+    _trackingSubscription?.cancel();
+    _trackingSubscription = _trackingService
+        .getDriverTrackingStream(widget.bookingId, _liveRoutePoints)
+        .listen((data) {
+      if (!mounted) return;
+      if (data.step != _currentStep) {
+        setState(() {
+          _currentStep = data.step;
+          _updateRiderMarkerForCurrentStep();
+        });
+        _pushStatusNotification(_currentStep);
+      }
     });
   }
 

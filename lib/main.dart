@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
+import 'core/services/push_notification_service.dart';
 
 import 'core/constants/app_strings.dart';
 import 'core/router/app_router.dart';
@@ -20,8 +21,9 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await PushNotificationService().initialize();
   } catch (e) {
-    debugPrint("Firebase initialization failed: $e");
+    debugPrint("Firebase/PushNotification initialization failed: $e");
   }
 
   if (kIsWeb) {
