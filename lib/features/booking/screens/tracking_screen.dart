@@ -522,7 +522,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     final bookingState = ref.watch(bookingProvider);
     final driver = ref.watch(driverProvider);
     final trackingState = ref.watch(trackingProvider);
-    final _currentStep = trackingState.currentStep;
+    final currentStep = trackingState.currentStep;
 
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -891,7 +891,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                       ),
                                     ),
                                     Text(
-                                      _getStatusTitle(_currentStep, isEn),
+                                      _getStatusTitle(currentStep, isEn),
                                       style: GoogleFonts.kanit(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -909,7 +909,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  _getEtaText(_currentStep, isEn),
+                                  _getEtaText(currentStep, isEn),
                                   style: GoogleFonts.kanit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -924,13 +924,13 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildTimelineStep(0, Icons.assignment_turned_in_rounded, 'รับออเดอร์', isDarkMode, _currentStep),
-                              _buildTimelineLine(0, isDarkMode, _currentStep),
-                              _buildTimelineStep(1, vehicleTimelineIcon, 'รับพัสดุแล้ว', isDarkMode, _currentStep),
-                              _buildTimelineLine(1, isDarkMode, _currentStep),
-                              _buildTimelineStep(2, Icons.local_shipping_rounded, 'บนทางด่วน', isDarkMode, _currentStep),
-                              _buildTimelineLine(2, isDarkMode, _currentStep),
-                              _buildTimelineStep(3, Icons.check_circle_rounded, 'สำเร็จ', isDarkMode, _currentStep),
+                              _buildTimelineStep(0, Icons.assignment_turned_in_rounded, 'รับออเดอร์', isDarkMode, currentStep),
+                              _buildTimelineLine(0, isDarkMode, currentStep),
+                              _buildTimelineStep(1, vehicleTimelineIcon, 'รับพัสดุแล้ว', isDarkMode, currentStep),
+                              _buildTimelineLine(1, isDarkMode, currentStep),
+                              _buildTimelineStep(2, Icons.local_shipping_rounded, 'บนทางด่วน', isDarkMode, currentStep),
+                              _buildTimelineLine(2, isDarkMode, currentStep),
+                              _buildTimelineStep(3, Icons.check_circle_rounded, 'สำเร็จ', isDarkMode, currentStep),
                             ],
                           ),
                         ],

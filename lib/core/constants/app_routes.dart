@@ -135,4 +135,5 @@ class AppRoutes {
   // =========================
 
   static const String admin = '/admin';
+  static const String adminLogin = '/admin/login';
 }

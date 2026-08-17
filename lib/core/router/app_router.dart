@@ -59,6 +59,7 @@ import '../../features/partner/screens/driver_register_success_screen.dart';
 
 // Admin
 import '../../features/admin/screens/admin_dashboard_screen.dart';
+import '../../features/admin/screens/admin_login_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
@@ -269,6 +270,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.admin,
       builder: (context, state) => const AdminDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/admiin',
+      redirect: (context, state) => AppRoutes.admin,
+    ),
+    GoRoute(
+      path: AppRoutes.adminLogin,
+      builder: (context, state) => const AdminLoginScreen(),
     ),
   ],
 );

@@ -1,125 +1,161 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/admin_models.dart';
 import '../services/admin_service.dart';
 
-class AdminState {
-  final AdminDashboardStats? stats;
-  final List<PendingDriverApplication> pendingDrivers;
-  final List<AdminOrderModel> allOrders;
-  final bool isLoading;
-  final String? successMessage;
-  final String? errorMessage;
+final adminServiceProvider = Provider<AdminService>((ref) => AdminService());
 
-  const AdminState({
-    this.stats,
-    this.pendingDrivers = const [],
-    this.allOrders = const [],
-    this.isLoading = false,
-    this.successMessage,
-    this.errorMessage,
-  });
-
-  AdminState copyWith({
-    AdminDashboardStats? stats,
-    List<PendingDriverApplication>? pendingDrivers,
-    List<AdminOrderModel>? allOrders,
-    bool? isLoading,
-    String? successMessage,
-    String? errorMessage,
-  }) {
-    return AdminState(
-      stats: stats ?? this.stats,
-      pendingDrivers: pendingDrivers ?? this.pendingDrivers,
-      allOrders: allOrders ?? this.allOrders,
-      isLoading: isLoading ?? this.isLoading,
-      successMessage: successMessage ?? this.successMessage,
-      errorMessage: errorMessage ?? this.errorMessage,
-    );
-  }
-}
-
-class AdminNotifier extends Notifier<AdminState> {
-  final AdminService _adminService = AdminService();
-
+// Active Tab Notifier
+class AdminActiveTabNotifier extends Notifier<int> {
   @override
-  AdminState build() {
-    _loadInitialAdminData();
-    return const AdminState(isLoading: true);
+  int build() => 0;
+
+  void setTab(int index) => state = index;
+}
+
+final adminActiveTabProvider = NotifierProvider<AdminActiveTabNotifier, int>(AdminActiveTabNotifier.new);
+
+// Search Query Notifier
+class AdminSearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+
+  void setQuery(String query) => state = query;
+}
+
+final adminSearchQueryProvider = NotifierProvider<AdminSearchQueryNotifier, String>(AdminSearchQueryNotifier.new);
+
+// Customers Notifier
+class AdminCustomersNotifier extends Notifier<AsyncValue<List<CustomerModel>>> {
+  @override
+  AsyncValue<List<CustomerModel>> build() {
+    return AsyncValue.data(ref.read(adminServiceProvider).getCustomersSync());
   }
 
-  Future<void> _loadInitialAdminData() async {
-    final stats = await _adminService.getDashboardStats();
-    final drivers = await _adminService.getPendingDrivers();
-    final orders = await _adminService.getAllOrders();
-
-    state = state.copyWith(
-      stats: stats,
-      pendingDrivers: drivers,
-      allOrders: orders,
-      isLoading: false,
-    );
-  }
-
-  Future<bool> approveDriver(String driverId) async {
-    state = state.copyWith(isLoading: true);
-    final success = await _adminService.approveDriver(driverId);
-    if (success) {
-      final updatedDrivers = state.pendingDrivers.where((d) => d.id != driverId).toList();
-      final currentStats = state.stats;
-      AdminDashboardStats? updatedStats;
-      if (currentStats != null) {
-        updatedStats = AdminDashboardStats(
-          totalOrdersToday: currentStats.totalOrdersToday,
-          totalRevenueToday: currentStats.totalRevenueToday,
-          activeDriversOnline: currentStats.activeDriversOnline + 1,
-          pendingDriverApplications: (currentStats.pendingDriverApplications - 1).clamp(0, 999),
-        );
-      }
-
-      state = state.copyWith(
-        isLoading: false,
-        pendingDrivers: updatedDrivers,
-        stats: updatedStats,
-        successMessage: 'อนุมัติใบสมัครคนขับ ID $driverId เรียบร้อยแล้ว!',
-      );
-      return true;
+  Future<void> loadCustomers() async {
+    try {
+      final res = await ref.read(adminServiceProvider).getCustomers();
+      state = AsyncValue.data(res);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
-    state = state.copyWith(isLoading: false, errorMessage: 'ไม่สามารถอนุมัติได้');
-    return false;
   }
 
-  Future<bool> rejectDriver(String driverId, String reason) async {
-    state = state.copyWith(isLoading: true);
-    final success = await _adminService.rejectDriver(driverId, reason);
-    if (success) {
-      final updatedDrivers = state.pendingDrivers.where((d) => d.id != driverId).toList();
-      final currentStats = state.stats;
-      AdminDashboardStats? updatedStats;
-      if (currentStats != null) {
-        updatedStats = AdminDashboardStats(
-          totalOrdersToday: currentStats.totalOrdersToday,
-          totalRevenueToday: currentStats.totalRevenueToday,
-          activeDriversOnline: currentStats.activeDriversOnline,
-          pendingDriverApplications: (currentStats.pendingDriverApplications - 1).clamp(0, 999),
-        );
-      }
-
-      state = state.copyWith(
-        isLoading: false,
-        pendingDrivers: updatedDrivers,
-        stats: updatedStats,
-        successMessage: 'ปฏิเสธใบสมัครคนขับ ID $driverId แล้ว',
-      );
-      return true;
-    }
-    state = state.copyWith(isLoading: false, errorMessage: 'เกิดข้อผิดพลาด');
-    return false;
+  Future<void> updateCustomer(String id, String name, String email, String phone) async {
+    await ref.read(adminServiceProvider).updateCustomerInfo(id, name, email, phone);
+    await loadCustomers();
   }
 
-  void refreshData() {
-    _loadInitialAdminData();
+  Future<void> toggleSuspend(String id) async {
+    await ref.read(adminServiceProvider).toggleCustomerStatus(id);
+    await loadCustomers();
   }
 }
 
-final adminProvider = NotifierProvider<AdminNotifier, AdminState>(() {
-  return AdminNotifier();
+final adminCustomersProvider = NotifierProvider<AdminCustomersNotifier, AsyncValue<List<CustomerModel>>>(AdminCustomersNotifier.new);
+
+// Drivers Notifier
+class AdminDriversNotifier extends Notifier<AsyncValue<List<DriverAdminModel>>> {
+  @override
+  AsyncValue<List<DriverAdminModel>> build() {
+    return AsyncValue.data(ref.read(adminServiceProvider).getDriversSync());
+  }
+
+  Future<void> loadDrivers() async {
+    try {
+      final res = await ref.read(adminServiceProvider).getDrivers();
+      state = AsyncValue.data(res);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> approveDriver(String id) async {
+    await ref.read(adminServiceProvider).approveDriver(id);
+    await loadDrivers();
+  }
+
+  Future<void> rejectDriver(String id, String reason) async {
+    await ref.read(adminServiceProvider).rejectDriver(id, reason);
+    await loadDrivers();
+  }
+
+  Future<void> toggleSuspend(String id) async {
+    await ref.read(adminServiceProvider).toggleDriverSuspend(id);
+    await loadDrivers();
+  }
+}
+
+final adminDriversProvider = NotifierProvider<AdminDriversNotifier, AsyncValue<List<DriverAdminModel>>>(AdminDriversNotifier.new);
+
+// Admins Notifier
+class AdminUsersNotifier extends Notifier<AsyncValue<List<AdminUserModel>>> {
+  @override
+  AsyncValue<List<AdminUserModel>> build() {
+    return AsyncValue.data(ref.read(adminServiceProvider).getAdminsSync());
+  }
+
+  Future<void> loadAdmins() async {
+    try {
+      final res = await ref.read(adminServiceProvider).getAdmins();
+      state = AsyncValue.data(res);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> updateAdmin(String id, String name, String email, AdminRole role) async {
+    await ref.read(adminServiceProvider).updateAdminUser(id, name, email, role);
+    await loadAdmins();
+  }
+
+  Future<void> toggleSuspend(String id) async {
+    await ref.read(adminServiceProvider).toggleAdminStatus(id);
+    await loadAdmins();
+  }
+
+  Future<void> addAdmin(String name, String email, AdminRole role) async {
+    await ref.read(adminServiceProvider).addAdminUser(name, email, role);
+    await loadAdmins();
+  }
+}
+
+final adminUsersProvider = NotifierProvider<AdminUsersNotifier, AsyncValue<List<AdminUserModel>>>(AdminUsersNotifier.new);
+
+// Orders Notifier
+class AdminOrdersNotifier extends Notifier<AsyncValue<List<AdminOrderModel>>> {
+  @override
+  AsyncValue<List<AdminOrderModel>> build() {
+    return AsyncValue.data(ref.read(adminServiceProvider).getOrdersSync());
+  }
+
+  Future<void> loadOrders() async {
+    try {
+      final res = await ref.read(adminServiceProvider).getOrders();
+      state = AsyncValue.data(res);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> updateStatus(String orderNo, AdminOrderStatus newStatus, {String? reason, String? cancelledBy}) async {
+    await ref.read(adminServiceProvider).updateOrderStatus(orderNo, newStatus, reason: reason, cancelledBy: cancelledBy);
+    await loadOrders();
+  }
+}
+
+final adminOrdersProvider = NotifierProvider<AdminOrdersNotifier, AsyncValue<List<AdminOrderModel>>>(AdminOrdersNotifier.new);
+
+// Selected Order for Live Tracking Focus
+class SelectedTrackingOrderNotifier extends Notifier<AdminOrderModel?> {
+  @override
+  AdminOrderModel? build() => null;
+
+  void selectOrder(AdminOrderModel? order) => state = order;
+}
+
+final selectedTrackingOrderProvider = NotifierProvider<SelectedTrackingOrderNotifier, AdminOrderModel?>(SelectedTrackingOrderNotifier.new);
+
+// Vehicle Configs Provider
+final vehicleConfigsProvider = FutureProvider<List<VehicleTypeConfig>>((ref) async {
+  return ref.watch(adminServiceProvider).getVehicleConfigs();
 });

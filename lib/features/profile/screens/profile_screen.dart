@@ -567,6 +567,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     onTap: () => context.push(AppRoutes.settings),
                     isDarkMode: isDarkMode,
                   ),
+                  _buildMenuItemCard(
+                    icon: Icons.admin_panel_settings_outlined,
+                    title: 'ระบบหลังบ้าน (Admin Dashboard)',
+                    onTap: () => context.push(AppRoutes.admin),
+                    isDarkMode: isDarkMode,
+                  ),
                 ],
               ),
             ),
