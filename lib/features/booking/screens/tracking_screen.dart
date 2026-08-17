@@ -32,6 +32,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   late AnimationController _pulseController;
 
   bool _isLoadingRoute = true;
+  bool _hasShownCompletionDialog = false;
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
@@ -146,6 +147,102 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       default:
         return isEn ? 'Delivered' : 'จัดส่งสำเร็จ';
     }
+  }
+
+  void _showDeliveryCompletedDialog(BuildContext context) {
+    final isDarkMode = ref.read(themeProvider);
+    final bookingState = ref.read(bookingProvider);
+    final displayOrderNo = bookingState.bookingId ?? widget.bookingId;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+          elevation: 12,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      color: Color(0xFF10B981),
+                      size: 58,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'จัดส่งพัสดุเสร็จสิ้นแล้ว! 🎉',
+                  style: GoogleFonts.kanit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'พัสดุคำสั่งซื้อเลขที่ #$displayOrderNo จัดส่งถึงปลายทางเรียบร้อยแล้ว กดยืนยันเพื่อไปยังหน้าประวัติการขนส่ง',
+                  style: GoogleFonts.kanit(
+                    fontSize: 14,
+                    color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      context.push(AppRoutes.history);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'ยืนยันดูประวัติการขนส่ง',
+                          style: GoogleFonts.kanit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded, size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _recenterMap() {
@@ -404,13 +501,13 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   }
 
   String _cleanPlaceName(String input, String fallbackAddress, String defaultName) {
-    final invalidStrings = {'sad', 'asd', 'abc', 'test', '123', 'a', 'b', 'c', '1', '2', '3', 'xxx', 'yyy', 'zzz'};
+    final invalidStrings = {'sad', 'asd', 'abc', 'test', 'xxx', 'yyy', 'zzz'};
     final trimmedInput = input.trim();
-    if (trimmedInput.length > 3 && !invalidStrings.contains(trimmedInput.toLowerCase())) {
+    if (trimmedInput.isNotEmpty && !invalidStrings.contains(trimmedInput.toLowerCase())) {
       return trimmedInput;
     }
     final trimmedFallback = fallbackAddress.trim();
-    if (trimmedFallback.length > 3 && !invalidStrings.contains(trimmedFallback.toLowerCase())) {
+    if (trimmedFallback.isNotEmpty && !invalidStrings.contains(trimmedFallback.toLowerCase())) {
       return trimmedFallback;
     }
     return defaultName;
@@ -924,7 +1021,35 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                   ),
                   const SizedBox(height: 14),
 
-                  // CARD 4: FULL DETAILS BUTTON
+                  // CARD 4: FULL DETAILS & HISTORY BUTTONS
+                  if (_currentStep == 3) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.history_rounded, size: 20, color: Colors.white),
+                        label: Text(
+                          'ดูประวัติการขนส่ง 📋',
+                          style: GoogleFonts.kanit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () {
+                          _showDeliveryCompletedDialog(context);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   SizedBox(
                     width: double.infinity,
                     height: 52,

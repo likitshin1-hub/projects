@@ -6,7 +6,10 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../booking/providers/booking_provider.dart';
 import '../../booking/providers/driver_provider.dart';
+import '../../booking/providers/tracking_provider.dart';
+import '../providers/history_provider.dart';
 import '../../home/widgets/bottom_navigation.dart';
 import '../../notifications/providers/notifications_provider.dart';
 
@@ -34,92 +37,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
   String _vehicleFilter = 'all'; // all, 🛵, 🚗, 🚚, 🚛
 
   // History dataset
-  final List<_HistoryItemData> _defaultHistoryItems = [
-    _HistoryItemData(
-      orderNo: 'TB668511',
-      pickupAddress: 'ตำแหน่งปัจจุบันของคุณ (GPS Live Location)',
-      destinationAddress: 'วิทยาลัยอาชีวศึกษาชลบุรี',
-      route: 'กรุงเทพฯ > ชลบุรี',
-      dateTime: 'วันนี้ 15:30 น.',
-      price: '865.00',
-      status: _HistoryStatus.inProgress,
-      vehicle: '🛵',
-      vehicleName: 'มอเตอร์ไซค์',
-      statusText: 'กำลังขนส่งพัสดุข้ามจังหวัด (Real-Time GPS)',
-      driverName: 'สมปอง มีดี',
-      driverPhone: '081-234-5678',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB491022-1029',
-      pickupAddress: 'นิคมอุตสาหกรรมบางปู สมุทรปราการ',
-      destinationAddress: 'ท่าเรือแหลมฉบัง ชลบุรี',
-      route: 'บางปู > แหลมฉบัง ชลบุรี',
-      dateTime: '14 ส.ค. 2026 16:45 น.',
-      price: '1,250.00',
-      status: _HistoryStatus.completed,
-      vehicle: '🚚',
-      vehicleName: 'รถกระบะตู้ทึบ',
-      statusText: 'จัดส่งสำเร็จ (ผู้รับเซ็นชื่อเรียบร้อย)',
-      driverName: 'มานิตย์ ขยันส่ง',
-      driverPhone: '086-555-4444',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB488102-3921',
-      pickupAddress: 'ศูนย์การค้าเซ็นทรัลเวิลด์',
-      destinationAddress: 'อาคารสาทรธานี กรุงเทพฯ',
-      route: 'เซ็นทรัลเวิลด์ > ออฟฟิศสาทร',
-      dateTime: '12 ส.ค. 2026 10:20 น.',
-      price: '85.00',
-      status: _HistoryStatus.completed,
-      vehicle: '🛵',
-      vehicleName: 'มอเตอร์ไซค์',
-      statusText: 'จัดส่งสำเร็จ',
-      driverName: 'สมชาย ใจดี',
-      driverPhone: '089-999-8888',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB470129-8812',
-      pickupAddress: 'ตลาดสี่มุมเมือง ปทุมธานี',
-      destinationAddress: 'ตลาดคลองเตย กรุงเทพฯ',
-      route: 'ตลาดสี่มุมเมือง > ตลาดคลองเตย',
-      dateTime: '10 ส.ค. 2026 09:00 น.',
-      price: '480.00',
-      status: _HistoryStatus.cancelled,
-      vehicle: '🚛',
-      vehicleName: 'รถห้องเย็น',
-      statusText: 'ยกเลิกรายการ (ผู้ส่งขอยกเลิก)',
-      driverName: 'กิตติศักดิ์ มั่นคง',
-      driverPhone: '082-111-9999',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB451009-7711',
-      pickupAddress: 'ห้างสรรพสินค้าเมกาบางนา',
-      destinationAddress: 'สนามบินสุวรรณภูมิ',
-      route: 'บางนา > สุวรรณภูมิ',
-      dateTime: '05 ส.ค. 2026 18:30 น.',
-      price: '220.00',
-      status: _HistoryStatus.completed,
-      vehicle: '🚗',
-      vehicleName: 'รถเก๋ง 4 ประตู',
-      statusText: 'จัดส่งสำเร็จ',
-      driverName: 'วิชัย มั่นคง',
-      driverPhone: '081-222-3333',
-    ),
-    _HistoryItemData(
-      orderNo: 'TB440218-4433',
-      pickupAddress: 'สถานีรถไฟหัวลำโพง',
-      destinationAddress: 'ตลาดน้อย สัมพันธวงศ์',
-      route: 'หัวลำโพง > ตลาดน้อย',
-      dateTime: '01 ส.ค. 2026 11:00 น.',
-      price: '65.00',
-      status: _HistoryStatus.cancelled,
-      vehicle: '🛵',
-      vehicleName: 'มอเตอร์ไซค์',
-      statusText: 'ยกเลิกรายการ (ระบบยกเลิกอัตโนมัติ)',
-      driverName: 'สมศักดิ์ สุขใจ',
-      driverPhone: '083-444-5555',
-    ),
-  ];
+  final List<_HistoryItemData> _defaultHistoryItems = [];
 
   late List<_HistoryItemData> _allHistoryItems;
 
@@ -355,6 +273,8 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
       ),
     );
 
+    ref.read(bookingProvider.notifier).reset();
+    ref.read(trackingProvider.notifier).reset();
     context.push(AppRoutes.booking);
   }
 
@@ -367,23 +287,68 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
     final notifications = ref.watch(notificationsProvider);
     final notificationCount = notifications.where((n) => !n.isRead).length;
     final driver = ref.watch(driverProvider);
+    final historyStateList = ref.watch(historyProvider);
+    final bookingState = ref.watch(bookingProvider);
+    final trackingState = ref.watch(trackingProvider);
 
-    // Update in-progress history item with current dynamic driver
-    if (_allHistoryItems.isNotEmpty && _allHistoryItems[0].status == _HistoryStatus.inProgress) {
-      _allHistoryItems[0] = _HistoryItemData(
-        orderNo: _allHistoryItems[0].orderNo,
-        pickupAddress: _allHistoryItems[0].pickupAddress,
-        destinationAddress: _allHistoryItems[0].destinationAddress,
-        route: _allHistoryItems[0].route,
-        dateTime: _allHistoryItems[0].dateTime,
-        price: _allHistoryItems[0].price,
-        status: _allHistoryItems[0].status,
-        vehicle: _allHistoryItems[0].vehicle,
-        vehicleName: driver.fullVehicleInfo,
-        statusText: _allHistoryItems[0].statusText,
+    // Save completed tracking order to historyProvider state if finished
+    if ((trackingState.isCompleted || trackingState.currentStep >= 3) && bookingState.bookingId != null && bookingState.bookingId!.isNotEmpty) {
+      final String completedOrderNo = bookingState.bookingId!;
+      final pName = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'ตำแหน่งปัจจุบันของคุณ';
+      final pAddr = bookingState.pickup.isNotEmpty ? bookingState.pickup : '123 อาคาร ชั้น 5 ถนนสุขุมวิท กรุงเทพฯ';
+      final dName = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'ผู้รับปลายทาง';
+      final dAddr = bookingState.dropoff.isNotEmpty ? bookingState.dropoff : '88/9 หมู่ 3 ตำบลแม่เหียะ อำเภอเมืองเชียงใหม่';
+
+      String emoji = '🛵';
+      if (bookingState.vehicleType.contains('กระบะ') || bookingState.vehicleType.contains('บรรทุก')) emoji = '🚚';
+      if (bookingState.vehicleType.contains('เก๋ง')) emoji = '🚗';
+      if (bookingState.vehicleType.contains('ห้องเย็น')) emoji = '🚛';
+
+      final userCompletedItem = HistoryItemModel(
+        orderNo: completedOrderNo,
+        pickupAddress: pAddr,
+        destinationAddress: dAddr,
+        route: '$pName > $dName',
+        dateTime: 'เมื่อสักครู่ (จัดส่งสำเร็จ)',
+        price: bookingState.estimatedPrice.toStringAsFixed(2),
+        status: HistoryStatus.completed,
+        vehicle: emoji,
+        vehicleName: bookingState.vehicleType,
+        statusText: 'จัดส่งสำเร็จ (ผู้รับเซ็นชื่อเรียบร้อย)',
         driverName: driver.name,
         driverPhone: driver.phone,
       );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(historyProvider.notifier).addOrUpdateOrder(userCompletedItem);
+      });
+    }
+
+    // Populate history items from historyProvider
+    for (var hItem in historyStateList) {
+      final historyItemData = _HistoryItemData(
+        orderNo: hItem.orderNo,
+        pickupAddress: hItem.pickupAddress,
+        destinationAddress: hItem.destinationAddress,
+        route: hItem.route,
+        dateTime: hItem.dateTime,
+        price: hItem.price,
+        status: hItem.status == HistoryStatus.completed
+            ? _HistoryStatus.completed
+            : (hItem.status == HistoryStatus.cancelled ? _HistoryStatus.cancelled : _HistoryStatus.inProgress),
+        vehicle: hItem.vehicle,
+        vehicleName: hItem.vehicleName,
+        statusText: hItem.statusText,
+        driverName: hItem.driverName,
+        driverPhone: hItem.driverPhone,
+      );
+
+      final idx = _allHistoryItems.indexWhere((e) => e.orderNo == hItem.orderNo);
+      if (idx != -1) {
+        _allHistoryItems[idx] = historyItemData;
+      } else {
+        _allHistoryItems.insert(0, historyItemData);
+      }
     }
 
     // Subfilters: ทั้งหมด, กำลังดำเนินการ, เสร็จสิ้น, ยกเลิก

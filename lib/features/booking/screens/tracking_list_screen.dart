@@ -7,6 +7,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../providers/booking_provider.dart';
+import '../providers/tracking_provider.dart';
 
 class TrackingListScreen extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
@@ -19,55 +20,44 @@ class TrackingListScreen extends ConsumerWidget {
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
     final bookingState = ref.watch(bookingProvider);
+    final trackingState = ref.watch(trackingProvider);
+
+    final bool isCompleted = trackingState.isCompleted || trackingState.currentStep >= 3;
 
     // Active in-progress orders list (พัสดุที่กำลังดำเนินการอยู่)
-    final List<_ActiveTrackingData> activeItems = [
-      _ActiveTrackingData(
-        orderNo: 'TB504321-5598',
-        pickupName: '123 อาคารสุขุมวิท กรุงเทพฯ',
-        dropoffName: '88/9 หมู่ 3 อ.เมือง เชียงใหม่',
-        route: 'สุขุมวิท (กทม.) ➔ อ.เมือง (เชียงใหม่)',
-        vehicle: '🛵',
-        vehicleName: 'มอเตอร์ไซค์',
-        dateTime: 'วันนี้ 14:30 น.',
-        statusStep: 'ไรเดอร์กำลังมุ่งหน้าไปจุดส่ง',
-        driverName: 'สมชาย ใจดี',
-        driverPhone: '089-999-8888',
-      ),
-      _ActiveTrackingData(
-        orderNo: 'TB504320-1124',
-        pickupName: 'คลังสินค้า บางนา กม.4',
-        dropoffName: '45/2 ถนนสาทร กรุงเทพฯ',
-        route: 'บางนา (สมุทรปราการ) ➔ ถนนสาทร (กทม.)',
-        vehicle: '🚗',
-        vehicleName: 'รถเก๋ง 4 ประตู',
-        dateTime: 'วันนี้ 11:15 น.',
-        statusStep: 'กำลังรับสินค้าที่จุดรับ',
-        driverName: 'วิชัย มั่นคง',
-        driverPhone: '081-222-3333',
-      ),
-    ];
+    final List<_ActiveTrackingData> activeItems = [];
 
-    // Prepend user created booking if active
-    if (bookingState.bookingId != null && bookingState.bookingId!.isNotEmpty) {
-      final exists = activeItems.any((i) => i.orderNo == bookingState.bookingId);
+    // Prepend user created booking if active and NOT completed
+    final userOrderNo = (bookingState.bookingId != null && bookingState.bookingId!.isNotEmpty)
+        ? bookingState.bookingId!
+        : (bookingState.dropoffName.isNotEmpty ? 'TB504322-9981' : null);
+
+    if (userOrderNo != null && !isCompleted) {
+      final exists = activeItems.any((i) => i.orderNo == userOrderNo);
       if (!exists) {
         String emoji = '🛵';
         if (bookingState.vehicleType.contains('กระบะ') || bookingState.vehicleType.contains('บรรทุก')) emoji = '🚚';
         if (bookingState.vehicleType.contains('เก๋ง')) emoji = '🚗';
         if (bookingState.vehicleType.contains('ห้องเย็น')) emoji = '🚛';
 
+        final pName = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'ตำแหน่งปัจจุบันของคุณ';
+        final dName = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'ผู้รับปลายทาง';
+
+        String statusStepText = 'ชำระเงินแล้ว - ไรเดอร์กำลังมุ่งหน้าไปรับพัสดุ';
+        if (trackingState.currentStep == 1) statusStepText = 'ไรเดอร์รับพัสดุเรียบร้อยแล้ว';
+        if (trackingState.currentStep == 2) statusStepText = 'พัสดุอยู่ระหว่างการนำส่ง (บนทางด่วน)';
+
         activeItems.insert(
           0,
           _ActiveTrackingData(
-            orderNo: bookingState.bookingId!,
-            pickupName: bookingState.pickupName,
-            dropoffName: bookingState.dropoffName,
-            route: '${bookingState.pickupName} ➔ ${bookingState.dropoffName}',
+            orderNo: userOrderNo,
+            pickupName: pName,
+            dropoffName: dName,
+            route: '$pName ➔ $dName',
             vehicle: emoji,
             vehicleName: bookingState.vehicleType,
             dateTime: 'เมื่อสักครู่',
-            statusStep: 'ชำระเงินแล้ว - กำลังค้นหาไรเดอร์และดำเนินงาน',
+            statusStep: statusStepText,
             driverName: 'สมชาย ใจดี',
             driverPhone: '089-999-8888',
           ),
@@ -240,7 +230,7 @@ class TrackingListScreen extends ConsumerWidget {
 
                   // Active Orders List Cards
                   if (activeItems.isEmpty)
-                    _buildEmptyActiveState(isDarkMode, currentLang)
+                    _buildEmptyActiveState(isDarkMode, currentLang, context)
                   else
                     ...activeItems.map((item) => _buildActiveTrackingCard(item, isDarkMode, currentLang, context)),
 
@@ -462,22 +452,38 @@ class TrackingListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyActiveState(bool isDarkMode, AppLanguage currentLang) {
+  Widget _buildEmptyActiveState(bool isDarkMode, AppLanguage currentLang, BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 30),
         child: Column(
           children: [
-            const Icon(Icons.check_circle_outline_rounded, size: 48, color: Color(0xFF10B981)),
+            const Icon(Icons.check_circle_outline_rounded, size: 52, color: Color(0xFF10B981)),
             const SizedBox(height: 12),
             Text(
               'ไม่มีพัสดุที่กำลังดำเนินการอยู่',
-              style: GoogleFonts.kanit(fontSize: 15, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1F2937)),
+              style: GoogleFonts.kanit(fontSize: 15.5, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1F2937)),
             ),
             const SizedBox(height: 4),
             Text(
-              'สร้างออเดอร์ใหม่เพื่อเรียกรถขนส่งสินค้าได้ทันทีครับ',
+              'พัสดุล่าสุดจัดส่งสำเร็จแล้ว ย้ายไปที่ประวัติการขนส่งเรียบร้อยแล้ว',
               style: GoogleFonts.kanit(fontSize: 12, color: const Color(0xFF94A3B8)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 14),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.history_rounded, size: 18, color: Colors.white),
+              label: Text(
+                'ดูประวัติการขนส่ง 📋',
+                style: GoogleFonts.kanit(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1C7FF6),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: () => context.push(AppRoutes.history),
             ),
           ],
         ),

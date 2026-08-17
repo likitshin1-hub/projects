@@ -458,7 +458,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                           shadowColor: const Color(0xFF10B981).withValues(alpha: 0.4),
                         ),
                         onPressed: () {
-                          context.pushReplacement('${AppRoutes.tracking}/TB504321-5598');
+                          context.pushReplacement('${AppRoutes.tracking}/$displayOrderNo');
                         },
                       ),
                     ),
