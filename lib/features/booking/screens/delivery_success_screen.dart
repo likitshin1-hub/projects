@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/providers/theme_provider.dart';
+import '../providers/booking_provider.dart';
+import '../providers/driver_provider.dart';
 
-class DeliverySuccessScreen extends StatefulWidget {
+class DeliverySuccessScreen extends ConsumerStatefulWidget {
   const DeliverySuccessScreen({super.key});
 
   @override
-  State<DeliverySuccessScreen> createState() => _DeliverySuccessScreenState();
+  ConsumerState<DeliverySuccessScreen> createState() => _DeliverySuccessScreenState();
 }
 
-class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
+class _DeliverySuccessScreenState extends ConsumerState<DeliverySuccessScreen> {
   int _rating = 0;
   bool _isSubmitted = false;
   final TextEditingController _commentController = TextEditingController();
@@ -79,10 +83,35 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
     );
   }
 
+  String _cleanPlaceName(String input, String fallbackAddress, String defaultName) {
+    final invalidStrings = {'sad', 'asd', 'abc', 'test', '123', 'a', 'b', 'c', '1', '2', '3', 'xxx', 'yyy', 'zzz'};
+    final trimmedInput = input.trim();
+    if (trimmedInput.length > 3 && !invalidStrings.contains(trimmedInput.toLowerCase())) {
+      return trimmedInput;
+    }
+    final trimmedFallback = fallbackAddress.trim();
+    if (trimmedFallback.length > 3 && !invalidStrings.contains(trimmedFallback.toLowerCase())) {
+      return trimmedFallback;
+    }
+    return defaultName;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
+    final bookingState = ref.watch(bookingProvider);
+    final driver = ref.watch(driverProvider);
+    final recipientStr = _cleanPlaceName(bookingState.dropoffName, '', 'คุณอนันต์ (ผู้รับปลายทาง ชลบุรี)');
+    final dropoffStr = _cleanPlaceName(bookingState.dropoffName, bookingState.dropoff, 'วิทยาลัยอาชีวศึกษาชลบุรี');
+
+    final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF2F9F2);
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDarkMode ? const Color(0xFF334155) : Colors.grey[300]!;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+    final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F9F2), // Light green tint for success
+      backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -106,7 +135,7 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
             child: Icon(
               Icons.inventory,
               size: 150,
-              color: Colors.orange.withValues(alpha: 0.2),
+              color: Colors.orange.withValues(alpha: isDarkMode ? 0.1 : 0.2),
             ),
           ),
 
@@ -141,7 +170,7 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                   style: GoogleFonts.kanit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -150,13 +179,13 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(color: borderColor),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 10,
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
+                        blurRadius: 12,
                         offset: const Offset(0, 4),
                       )
                     ],
@@ -166,18 +195,22 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                     children: [
                       Text(
                         'รายละเอียดการจัดส่ง',
-                        style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: GoogleFonts.kanit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: textColor,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      _buildDetailRow(Icons.inventory_2, 'หมายเลขพัสดุ', 'TH2154966541A', Colors.orange),
-                      const Divider(height: 24),
-                      _buildDetailRow(Icons.person, 'ผู้รับสินค้า', 'นาย สมปอง มีดี', AppColors.primary),
-                      const Divider(height: 24),
-                      _buildDetailRow(Icons.location_on, 'จัดส่งไปยัง', 'วิทยาลัยอาชีวศึกษาชลบุรี', Colors.red),
-                      const Divider(height: 24),
-                      _buildDetailRow(Icons.calendar_today, 'วันที่จัดส่ง', '18 พ.ค 2569 15.30น.', AppColors.primary),
-                      const Divider(height: 24),
-                      _buildDetailRow(Icons.directions_car, 'ผู้จัดส่ง', 'คนขับ สมชาย มั่นคง', Colors.black),
+                      _buildDetailRow(Icons.inventory_2, 'หมายเลขพัสดุ', 'TH2154966541A', Colors.orange, textColor, subTextColor),
+                      Divider(height: 24, color: borderColor),
+                      _buildDetailRow(Icons.person, 'ผู้รับสินค้า', recipientStr, AppColors.primary, textColor, subTextColor),
+                      Divider(height: 24, color: borderColor),
+                      _buildDetailRow(Icons.location_on, 'จัดส่งไปยัง', dropoffStr, Colors.red, textColor, subTextColor),
+                      Divider(height: 24, color: borderColor),
+                      _buildDetailRow(Icons.calendar_today, 'วันที่จัดส่ง', '18 พ.ค 2569 15.30น.', AppColors.primary, textColor, subTextColor),
+                      Divider(height: 24, color: borderColor),
+                      _buildDetailRow(Icons.directions_car, 'ผู้จัดส่ง', '${driver.name} (${driver.fullVehicleInfo})', isDarkMode ? Colors.white : Colors.black, textColor, subTextColor),
                     ],
                   ),
                 ),
@@ -187,16 +220,16 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _isSubmitted ? const Color(0xFF10B981) : Colors.grey[300]!,
+                      color: _isSubmitted ? const Color(0xFF10B981) : borderColor,
                       width: _isSubmitted ? 1.5 : 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 10,
+                        color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
+                        blurRadius: 12,
                         offset: const Offset(0, 4),
                       )
                     ],
@@ -215,12 +248,16 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                               children: [
                                 Text(
                                   'ให้คะแนนการให้บริการของไรเดอร์',
-                                  style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: GoogleFonts.kanit(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: textColor,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'ความพึงพอใจของคุณ ช่วยพัฒนาเราให้ดียิ่งขึ้น',
-                                  style: GoogleFonts.kanit(color: Colors.grey, fontSize: 12),
+                                  style: GoogleFonts.kanit(color: subTextColor, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -248,7 +285,7 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                               child: Icon(
                                 isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
                                 size: 42,
-                                color: isSelected ? Colors.amber : Colors.grey.shade400,
+                                color: isSelected ? Colors.amber : (isDarkMode ? const Color(0xFF475569) : Colors.grey.shade400),
                               ),
                             ),
                           );
@@ -262,7 +299,7 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                         style: GoogleFonts.kanit(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: _rating > 0 ? Colors.amber.shade900 : Colors.grey,
+                          color: _rating > 0 ? (isDarkMode ? const Color(0xFFFBBF24) : Colors.amber.shade900) : subTextColor,
                         ),
                       ),
 
@@ -271,14 +308,16 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                         TextField(
                           controller: _commentController,
                           maxLines: 2,
-                          style: GoogleFonts.kanit(fontSize: 13),
+                          style: GoogleFonts.kanit(fontSize: 13, color: textColor),
                           decoration: InputDecoration(
                             hintText: 'เขียนข้อความชมเชยหรือติชมเพิ่มเติม (ถ้ามี)...',
-                            hintStyle: GoogleFonts.kanit(fontSize: 12, color: Colors.grey.shade400),
+                            hintStyle: GoogleFonts.kanit(fontSize: 12, color: subTextColor),
                             contentPadding: const EdgeInsets.all(12),
+                            filled: true,
+                            fillColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: borderColor),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -314,7 +353,7 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
@@ -346,12 +385,12 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
                   child: ElevatedButton(
                     onPressed: () => context.go(AppRoutes.home),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7FF77F), // Light green
-                      foregroundColor: Colors.black,
+                      backgroundColor: const Color(0xFF10B981), // Emerald green
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      elevation: 0,
+                      elevation: 2,
                     ),
                     child: Text(
                       'กลับไปหน้าหลัก',
@@ -368,20 +407,24 @@ class _DeliverySuccessScreenState extends State<DeliverySuccessScreen> {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value, Color iconColor) {
+  Widget _buildDetailRow(IconData icon, String label, String value, Color iconColor, Color textColor, Color subTextColor) {
     return Row(
       children: [
         Icon(icon, size: 20, color: iconColor),
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: Text(label, style: GoogleFonts.kanit(color: Colors.grey, fontSize: 14)),
+          child: Text(label, style: GoogleFonts.kanit(color: subTextColor, fontSize: 14)),
         ),
         Expanded(
           flex: 3,
           child: Text(
             value,
-            style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14),
+            style: GoogleFonts.kanit(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: textColor,
+            ),
             textAlign: TextAlign.right,
           ),
         ),

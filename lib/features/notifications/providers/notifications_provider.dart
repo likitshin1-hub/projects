@@ -21,8 +21,9 @@ class NotificationsNotifier extends Notifier<List<AppNotificationModel>> {
     required String message,
     required String type,
   }) {
-    // Check if a notification with identical title already exists
-    final existingIndex = state.indexWhere((n) => n.title == title);
+    // If updating an order status notification, update existing order notification or insert at top
+    final existingIndex = state.indexWhere(
+        (n) => n.type == type && (n.title.contains('ออเดอร์') || n.title == title));
     if (existingIndex != -1) {
       final updatedList = List<AppNotificationModel>.from(state);
       updatedList[existingIndex] = AppNotificationModel(

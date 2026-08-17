@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../booking/providers/driver_provider.dart';
 
-class ChatDetailScreen extends StatefulWidget {
+class ChatDetailScreen extends ConsumerStatefulWidget {
   const ChatDetailScreen({super.key});
 
   @override
-  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+  ConsumerState<ChatDetailScreen> createState() => _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -25,6 +27,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final driver = ref.watch(driverProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F7FB),
@@ -72,16 +75,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       height: 44,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        color: driver.avatarBgColor,
                         border: Border.all(color: Colors.white24, width: 1.5),
                       ),
-                      child: ClipOval(
-                        child: Image.asset(
-                          AppAssets.defaultDriver,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.person, color: Colors.white),
-                        ),
-                      ),
+                      child: Icon(driver.avatarIcon, color: Colors.white, size: 24),
                     ),
                     Container(
                       width: 11,
@@ -103,7 +100,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'คนขับ : สมชาย',
+                        'คนขับ : ${driver.name}',
                         style: GoogleFonts.kanit(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

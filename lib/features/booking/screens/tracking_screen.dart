@@ -12,7 +12,8 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/services/directions_service.dart';
 import '../providers/booking_provider.dart';
-import '../../notifications/providers/notifications_provider.dart';
+import '../providers/driver_provider.dart';
+import '../providers/tracking_provider.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final String bookingId;
@@ -24,8 +25,6 @@ class TrackingScreen extends ConsumerStatefulWidget {
 }
 
 class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTickerProviderStateMixin {
-  int _currentStep = 0; // 0=รับออเดอร์, 1=กำลังไปรับ, 2=กำลังส่ง, 3=สำเร็จ
-  Timer? _statusProgressTimer;
   BitmapDescriptor _riderMarkerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
 
   GoogleMapController? _mapController;
@@ -46,125 +45,29 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     )..repeat();
 
     _initMapMarkersAndFetchProductionRoute();
-    _startStatusSimulationTimer();
 
-    // Trigger initial notification for Step 0
+    // Generate random driver profile and start global background tracking simulation
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _pushStatusNotification(0);
+      final bookingState = ref.read(bookingProvider);
+      ref.read(driverProvider.notifier).generateRandomDriver(bookingState.vehicleType);
+      ref.read(trackingProvider.notifier).startTrackingTimer(ref);
     });
   }
 
   @override
   void dispose() {
-    _statusProgressTimer?.cancel();
     _pulseController.dispose();
     super.dispose();
   }
 
-  void _pushStatusNotification(int step) {
-    String title = '';
-    String message = '';
-
-    switch (step) {
-      case 0:
-        title = 'รับออเดอร์เรียบร้อยแล้ว';
-        message = 'คนขับ สมชาย มั่นคง กำลังเดินทางไปรับพัสดุของคุณ';
-        break;
-      case 1:
-        title = 'ไรเดอร์รับพัสดุเรียบร้อยแล้ว';
-        message = 'พัสดุของคุณถูกรับขึ้นรถและออกเดินทางมุ่งหน้าสู่จุดส่งสินค้า';
-        break;
-      case 2:
-        title = 'พัสดุของคุณอยู่ระหว่างการขนส่ง';
-        message = 'พนักงานขับรถเดินทางถึงทางด่วนบูรพาวิถีแล้ว (คาดว่าจะถึงใน 15 นาที)';
-        break;
-      case 3:
-        title = 'การจัดส่งออเดอร์สำเร็จเรียบร้อย';
-        message = 'ผู้รับปลายทางเซ็นรับพัสดุเรียบร้อยแล้ว ขอบคุณที่ใช้บริการ TB MOVE HUB';
-        break;
-    }
-
-    if (title.isNotEmpty) {
-      ref.read(notificationsProvider.notifier).addNotification(
-            title: title,
-            message: message,
-            type: 'order',
-          );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                      Text(
-                        message,
-                        style: GoogleFonts.kanit(fontSize: 11),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF1C7FF6),
-            duration: const Duration(seconds: 4),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
-  void _startStatusSimulationTimer() {
-    _statusProgressTimer?.cancel();
-    _statusProgressTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      if (_currentStep < 3) {
-        setState(() {
-          _currentStep++;
-          _updateRiderMarkerForCurrentStep();
-        });
-
-        _pushStatusNotification(_currentStep);
-
-        if (_currentStep == 3) {
-          timer.cancel();
-          Future.delayed(const Duration(milliseconds: 3000), () {
-            if (mounted) {
-              context.push(AppRoutes.deliverySuccess);
-            }
-          });
-        }
-      } else {
-        timer.cancel();
-      }
-    });
-  }
-
-  void _updateRiderMarkerForCurrentStep() {
+  void _updateRiderMarkerForCurrentStep(int currentStep) {
     LatLng newDriverLatLng;
 
     if (_liveRoutePoints.isNotEmpty) {
       double progressRatio = 0.0;
-      if (_currentStep == 1) progressRatio = 0.25;
-      if (_currentStep == 2) progressRatio = 0.65;
-      if (_currentStep == 3) progressRatio = 1.0;
+      if (currentStep == 1) progressRatio = 0.25;
+      if (currentStep == 2) progressRatio = 0.65;
+      if (currentStep == 3) progressRatio = 1.0;
 
       int targetIndex = (progressRatio * (_liveRoutePoints.length - 1)).toInt();
       if (targetIndex >= _liveRoutePoints.length) targetIndex = _liveRoutePoints.length - 1;
@@ -176,9 +79,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       final pickupLatLng = LatLng(bookingState.pickupLat, bookingState.pickupLng);
       final dropoffLatLng = LatLng(bookingState.dropoffLat, bookingState.dropoffLng);
       double progressRatio = 0.0;
-      if (_currentStep == 1) progressRatio = 0.25;
-      if (_currentStep == 2) progressRatio = 0.65;
-      if (_currentStep == 3) progressRatio = 1.0;
+      if (currentStep == 1) progressRatio = 0.25;
+      if (currentStep == 2) progressRatio = 0.65;
+      if (currentStep == 3) progressRatio = 1.0;
 
       newDriverLatLng = LatLng(
         pickupLatLng.latitude + (dropoffLatLng.latitude - pickupLatLng.latitude) * progressRatio,
@@ -186,6 +89,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       );
     }
 
+    final driver = ref.read(driverProvider);
     _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
     _markers.add(
       Marker(
@@ -193,8 +97,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
         position: newDriverLatLng,
         anchor: const Offset(0.5, 0.5),
         flat: true,
-        infoWindow: const InfoWindow(
-          title: 'ไรเดอร์ผู้จัดส่ง (สมปอง มีดี)',
+        infoWindow: InfoWindow(
+          title: 'ไรเดอร์ผู้จัดส่ง (${driver.name})',
           snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
         ),
         icon: _riderMarkerIcon,
@@ -223,7 +127,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
         return isEn ? 'Expressway Transit (In Progress)' : 'อยู่บนทางพิเศษบูรพาวิถี (กม.22 บางพลี)';
       case 3:
       default:
-        return isEn ? 'Package Delivered Successfully! 🎉' : 'จัดส่งพัสดุถึงมือผู้รับสำเร็จเรียบร้อยแล้ว! 🎉';
+        return isEn ? 'Package Delivered Successfully! (Completed) 🎉' : 'จัดส่งพัสดุถึงมือผู้รับสำเร็จเรียบร้อยแล้ว! (เสร็จสิ้นแล้ว) 🎉';
     }
   }
 
@@ -423,7 +327,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
             ),
           );
 
-          _updateRiderMarkerForCurrentStep();
+          _updateRiderMarkerForCurrentStep(ref.read(trackingProvider).currentStep);
           _fitCameraToBounds();
         } else {
           // Fallback straight line polyline if no internet
@@ -496,6 +400,19 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     );
   }
 
+  String _cleanPlaceName(String input, String fallbackAddress, String defaultName) {
+    final invalidStrings = {'sad', 'asd', 'abc', 'test', '123', 'a', 'b', 'c', '1', '2', '3', 'xxx', 'yyy', 'zzz'};
+    final trimmedInput = input.trim();
+    if (trimmedInput.length > 3 && !invalidStrings.contains(trimmedInput.toLowerCase())) {
+      return trimmedInput;
+    }
+    final trimmedFallback = fallbackAddress.trim();
+    if (trimmedFallback.length > 3 && !invalidStrings.contains(trimmedFallback.toLowerCase())) {
+      return trimmedFallback;
+    }
+    return defaultName;
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
@@ -503,6 +420,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     final currentLang = ref.watch(languageProvider);
     final isEn = currentLang == AppLanguage.en;
     final bookingState = ref.watch(bookingProvider);
+    final driver = ref.watch(driverProvider);
+    final trackingState = ref.watch(trackingProvider);
+    final _currentStep = trackingState.currentStep;
 
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -510,10 +430,20 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     final subTextColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final displayBookingId = widget.bookingId.isEmpty ? 'B25538914' : widget.bookingId;
 
-    final dynamicPickup = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'จุดรับสินค้า';
-    final dynamicDropoff = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'จุดส่งสินค้า';
+    final dynamicPickup = _cleanPlaceName(bookingState.pickupName, bookingState.pickup, 'ตำแหน่งปัจจุบันของคุณ (สยามพารากอน)');
+    final dynamicDropoff = _cleanPlaceName(bookingState.dropoffName, bookingState.dropoff, 'วิทยาลัยอาชีวศึกษาชลบุรี');
     final dynamicDistance = '${bookingState.distanceKm} กิโลเมตร';
     final dynamicDuration = '${bookingState.estimatedDurationMinutes} นาที';
+
+    String driverVehicleText = driver.fullVehicleInfo;
+    IconData vehicleTimelineIcon = Icons.two_wheeler_rounded;
+
+    final vehicleLower = bookingState.vehicleType.toLowerCase();
+    if (vehicleLower.contains('กระบะ') || vehicleLower.contains('ตู้ทึบ') || vehicleLower.contains('truck')) {
+      vehicleTimelineIcon = Icons.local_shipping_rounded;
+    } else if (vehicleLower.contains('เก๋ง') || vehicleLower.contains('car')) {
+      vehicleTimelineIcon = Icons.directions_car_rounded;
+    }
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF),
@@ -706,19 +636,17 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                               height: 52,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
-                                ),
+                                color: driver.avatarBgColor,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF1C7FF6).withValues(alpha: 0.3),
+                                    color: driver.avatarBgColor.withValues(alpha: 0.4),
                                     blurRadius: 8,
                                     offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
                               alignment: Alignment.center,
-                              child: const Icon(Icons.person_rounded, size: 32, color: Colors.white),
+                              child: Icon(driver.avatarIcon, size: 30, color: Colors.white),
                             ),
                             Container(
                               width: 14,
@@ -741,7 +669,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      'นาย สมปอง มีดี',
+                                      driver.name,
                                       style: GoogleFonts.kanit(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -757,7 +685,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Isuzu D-Max ตู้ทึบ (ทะเบียน 1กข-9999 ชลบุรี)',
+                                driverVehicleText,
                                 style: GoogleFonts.kanit(
                                   fontSize: 12,
                                   color: subTextColor,
@@ -770,7 +698,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                   const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '4.9',
+                                    '${driver.rating}',
                                     style: GoogleFonts.kanit(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -778,7 +706,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                                     ),
                                   ),
                                   Text(
-                                    ' (326 รีวิว)',
+                                    ' (${driver.reviewCount} รีวิว)',
                                     style: GoogleFonts.kanit(
                                       fontSize: 12,
                                       color: subTextColor,
@@ -896,13 +824,13 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildTimelineStep(0, Icons.assignment_turned_in_rounded, 'รับออเดอร์', isDarkMode),
-                              _buildTimelineLine(0, isDarkMode),
-                              _buildTimelineStep(1, Icons.directions_bike_rounded, 'รับพัสดุแล้ว', isDarkMode),
-                              _buildTimelineLine(1, isDarkMode),
-                              _buildTimelineStep(2, Icons.local_shipping_rounded, 'บนทางด่วน', isDarkMode),
-                              _buildTimelineLine(2, isDarkMode),
-                              _buildTimelineStep(3, Icons.check_circle_rounded, 'สำเร็จ', isDarkMode),
+                              _buildTimelineStep(0, Icons.assignment_turned_in_rounded, 'รับออเดอร์', isDarkMode, _currentStep),
+                              _buildTimelineLine(0, isDarkMode, _currentStep),
+                              _buildTimelineStep(1, vehicleTimelineIcon, 'รับพัสดุแล้ว', isDarkMode, _currentStep),
+                              _buildTimelineLine(1, isDarkMode, _currentStep),
+                              _buildTimelineStep(2, Icons.local_shipping_rounded, 'บนทางด่วน', isDarkMode, _currentStep),
+                              _buildTimelineLine(2, isDarkMode, _currentStep),
+                              _buildTimelineStep(3, Icons.check_circle_rounded, 'สำเร็จ', isDarkMode, _currentStep),
                             ],
                           ),
                         ],
@@ -1113,9 +1041,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     );
   }
 
-  Widget _buildTimelineStep(int stepIndex, IconData icon, String label, bool isDark) {
-    final bool isCompleted = stepIndex <= _currentStep;
-    final bool isCurrent = stepIndex == _currentStep;
+  Widget _buildTimelineStep(int stepIndex, IconData icon, String label, bool isDark, int currentStep) {
+    final bool isCompleted = stepIndex <= currentStep;
+    final bool isCurrent = stepIndex == currentStep;
 
     final circleColor = isCompleted
         ? (isCurrent ? const Color(0xFF1C7FF6) : const Color(0xFF10B981))
@@ -1159,8 +1087,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     );
   }
 
-  Widget _buildTimelineLine(int stepIndex, bool isDark) {
-    final bool isCompleted = stepIndex < _currentStep;
+  Widget _buildTimelineLine(int stepIndex, bool isDark, int currentStep) {
+    final bool isCompleted = stepIndex < currentStep;
     return Expanded(
       child: Container(
         height: 2.5,

@@ -154,7 +154,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     if (widget.initialStep != null) {
       _currentStep = widget.initialStep!;
     }
-    _selectedVehicle = widget.initialVehicleType ?? 'รถกระบะ';
+    _selectedVehicle = widget.initialVehicleType ?? 'มอเตอร์ไซค์';
     _descriptionController = TextEditingController(text: 'เครื่องใช้ไฟฟ้า (หม้อทอดไร้น้ำมัน)');
 
     // Synchronize to the provider state initially
@@ -761,6 +761,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {
+                  setState(() {
+                    _pickupName = nameCtrl.text;
+                    _pickupAddress1 = addr1Ctrl.text;
+                    _pickupAddress2 = addr2Ctrl.text;
+                    _pickupTime = timeCtrl.text;
+                  });
+                  _syncToProvider();
                   Navigator.pop(context);
                   _showMapPinPickerModal();
                 },
@@ -768,6 +775,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const SizedBox(height: 14),
               TextField(
                 controller: nameCtrl,
+                onChanged: (val) {
+                  _pickupName = val;
+                  _syncToProvider();
+                },
                 decoration: InputDecoration(
                   labelText: 'ชื่อบริษัท / ผู้ส่ง',
                   labelStyle: GoogleFonts.kanit(),
@@ -777,6 +788,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: addr1Ctrl,
+                onChanged: (val) {
+                  _pickupAddress1 = val;
+                  _syncToProvider();
+                },
                 decoration: InputDecoration(
                   labelText: 'ที่อยู่ บรรทัดที่ 1 (อาคาร, ชั้น, ถนน)',
                   labelStyle: GoogleFonts.kanit(),
@@ -786,6 +801,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: addr2Ctrl,
+                onChanged: (val) {
+                  _pickupAddress2 = val;
+                  _syncToProvider();
+                },
                 decoration: InputDecoration(
                   labelText: 'ที่อยู่ บรรทัดที่ 2 (แขวง, เขต, จังหวัด)',
                   labelStyle: GoogleFonts.kanit(),
@@ -795,6 +814,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: timeCtrl,
+                onChanged: (val) {
+                  _pickupTime = val;
+                  _syncToProvider();
+                },
                 decoration: InputDecoration(
                   labelText: 'เวลาทำการ',
                   labelStyle: GoogleFonts.kanit(),
@@ -895,6 +918,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {
+                  setState(() {
+                    _dropoffName = nameCtrl.text;
+                    _dropoffAddress = addrCtrl.text;
+                    _dropoffPhone = phoneCtrl.text;
+                  });
+                  _syncToProvider();
                   Navigator.pop(context);
                   _showMapPinPickerModal();
                 },
@@ -902,6 +931,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               const SizedBox(height: 14),
               TextField(
                 controller: nameCtrl,
+                onChanged: (val) {
+                  _dropoffName = val;
+                  _syncToProvider();
+                },
                 decoration: InputDecoration(
                   labelText: 'ชื่อผู้รับ',
                   labelStyle: GoogleFonts.kanit(),
@@ -912,6 +945,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               TextField(
                 controller: addrCtrl,
                 maxLines: 2,
+                onChanged: (val) {
+                  _dropoffAddress = val;
+                  _syncToProvider();
+                },
                 decoration: InputDecoration(
                   labelText: 'ที่อยู่จุดส่งโดยละเอียด',
                   labelStyle: GoogleFonts.kanit(),

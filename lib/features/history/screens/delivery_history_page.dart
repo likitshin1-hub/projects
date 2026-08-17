@@ -6,6 +6,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../booking/providers/driver_provider.dart';
 import '../../home/widgets/bottom_navigation.dart';
 import '../../notifications/providers/notifications_provider.dart';
 
@@ -365,6 +366,25 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
     final isEn = currentLang == AppLanguage.en;
     final notifications = ref.watch(notificationsProvider);
     final notificationCount = notifications.where((n) => !n.isRead).length;
+    final driver = ref.watch(driverProvider);
+
+    // Update in-progress history item with current dynamic driver
+    if (_allHistoryItems.isNotEmpty && _allHistoryItems[0].status == _HistoryStatus.inProgress) {
+      _allHistoryItems[0] = _HistoryItemData(
+        orderNo: _allHistoryItems[0].orderNo,
+        pickupAddress: _allHistoryItems[0].pickupAddress,
+        destinationAddress: _allHistoryItems[0].destinationAddress,
+        route: _allHistoryItems[0].route,
+        dateTime: _allHistoryItems[0].dateTime,
+        price: _allHistoryItems[0].price,
+        status: _allHistoryItems[0].status,
+        vehicle: _allHistoryItems[0].vehicle,
+        vehicleName: driver.fullVehicleInfo,
+        statusText: _allHistoryItems[0].statusText,
+        driverName: driver.name,
+        driverPhone: driver.phone,
+      );
+    }
 
     // Subfilters: ทั้งหมด, กำลังดำเนินการ, เสร็จสิ้น, ยกเลิก
     final subFilters = isEn

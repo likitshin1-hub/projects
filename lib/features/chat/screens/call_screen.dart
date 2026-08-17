@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class CallScreen extends StatefulWidget {
+import '../../booking/providers/driver_provider.dart';
+
+class CallScreen extends ConsumerStatefulWidget {
   final String driverId;
   const CallScreen({super.key, required this.driverId});
 
   @override
-  State<CallScreen> createState() => _CallScreenState();
+  ConsumerState<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends State<CallScreen> {
+class _CallScreenState extends ConsumerState<CallScreen> {
   bool _isCallEnded = false;
 
   // Button States
@@ -137,12 +140,15 @@ class _CallScreenState extends State<CallScreen> {
   //  ACTIVE CALL SCREEN (Light Gray)
   // ─────────────────────────────────────────────
   Widget _buildActiveCall() {
+    final driver = ref.watch(driverProvider);
     final isCallCenter = widget.driverId == 'call_center' ||
         widget.driverId == 'support' ||
         widget.driverId == 'center';
-    final displayName  = isCallCenter ? 'ศูนย์บริการลูกค้า (Call Center)' : 'ทนงทวย ตีหอย';
-    final displayPhone = isCallCenter ? '02-123-4567' : '099-000-0009';
-    final displayIcon  = isCallCenter ? Icons.headset_mic_rounded : Icons.person;
+    final displayName  = isCallCenter ? 'ศูนย์บริการลูกค้า (Call Center)' : driver.name;
+    final displayPhone = isCallCenter ? '02-123-4567' : driver.phone;
+    final displayIcon  = isCallCenter ? Icons.headset_mic_rounded : driver.avatarIcon;
+    final avatarBgColor = isCallCenter ? Colors.white : driver.avatarBgColor;
+    final avatarIconColor = isCallCenter ? _accent : Colors.white;
 
     return Scaffold(
       backgroundColor: _bgTop,
@@ -178,7 +184,7 @@ class _CallScreenState extends State<CallScreen> {
                           height: avatarSize,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            color: avatarBgColor,
                             border: Border.all(color: _accent, width: 3),
                             boxShadow: [
                               BoxShadow(
@@ -194,7 +200,7 @@ class _CallScreenState extends State<CallScreen> {
                             ],
                           ),
                           child: Center(
-                            child: Icon(displayIcon, size: avatarSize * 0.52, color: _accent),
+                            child: Icon(displayIcon, size: avatarSize * 0.52, color: avatarIconColor),
                           ),
                         ),
                         const SizedBox(height: 20),

@@ -8,6 +8,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../providers/driver_provider.dart';
 
 class TrackingDetailScreen extends ConsumerWidget {
   final String bookingId;
@@ -18,6 +19,7 @@ class TrackingDetailScreen extends ConsumerWidget {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
+    final driver = ref.watch(driverProvider);
     String t(String key) => AppTranslations.getText(currentLang, key);
 
     final bgColor = isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFF);
@@ -155,7 +157,7 @@ class TrackingDetailScreen extends ConsumerWidget {
                   // ------------------------------------------
                   // CARD 2: DRIVER & VEHICLE BANNER
                   // ------------------------------------------
-                  _buildDriverCard(context, cardBg, borderColor, textColor, subTextColor, isDarkMode),
+                  _buildDriverCard(context, driver, cardBg, borderColor, textColor, subTextColor, isDarkMode),
                   const SizedBox(height: 16),
 
                   // ------------------------------------------
@@ -427,7 +429,7 @@ class TrackingDetailScreen extends ConsumerWidget {
   }
 
   // Driver details card
-  Widget _buildDriverCard(BuildContext context, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
+  Widget _buildDriverCard(BuildContext context, DriverModel driver, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -467,10 +469,10 @@ class TrackingDetailScreen extends ConsumerWidget {
                 height: 52,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF1C7FF6).withValues(alpha: 0.1),
+                  color: driver.avatarBgColor,
                   border: Border.all(color: const Color(0xFF1C7FF6), width: 1.5),
                 ),
-                child: const Icon(Icons.person_rounded, color: Color(0xFF1C7FF6), size: 30),
+                child: Icon(driver.avatarIcon, color: Colors.white, size: 28),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -480,7 +482,7 @@ class TrackingDetailScreen extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          'นาย สมปอง มีดี',
+                          driver.name,
                           style: GoogleFonts.kanit(
                             fontSize: 15.5,
                             fontWeight: FontWeight.bold,
@@ -492,7 +494,7 @@ class TrackingDetailScreen extends ConsumerWidget {
                       ],
                     ),
                     Text(
-                      'Isuzu D-Max (ทะเบียน 1กข-9999 ชลบุรี)',
+                      driver.fullVehicleInfo,
                       style: GoogleFonts.kanit(
                         fontSize: 12,
                         color: subTextColor,
@@ -503,11 +505,10 @@ class TrackingDetailScreen extends ConsumerWidget {
                         const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 15),
                         const SizedBox(width: 3),
                         Text(
-                          '4.9 (326 รีวิว)',
+                          '${driver.rating} (${driver.reviewCount} รีวิว)',
                           style: GoogleFonts.kanit(
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
+                            color: subTextColor,
                           ),
                         ),
                       ],
@@ -519,7 +520,7 @@ class TrackingDetailScreen extends ConsumerWidget {
                 children: [
                   // Chat button
                   InkWell(
-                    onTap: () => context.push('${AppRoutes.chat}/driver_123'),
+                    onTap: () => context.push('${AppRoutes.chat}/active_driver'),
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
                       width: 40,
@@ -535,7 +536,7 @@ class TrackingDetailScreen extends ConsumerWidget {
                   const SizedBox(width: 8),
                   // Call button
                   InkWell(
-                    onTap: () => context.push('${AppRoutes.call}/driver_123'),
+                    onTap: () => context.push('${AppRoutes.call}/active_driver'),
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
                       width: 40,

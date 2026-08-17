@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../booking/providers/driver_provider.dart';
 
 class _Message {
   final String text;
@@ -156,14 +157,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildDriverBubble(String text, String time, Color cardBg, Color borderColor, Color textColor, Color subTextColor) {
+  Widget _buildDriverBubble(String text, String time, Color cardBg, Color borderColor, Color textColor, Color subTextColor, Color avatarBgColor, IconData avatarIcon) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 16,
-          backgroundColor: Color(0xFF4285F4),
-          child: Icon(Icons.person, color: Colors.white, size: 20),
+          backgroundColor: avatarBgColor,
+          child: Icon(avatarIcon, color: Colors.white, size: 18),
         ),
         const SizedBox(width: 8),
         Container(
@@ -238,6 +239,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeProvider);
+    final driver = ref.watch(driverProvider);
+    final isCallCenter = widget.driverId == 'call_center' || widget.driverId == 'support' || widget.driverId == 'center';
+    final displayName = isCallCenter ? 'ศูนย์บริการลูกค้า (Call Center)' : '${driver.name} (คนขับ)';
+    final avatarBgColor = isCallCenter ? const Color(0xFF4285F4) : driver.avatarBgColor;
+    final avatarIcon = isCallCenter ? Icons.headset_mic_rounded : driver.avatarIcon;
 
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : Colors.white;
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.grey[100]!;
@@ -257,10 +263,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
         title: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 18,
-              backgroundColor: Color(0xFF4285F4),
-              child: Icon(Icons.person, color: Colors.white, size: 24),
+              backgroundColor: avatarBgColor,
+              child: Icon(avatarIcon, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -268,7 +274,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ทนงทวย ตีหอย (คนขับ)',
+                    displayName,
                     style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -402,7 +408,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     if (msg.sender == 'bot') {
                       return _buildBotBubble(msg.text, msg.time, cardBg, borderColor, textColor, subTextColor);
                     } else if (msg.sender == 'driver') {
-                      return _buildDriverBubble(msg.text, msg.time, cardBg, borderColor, textColor, subTextColor);
+                      return _buildDriverBubble(msg.text, msg.time, cardBg, borderColor, textColor, subTextColor, avatarBgColor, avatarIcon);
                     } else {
                       return _buildUserBubble(msg.text, msg.time, textColor, subTextColor);
                     }

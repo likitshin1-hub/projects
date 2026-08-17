@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../providers/booking_provider.dart';
+import '../providers/driver_provider.dart';
 
 class SearchingRiderScreen extends ConsumerStatefulWidget {
   const SearchingRiderScreen({super.key});
@@ -33,6 +33,11 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
     )..repeat();
 
     _startSearchSimulation();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bookingState = ref.read(bookingProvider);
+      ref.read(driverProvider.notifier).generateRandomDriver(bookingState.vehicleType);
+    });
   }
 
   void _startSearchSimulation() {
@@ -81,6 +86,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
     final bookingState = ref.watch(bookingProvider);
+    final driver = ref.watch(driverProvider);
 
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF);
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
@@ -320,16 +326,11 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                 height: 64,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
+                                  color: driver.avatarBgColor,
                                   border: Border.all(color: const Color(0xFF10B981), width: 2),
                                 ),
-                                child: ClipOval(
-                                  child: Image.asset(
-                                    AppAssets.defaultDriver,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.person, color: Color(0xFF10B981), size: 36),
-                                  ),
-                                ),
+                                alignment: Alignment.center,
+                                child: Icon(driver.avatarIcon, size: 36, color: Colors.white),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -337,7 +338,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      currentLang == AppLanguage.en ? 'Somchai Jaidee' : 'นาย สมชาย ใจดี',
+                                      driver.name,
                                       style: GoogleFonts.kanit(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -350,7 +351,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                         const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 18),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '4.9',
+                                          '${driver.rating}',
                                           style: GoogleFonts.kanit(
                                             fontSize: 13.5,
                                             fontWeight: FontWeight.bold,
@@ -359,8 +360,8 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                         ),
                                         Text(
                                           currentLang == AppLanguage.en
-                                              ? ' (1,240 completed deliveries)'
-                                              : ' (1,240 ออเดอร์สำเร็จ)',
+                                              ? ' (${driver.reviewCount} completed deliveries)'
+                                              : ' (${driver.reviewCount} ออเดอร์สำเร็จ)',
                                           style: GoogleFonts.kanit(
                                             fontSize: 12,
                                             color: subTextColor,
@@ -370,9 +371,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      currentLang == AppLanguage.en
-                                          ? 'Isuzu D-Max Closed Van (Plate 1KB-9999)'
-                                          : 'Isuzu D-Max ตู้ทึบ (ทะเบียน 1กข-9999 ชลบุรี)',
+                                      driver.fullVehicleInfo,
                                       style: GoogleFonts.kanit(
                                         fontSize: 12,
                                         color: subTextColor,
@@ -404,7 +403,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),
                                   onPressed: () {
-                                    context.push('${AppRoutes.call}/driver_somchai');
+                                    context.push('${AppRoutes.call}/active_driver');
                                   },
                                 ),
                               ),
@@ -425,7 +424,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),
                                   onPressed: () {
-                                    context.push('${AppRoutes.chat}/driver_somchai');
+                                    context.push('${AppRoutes.chat}/active_driver');
                                   },
                                 ),
                               ),
