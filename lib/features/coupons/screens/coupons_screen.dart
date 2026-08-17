@@ -208,7 +208,6 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     IconData illustrationIcon = Icons.local_shipping_outlined,
   }) {
     return Container(
-      height: 130,
       decoration: BoxDecoration(
         color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -223,8 +222,10 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: Row(
-          children: [
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Left Panel (Voucher visual representation)
             Container(
               width: 104,
@@ -449,8 +450,9 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // Custom Painter for dashed line divider

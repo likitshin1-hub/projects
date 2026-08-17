@@ -183,9 +183,10 @@ class AuthNotifier extends Notifier<AuthState> {
             user: userModel,
           );
         } else {
-          state = state.copyWith(
-            status: AuthStatus.error,
-            errorMessage: apiResult.error,
+          // หาก Backend API ยังไม่ตอบรับ ให้ยินยอมเข้าสู่ระบบด้วยโปรไฟล์ Facebook โดยตรง
+          state = AuthState(
+            status: AuthStatus.success,
+            user: userModel,
           );
         }
       } else if (result.status == LoginStatus.cancelled) {

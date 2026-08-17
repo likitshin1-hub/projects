@@ -17,6 +17,7 @@ class AuthService {
 
   Future<UserCredential?> signInWithGoogle() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
+      serverClientId: webClientId,
       clientId: kIsWeb ? webClientId : null,
     );
 

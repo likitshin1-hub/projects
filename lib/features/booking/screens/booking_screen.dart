@@ -2108,12 +2108,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                 children: [
                                   const Icon(Icons.add_location_alt_rounded, color: Color(0xFF10B981), size: 18),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    'แตะเพื่อกรอกข้อมูลผู้รับและจุดส่งพัสดุ',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF10B981),
+                                  Expanded(
+                                    child: Text(
+                                      'แตะเพื่อกรอกข้อมูลผู้รับและจุดส่งพัสดุ',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF10B981),
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -3644,109 +3648,117 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   child: Column(
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.timer_outlined, color: Color(0xFF10B981), size: 18),
-                              const SizedBox(width: 6),
-                              Text(
-                                isEn ? 'Est. Duration:' : 'เวลาจัดส่งโดยประมาณ:',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 12.5,
-                                  color: subTextColor,
-                                ),
+                          const Icon(Icons.timer_outlined, color: Color(0xFF10B981), size: 18),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              isEn ? 'Est. Duration:' : 'เวลาจัดส่งโดยประมาณ:',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12.5,
+                                color: subTextColor,
                               ),
-                            ],
+                            ),
                           ),
-                          Text(
-                            '$_estimatedDurationMinutes นาที (${(_estimatedDurationMinutes / 60.0).toStringAsFixed(1)} ชม.)',
-                            style: GoogleFonts.kanit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF10B981),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '$_estimatedDurationMinutes นาที (${(_estimatedDurationMinutes / 60.0).toStringAsFixed(1)} ชม.)',
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.kanit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF10B981),
+                              ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.alt_route_rounded, color: Color(0xFF1C7FF6), size: 18),
-                              const SizedBox(width: 6),
-                              Text(
-                                isEn ? 'Road Distance:' : 'ระยะทางถนนจริง:',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 12.5,
-                                  color: subTextColor,
-                                ),
+                          const Icon(Icons.alt_route_rounded, color: Color(0xFF1C7FF6), size: 18),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              isEn ? 'Road Distance:' : 'ระยะทางถนนจริง:',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12.5,
+                                color: subTextColor,
                               ),
-                            ],
+                            ),
                           ),
-                          Text(
-                            '$_distanceKm กม.',
-                            style: GoogleFonts.kanit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1C7FF6),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '$_distanceKm กม.',
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.kanit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1C7FF6),
+                              ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.inventory_2_outlined, color: Color(0xFF0284C7), size: 18),
-                              const SizedBox(width: 6),
-                              Text(
-                                isEn ? 'Weight & Size Specs:' : 'สเปคพัสดุ (น้ำหนัก/ขนาด):',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 12.5,
-                                  color: subTextColor,
-                                ),
+                          const Icon(Icons.inventory_2_outlined, color: Color(0xFF0284C7), size: 18),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              isEn ? 'Weight & Size Specs:' : 'สเปคพัสดุ (น้ำหนัก/ขนาด):',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12.5,
+                                color: subTextColor,
                               ),
-                            ],
+                            ),
                           ),
-                          Text(
-                            '$_parcelWeight กก. | $_parcelSize ซม.',
-                            style: GoogleFonts.kanit(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0284C7),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '$_parcelWeight กก. | $_parcelSize ซม.',
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.kanit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF0284C7),
+                              ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF1C7FF6), size: 18),
-                              const SizedBox(width: 6),
-                              Text(
-                                isEn ? 'Calculated Net Fare:' : 'ค่าบริการสุทธิ:',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
+                          const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF1C7FF6), size: 18),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              isEn ? 'Calculated Net Fare:' : 'ค่าบริการสุทธิ:',
+                              style: GoogleFonts.kanit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
-                            ],
+                            ),
                           ),
-                          Text(
-                            '${_calculateDynamicFare().toInt()} บาท',
-                            style: GoogleFonts.kanit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1C7FF6),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '${_calculateDynamicFare().toInt()} บาท',
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.kanit(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1C7FF6),
+                              ),
                             ),
                           ),
                         ],

@@ -405,42 +405,48 @@ class TrackingListScreen extends ConsumerWidget {
                 // Action Buttons: Call / Chat / Track Live GPS Map
                 Row(
                   children: [
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.call_rounded, color: Color(0xFF10B981), size: 16),
-                      label: Text('โทรหาคนขับ', style: GoogleFonts.kanit(fontSize: 11.5, color: const Color(0xFF10B981), fontWeight: FontWeight.bold)),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        minimumSize: const Size(0, 36),
-                        side: const BorderSide(color: Color(0xFF10B981)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    Flexible(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.call_rounded, color: Color(0xFF10B981), size: 15),
+                        label: Text('โทรหาคนขับ', style: GoogleFonts.kanit(fontSize: 10.5, color: const Color(0xFF10B981), fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: const Size(0, 34),
+                          side: const BorderSide(color: Color(0xFF10B981)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () => context.push('${AppRoutes.call}/driver_somchai'),
                       ),
-                      onPressed: () => context.push('${AppRoutes.call}/driver_somchai'),
                     ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF1C7FF6), size: 16),
-                      label: Text('แชท', style: GoogleFonts.kanit(fontSize: 11.5, color: const Color(0xFF1C7FF6), fontWeight: FontWeight.bold)),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        minimumSize: const Size(0, 36),
-                        side: const BorderSide(color: Color(0xFF1C7FF6)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF1C7FF6), size: 15),
+                        label: Text('แชท', style: GoogleFonts.kanit(fontSize: 10.5, color: const Color(0xFF1C7FF6), fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: const Size(0, 34),
+                          side: const BorderSide(color: Color(0xFF1C7FF6)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () => context.push('${AppRoutes.chat}/driver_somchai'),
                       ),
-                      onPressed: () => context.push('${AppRoutes.chat}/driver_somchai'),
                     ),
-                    const Spacer(),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.my_location_rounded, size: 16, color: Colors.white),
-                      label: Text('ติดตามสด 📍', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        minimumSize: const Size(0, 36),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 2,
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.my_location_rounded, size: 14, color: Colors.white),
+                        label: Text('ติดตามสด', style: GoogleFonts.kanit(fontSize: 10.5, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          minimumSize: const Size(0, 34),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 2,
+                        ),
+                        onPressed: () => context.push('${AppRoutes.tracking}/${item.orderNo}'),
                       ),
-                      onPressed: () => context.push('${AppRoutes.tracking}/${item.orderNo}'),
                     ),
                   ],
                 ),

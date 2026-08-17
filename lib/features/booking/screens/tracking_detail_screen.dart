@@ -479,12 +479,15 @@ class TrackingDetailScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          driver.name,
-                          style: GoogleFonts.kanit(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
+                        Flexible(
+                          child: Text(
+                            driver.name,
+                            style: GoogleFonts.kanit(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -599,7 +602,7 @@ class TrackingDetailScreen extends ConsumerWidget {
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 2.8,
+            childAspectRatio: 2.1,
             crossAxisSpacing: 12,
             mainAxisSpacing: 10,
             children: [

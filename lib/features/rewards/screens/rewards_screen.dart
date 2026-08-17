@@ -106,12 +106,15 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                         }
                       },
                     ),
-                    Text(
-                      t('privileges_rewards'),
-                      style: GoogleFonts.kanit(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        t('privileges_rewards'),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.kanit(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -550,7 +553,6 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
     final double progressRatio = (currentTrips / level.times).clamp(0.0, 1.0);
 
     return Container(
-      height: 110,
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(18),
@@ -565,8 +567,10 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
-        child: Row(
-          children: [
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Left Rotated Ribbon Panel (5 ครั้ง, 10 ครั้ง, 20 ครั้ง)
             Container(
               width: 66,
@@ -753,8 +757,9 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _RewardLevelData {

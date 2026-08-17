@@ -422,7 +422,6 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
 
   Widget _buildClaimCard(_ClaimCouponData coupon, int itemIndex, bool isClaimed, bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
     return Container(
-      height: 130,
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(20),
@@ -437,8 +436,10 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: Row(
-          children: [
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Left Panel (Voucher visual representation)
             Container(
               width: 104,
@@ -724,8 +725,9 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _ClaimCouponData {

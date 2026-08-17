@@ -223,28 +223,55 @@ class AuthRepository {
     }
   }
 
-  Future<ApiResult<String>> loginWithGoogle() async {
+  Future<ApiResult<dynamic>> loginWithGoogle() async {
     if (_useMock) {
       await Future.delayed(const Duration(milliseconds: 800));
-      try {
-        await _storage.write(key: 'auth_token', value: 'google_mock_token');
-      } catch (_) {}
-      return ApiResult.success('google_mock_token');
+      return ApiResult.success(
+        UserModel(
+          id: 'google_mock_user_1',
+          name: 'Mock Google User',
+          email: 'mock.google@example.com',
+          photoUrl: 'https://i.pravatar.cc/150?img=11',
+        ),
+      );
     }
 
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return ApiResult.failure('ยกเลิกการเข้าสู่ระบบ');
+      final credential = await _authService.signInWithGoogle();
+      if (credential != null && credential.user != null) {
+        final user = credential.user!;
+        final userModel = UserModel(
+          id: user.uid,
+          name: user.displayName ?? 'Google User',
+          email: user.email ?? '',
+          photoUrl: user.photoURL,
+        );
+        final token = await user.getIdToken();
+        if (token != null) {
+          await SecureStorage.saveAccessToken(token);
+        }
+        return ApiResult.success(userModel);
       }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final String? idToken = googleAuth.idToken;
-
-      await _storage.write(key: 'auth_token', value: idToken ?? 'google_mock_token');
-      return ApiResult.success(idToken ?? 'google_mock_token');
+      return ApiResult.failure('ยกเลิกการเข้าสู่ระบบ');
     } catch (e) {
-      return ApiResult.failure('Google Sign-In Error: ${_handleError(e)}');
+      try {
+        final GoogleSignIn googleSignIn = GoogleSignIn(
+          serverClientId: AuthService.webClientId,
+        );
+        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+        if (googleUser == null) {
+          return ApiResult.failure('ยกเลิกการเข้าสู่ระบบ');
+        }
+        final userModel = UserModel(
+          id: googleUser.id,
+          name: googleUser.displayName ?? '',
+          email: googleUser.email,
+          photoUrl: googleUser.photoUrl,
+        );
+        return ApiResult.success(userModel);
+      } catch (err) {
+        return ApiResult.failure('Google Sign-In Error: ${_handleError(err)}');
+      }
     }
   }
 

@@ -4,7 +4,7 @@
     <string name="app_name">TBMoveHub</string>
 
     <string name="facebook_app_id">1020611840710101</string>
-    <string name="facebook_client_token">YOUR_CLIENT_TOKEN</string>
+    <string name="facebook_client_token">c750ae8343e3bcede0829149da6ceb95719e2bad</string>
     <string name="fb_login_protocol_scheme">fb1020611840710101</string>
 
 </resources>
