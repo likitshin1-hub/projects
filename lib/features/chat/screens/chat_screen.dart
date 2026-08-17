@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -10,18 +10,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../booking/providers/driver_provider.dart';
-
-class _Message {
-  final String text;
-  final String sender; // 'bot', 'driver', 'user'
-  final String time;
-
-  _Message({
-    required this.text,
-    required this.sender,
-    required this.time,
-  });
-}
+import '../providers/chat_provider.dart';
+import '../services/chat_service.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String driverId;
@@ -95,7 +85,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _shareLocation() {
-    // Current location Bangkok Sukhumvit
     const currentLoc = LatLng(13.7466, 100.5393);
     ref.read(chatProvider.notifier).sendLocationMessage(
           currentLoc,
@@ -182,25 +171,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildDriverBubble(String text, String time, Color cardBg, Color borderColor, Color textColor, Color subTextColor, Color avatarBgColor, IconData avatarIcon) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 16,
-          backgroundColor: avatarBgColor,
-          child: Icon(avatarIcon, color: Colors.white, size: 18),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(16),
-              bottomRight: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
+  Widget _buildAttachmentOption({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required VoidCallback onTap,
+    required bool isDarkMode,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 26),
           ),
@@ -217,13 +204,134 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  Widget _buildMessageBubble(ChatMessageModel message, bool isDarkMode, DriverModel driver) {
+    final isUser = message.sender == 'user';
+    final isBot = message.sender == 'bot';
+
+    if (isUser) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12, left: 40),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C7FF6),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (message.messageType == ChatMessageType.image && message.imageBytes != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.memory(
+                    message.imageBytes!,
+                    width: 200,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else if (message.messageType == ChatMessageType.location)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_on_rounded, color: Colors.white, size: 18),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        message.text,
+                        style: GoogleFonts.kanit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  message.text,
+                  style: GoogleFonts.kanit(color: Colors.white, fontSize: 13.5),
+                ),
+              const SizedBox(height: 4),
+              Text(
+                message.timeText,
+                style: GoogleFonts.kanit(color: Colors.white70, fontSize: 10),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Driver or Bot bubble
+    final avatarBg = isBot ? const Color(0xFF4285F4) : driver.avatarBgColor;
+    final avatarIcon = isBot ? Icons.smart_toy_rounded : driver.avatarIcon;
+    final bubbleBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12, right: 40),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: avatarBg,
+              child: Icon(avatarIcon, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: bubbleBg,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(18),
+                    topRight: Radius.circular(18),
+                    bottomRight: Radius.circular(18),
+                  ),
+                  border: Border.all(
+                    color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message.text,
+                      style: GoogleFonts.kanit(color: textColor, fontSize: 13.5),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      message.timeText,
+                      style: GoogleFonts.kanit(
+                        color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final driver = ref.watch(driverProvider);
+    final chatState = ref.watch(chatProvider);
+
     final isCallCenter = widget.driverId == 'call_center' || widget.driverId == 'support' || widget.driverId == 'center';
     final displayName = isCallCenter ? 'ศูนย์บริการลูกค้า (Call Center)' : '${driver.name} (คนขับ)';
+    final subTitleText = isCallCenter ? 'เจ้าหน้าที่พร้อมให้บริการ 24 ชั่วโมง' : 'กำลังออนไลน์ • ${driver.fullVehicleInfo}';
     final avatarBgColor = isCallCenter ? const Color(0xFF4285F4) : driver.avatarBgColor;
     final avatarIcon = isCallCenter ? Icons.headset_mic_rounded : driver.avatarIcon;
 
@@ -232,32 +340,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
 
     return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: bgColor,
-        foregroundColor: textColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
-          onPressed: () => context.pop(),
-        ),
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: avatarBgColor,
-              child: Icon(avatarIcon, color: Colors.white, size: 20),
+      backgroundColor: scaffoldBg,
+      body: Column(
+        children: [
+          // ==========================================
+          // TOP HEADER WITH DYNAMIC DRIVER INFO
+          // ==========================================
+          Container(
+            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 12),
+            decoration: BoxDecoration(
+              color: headerBg,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.4 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    displayName,
-                    style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDarkMode ? Colors.white : AppColors.textPrimary),
                   onPressed: () {
                     if (context.canPop()) {
                       context.pop();
@@ -269,19 +373,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 Stack(
                   children: [
                     CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Colors.blue.shade100,
-                      child: Text(
-                        '🛵',
-                        style: GoogleFonts.kanit(fontSize: 22),
-                      ),
+                      radius: 20,
+                      backgroundColor: avatarBgColor,
+                      child: Icon(avatarIcon, color: Colors.white, size: 20),
                     ),
                     Positioned(
                       right: 0,
                       bottom: 0,
                       child: Container(
-                        width: 12,
-                        height: 12,
+                        width: 10,
+                        height: 10,
                         decoration: BoxDecoration(
                           color: const Color(0xFF10B981),
                           shape: BoxShape.circle,
@@ -297,19 +398,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'สมชาย มั่นคง (ไรเดอร์)',
+                        displayName,
                         style: GoogleFonts.kanit(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: isDarkMode ? Colors.white : AppColors.textPrimary,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'กำลังออนไลน์ • Honda Wave (1กข 5598)',
+                        subTitleText,
                         style: GoogleFonts.kanit(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: const Color(0xFF10B981),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -317,11 +422,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 // Phone Call Button -> CallScreen
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.12),
+                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF10B981), size: 22),
+                    icon: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF10B981), size: 20),
                     onPressed: () {
                       context.push('${AppRoutes.call}/${widget.driverId}');
                     },
@@ -341,7 +446,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               itemCount: chatState.messages.length,
               itemBuilder: (context, index) {
                 final message = chatState.messages[index];
-                return _buildMessageBubble(message, isDarkMode);
+                return _buildMessageBubble(message, isDarkMode, driver);
               },
             ),
           ),
@@ -350,7 +455,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // QUICK REPLIES BAR
           // ==========================================
           Container(
-            height: 40,
+            height: 38,
             margin: const EdgeInsets.only(bottom: 6),
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
@@ -389,7 +494,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 color: cardBg,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, -4),
                   ),
@@ -439,310 +544,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ],
               ),
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert, color: textColor),
-            onPressed: () {},
-          )
-        ],
-      ),
-      body: Stack(
-        children: [
-          // Background abstract bubbles
-          Positioned(
-            bottom: 50,
-            left: -50,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            top: 100,
-            right: -50,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-
-          Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _messages.length + 2, // +2 for welcome banner and today header
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      // Welcome auto message banner
-                      return Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.smart_toy, color: AppColors.primary),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'ยินดีต้อนรับสู่บริการข้อความอัตโนมัติ',
-                                    style: GoogleFonts.kanit(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13.5,
-                                    ),
-                                  ),
-                                  Text(
-                                    'ทีมงานของเราพร้อมช่วยเหลือคุณ\nกรุณาเลือกหัวข้อ หรือพิมพ์ข้อความได้เลย',
-                                    style: GoogleFonts.kanit(
-                                      color: AppColors.primary,
-                                      fontSize: 11.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.close, color: AppColors.primary, size: 16),
-                          ],
-                        ),
-                      );
-                    }
-
-                    if (index == 1) {
-                      // Today Header
-                      return Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            'วันนี้',
-                            style: GoogleFonts.kanit(fontSize: 10, color: subTextColor),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final msg = _messages[index - 2];
-                    if (msg.sender == 'bot') {
-                      return _buildBotBubble(msg.text, msg.time, cardBg, borderColor, textColor, subTextColor);
-                    } else if (msg.sender == 'driver') {
-                      return _buildDriverBubble(msg.text, msg.time, cardBg, borderColor, textColor, subTextColor, avatarBgColor, avatarIcon);
-                    } else {
-                      return _buildUserBubble(msg.text, msg.time, textColor, subTextColor);
-                    }
-                  },
-                ),
-              ),
-
-              // Bottom Input Bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  border: Border(top: BorderSide(color: borderColor)),
-                ),
-                child: SafeArea(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: TextField(
-                            controller: _textController,
-                            style: GoogleFonts.kanit(color: textColor, fontSize: 14),
-                            decoration: InputDecoration(
-                              hintText: 'พิมพ์ข้อความ...',
-                              hintStyle: GoogleFonts.kanit(color: subTextColor, fontSize: 13),
-                              border: InputBorder.none,
-                              suffixIcon: Icon(Icons.mic, color: subTextColor),
-                            ),
-                            onSubmitted: (_) => _sendMessage(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: _sendMessage,
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF1C7FF6),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.send, color: Colors.white, size: 20),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(ChatMessageModel message, bool isDarkMode) {
-    final isUser = message.sender == 'user';
-    final isBot = message.sender == 'bot';
-
-    final bubbleBg = isUser
-        ? const Color(0xFF1C7FF6)
-        : isBot
-            ? (isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0))
-            : (isDarkMode ? const Color(0xFF1E293B) : Colors.white);
-
-    final textColor = isUser
-        ? Colors.white
-        : isBot
-            ? (isDarkMode ? Colors.white : AppColors.textPrimary)
-            : (isDarkMode ? Colors.white : AppColors.textPrimary);
-
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: bubbleBg,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isUser ? 16 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 16),
-          ),
-          boxShadow: [
-            if (!isUser)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            // 1. Text Message
-            if (message.messageType == ChatMessageType.text) ...[
-              Text(
-                message.text,
-                style: GoogleFonts.kanit(
-                  fontSize: 14,
-                  color: textColor,
-                  height: 1.4,
-                ),
-              ),
-            ],
-
-            // 2. Image Message Attachment
-            if (message.messageType == ChatMessageType.image && message.imageBytes != null) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.memory(
-                  message.imageBytes!,
-                  width: 200,
-                  height: 150,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              if (message.text.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Text(
-                  message.text,
-                  style: GoogleFonts.kanit(fontSize: 13, color: textColor),
-                ),
-              ],
-            ],
-
-            // 3. Location Pin Card Message
-            if (message.messageType == ChatMessageType.location) ...[
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.location_on_rounded, color: Colors.redAccent, size: 22),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      message.locationName ?? 'พิกัด GPS',
-                      style: GoogleFonts.kanit(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Container(
-                height: 70,
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.map_rounded, color: Color(0xFF1C7FF6), size: 20),
-                    const SizedBox(width: 6),
-                    Text(
-                      'กดเปิดดูเส้นทางใน Google Maps',
-                      style: GoogleFonts.kanit(
-                        fontSize: 12,
-                        color: const Color(0xFF1C7FF6),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 4),
-            Text(
-              message.timeText,
-              style: GoogleFonts.kanit(
-                fontSize: 10,
-                color: isUser ? Colors.white.withOpacity(0.75) : Colors.grey.shade500,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
