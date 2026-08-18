@@ -63,6 +63,29 @@ class PushNotificationService {
     );
   }
 
+  /// ส่งข้อความแจ้งเตือน Broadcast ไปยังกลุ่มเป้าหมาย (FCM Push Notification Engine)
+  Future<bool> sendBroadcastNotification({
+    required String targetGroup,
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+  }) async {
+    debugPrint('📢 FCM Broadcast Sent: Target=[$targetGroup], Title=[$title], Body=[$body]');
+    
+    // Broadcast locally to active app subscribers
+    triggerLocalPushNotification(
+      title: title,
+      body: body,
+      extraData: {
+        'target_group': targetGroup,
+        'type': 'broadcast',
+        ...?data,
+      },
+    );
+
+    return true;
+  }
+
   void dispose() {
     _notificationStreamController.close();
   }

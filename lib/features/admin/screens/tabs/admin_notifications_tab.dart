@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/services/push_notification_service.dart';
 
 class AdminNotificationsTab extends ConsumerStatefulWidget {
   const AdminNotificationsTab({super.key});
@@ -141,26 +142,38 @@ class _AdminNotificationsTabState extends ConsumerState<AdminNotificationsTab> {
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         if (titleCtrl.text.isEmpty) return;
+                        final title = titleCtrl.text.trim();
+                        final body = bodyCtrl.text.isEmpty ? 'ประกาศสำคัญจากผู้ดูแลระบบ TBMoveHub' : bodyCtrl.text.trim();
+
+                        await PushNotificationService().sendBroadcastNotification(
+                          targetGroup: targetGroup,
+                          title: title,
+                          body: body,
+                        );
+
                         setState(() {
                           _notifications.insert(0, {
                             'id': 'NOTIF-${DateTime.now().millisecondsSinceEpoch}',
-                            'title': titleCtrl.text,
-                            'message': bodyCtrl.text.isEmpty ? 'ประกาศจากผู้ดูแลระบบ' : bodyCtrl.text,
+                            'title': title,
+                            'message': body,
                             'category': 'system',
                             'timestamp': DateTime.now(),
                             'isRead': true,
                             'type': 'broadcast',
                           });
                         });
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('🚀 ส่งข้อความบรอดแคสต์สำเร็จ!', style: GoogleFonts.kanit()),
-                            backgroundColor: const Color(0xFF10B981),
-                          ),
-                        );
+
+                        if (context.mounted) Navigator.pop(context);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('🚀 ยิงข้อความ FCM Push Notification ไปยังกลุ่ม [$targetGroup] สำเร็จแล้ว!', style: GoogleFonts.kanit()),
+                              backgroundColor: const Color(0xFF10B981),
+                            ),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.send_rounded, size: 18),
                       label: Text('ส่งข้อความ (Send FCM)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
