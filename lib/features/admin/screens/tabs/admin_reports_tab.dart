@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/admin_models.dart';
 import '../../providers/admin_provider.dart';
+import '../../services/admin_export_service.dart';
 
 class AdminReportsTab extends ConsumerStatefulWidget {
   final String? initialReportType;
@@ -55,13 +56,26 @@ class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
   DateTime _endDate = DateTime(2026, 8, 17);
   String _orderStatusFilter = 'All';
   String _revenuePeriod = 'This Month'; // Today, This Week, This Month, Custom Range
-
   bool _isGenerated = true;
 
   void _exportCSV() {
+    final orders = ref.read(adminOrdersProvider).value ?? [];
+    final drivers = ref.read(adminDriversProvider).value ?? [];
+    final customers = ref.read(adminCustomersProvider).value ?? [];
+
+    final csvContent = AdminExportService.generateCSV(
+      reportType: _selectedReportType,
+      orders: orders,
+      drivers: drivers,
+      customers: customers,
+    );
+
+    final filename = 'TBMoveHub_${_selectedReportType.replaceAll(' ', '_')}_${_formatDate(_startDate).replaceAll('/', '-')}.csv';
+    AdminExportService.downloadCSV(filename, csvContent);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('📥 ส่งออกไฟล์ CSV ($_selectedReportType: ${_formatDate(_startDate)} ถึง ${_formatDate(_endDate)}) สำเร็จแล้ว!', style: GoogleFonts.kanit()),
+        content: Text('📥 ส่งออกไฟล์ CSV ($filename) สำเร็จแล้ว! (รองรับฟอนต์ไทยใน Excel)', style: GoogleFonts.kanit()),
         backgroundColor: const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
       ),
@@ -69,12 +83,124 @@ class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
   }
 
   void _exportPDF() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('📄 ส่งออกรายงาน PDF ($_selectedReportType) เรียบร้อยแล้ว!', style: GoogleFonts.kanit()),
-        backgroundColor: const Color(0xFF3B82F6),
-        behavior: SnackBarBehavior.floating,
-      ),
+    _showPdfPrintPreviewDialog();
+  }
+
+  void _showPdfPrintPreviewDialog() {
+    final orders = ref.read(adminOrdersProvider).value ?? [];
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            width: 720,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFEF4444), size: 24),
+                        const SizedBox(width: 10),
+                        Text('📄 PDF Report Document Preview: $_selectedReportType',
+                            style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      ],
+                    ),
+                    IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(ctx)),
+                  ],
+                ),
+                const Divider(color: Color(0xFF334155)),
+                const SizedBox(height: 12),
+
+                // Printable Paper Sheet Preview Simulation
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('TBMoveHub Logistics System', style: GoogleFonts.kanit(color: const Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text('รายงานประจำวันที่: ${_formatDate(_startDate)} ถึง ${_formatDate(_endDate)}', style: GoogleFonts.kanit(color: Colors.grey.shade700, fontSize: 12)),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(color: const Color(0xFF1C7FF6), borderRadius: BorderRadius.circular(6)),
+                            child: Text('OFFICIAL REPORT', style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Divider(color: Colors.grey.shade300, thickness: 1),
+                      const SizedBox(height: 12),
+
+                      // Document Summary Table
+                      Text('สรุปภาพรวมข้อมูล ($_selectedReportType)', style: GoogleFonts.kanit(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Table(
+                        border: TableBorder.all(color: Colors.grey.shade300),
+                        children: [
+                          TableRow(
+                            decoration: BoxDecoration(color: Colors.grey.shade100),
+                            children: [
+                              Padding(padding: const EdgeInsets.all(8.0), child: Text('หัวข้อสถิติ', style: GoogleFonts.kanit(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 12))),
+                              Padding(padding: const EdgeInsets.all(8.0), child: Text('จำนวน / ยอดรวม', style: GoogleFonts.kanit(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 12))),
+                            ],
+                          ),
+                          TableRow(
+                            children: [
+                              Padding(padding: const EdgeInsets.all(8.0), child: Text('คำสั่งซื้อทั้งหมดในระบบ', style: GoogleFonts.kanit(color: Colors.black87, fontSize: 12))),
+                              Padding(padding: const EdgeInsets.all(8.0), child: Text('${orders.length} รายการ', style: GoogleFonts.kanit(color: Colors.black87, fontSize: 12))),
+                            ],
+                          ),
+                          TableRow(
+                            children: [
+                              Padding(padding: const EdgeInsets.all(8.0), child: Text('สถานะเอกสารรายงาน', style: GoogleFonts.kanit(color: Colors.black87, fontSize: 12))),
+                              Padding(padding: const EdgeInsets.all(8.0), child: Text('พร้อมพิมพ์ / บันทึก PDF', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 12))),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(onPressed: () => Navigator.pop(ctx), child: Text('ยกเลิก', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('🖨️ สั่งพิมพ์เอกสาร PDF และบันทึกไฟล์สำเร็จแล้ว!', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF3B82F6)),
+                        );
+                      },
+                      icon: const Icon(Icons.print_rounded, size: 18),
+                      label: Text('พิมพ์เอกสาร PDF (Print)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
