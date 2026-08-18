@@ -6,7 +6,8 @@ import '../../models/admin_models.dart';
 import '../../providers/admin_provider.dart';
 
 class AdminReportsTab extends ConsumerStatefulWidget {
-  const AdminReportsTab({super.key});
+  final String? initialReportType;
+  const AdminReportsTab({super.key, this.initialReportType});
 
   @override
   ConsumerState<AdminReportsTab> createState() => _AdminReportsTabState();
@@ -14,7 +15,41 @@ class AdminReportsTab extends ConsumerStatefulWidget {
 
 class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
   String _selectedReportType = 'Order Report'; // Order Report, Revenue Report, Driver Report, Customer Report
-  
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialReportType != null && widget.initialReportType!.isNotEmpty) {
+      _applyInitialType(widget.initialReportType!);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminReportsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialReportType != oldWidget.initialReportType && widget.initialReportType != null) {
+      _applyInitialType(widget.initialReportType!);
+    }
+  }
+
+  void _applyInitialType(String type) {
+    switch (type.toLowerCase()) {
+      case 'revenue':
+        _selectedReportType = 'Revenue Report';
+        break;
+      case 'drivers':
+      case 'driver':
+        _selectedReportType = 'Driver Report';
+        break;
+      case 'customers':
+      case 'customer':
+        _selectedReportType = 'Customer Report';
+        break;
+      default:
+        _selectedReportType = 'Order Report';
+    }
+  }
+
   // Date Range Controls
   DateTime _startDate = DateTime(2026, 8, 1);
   DateTime _endDate = DateTime(2026, 8, 17);

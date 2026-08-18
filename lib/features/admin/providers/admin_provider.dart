@@ -14,6 +14,32 @@ class AdminActiveTabNotifier extends Notifier<int> {
 
 final adminActiveTabProvider = NotifierProvider<AdminActiveTabNotifier, int>(AdminActiveTabNotifier.new);
 
+// Navigation State for Hierarchical Menu
+class AdminNavState {
+  final String mainTab;
+  final String subTab;
+
+  const AdminNavState({this.mainTab = 'dashboard', this.subTab = ''});
+
+  AdminNavState copyWith({String? mainTab, String? subTab}) {
+    return AdminNavState(
+      mainTab: mainTab ?? this.mainTab,
+      subTab: subTab ?? this.subTab,
+    );
+  }
+}
+
+class AdminNavNotifier extends Notifier<AdminNavState> {
+  @override
+  AdminNavState build() => const AdminNavState(mainTab: 'dashboard', subTab: '');
+
+  void setNav(String mainTab, [String subTab = '']) {
+    state = AdminNavState(mainTab: mainTab, subTab: subTab);
+  }
+}
+
+final adminNavProvider = NotifierProvider<AdminNavNotifier, AdminNavState>(AdminNavNotifier.new);
+
 // Search Query Notifier
 class AdminSearchQueryNotifier extends Notifier<String> {
   @override

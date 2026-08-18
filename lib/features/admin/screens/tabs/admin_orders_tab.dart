@@ -6,7 +6,8 @@ import '../../models/admin_models.dart';
 import '../../providers/admin_provider.dart';
 
 class AdminOrdersTab extends ConsumerStatefulWidget {
-  const AdminOrdersTab({super.key});
+  final String? initialStatusFilter;
+  const AdminOrdersTab({super.key, this.initialStatusFilter});
 
   @override
   ConsumerState<AdminOrdersTab> createState() => _AdminOrdersTabState();
@@ -16,10 +17,46 @@ class _AdminOrdersTabState extends ConsumerState<AdminOrdersTab> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _cancelReasonController = TextEditingController();
 
-  String _statusFilter = 'All'; // All, Pending, Accepted, Driver Arriving, Picked Up, In Transit, Completed, Cancelled
+  String _statusFilter = 'All'; // All, Pending, In Progress, Completed, Cancelled
   String _dateFilter = 'All'; // All, Today, This Week, This Month
   String _vehicleFilter = 'All'; // All, Motorcycle, Car, Van, Truck
   String _driverFilter = 'All'; // All, Assigned, Unassigned
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialStatusFilter != null && widget.initialStatusFilter!.isNotEmpty) {
+      _applyInitialStatus(widget.initialStatusFilter!);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminOrdersTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialStatusFilter != oldWidget.initialStatusFilter && widget.initialStatusFilter != null) {
+      _applyInitialStatus(widget.initialStatusFilter!);
+    }
+  }
+
+  void _applyInitialStatus(String subTab) {
+    switch (subTab) {
+      case 'pending':
+        _statusFilter = 'Pending';
+        break;
+      case 'inProgress':
+      case 'in_progress':
+        _statusFilter = 'In Transit';
+        break;
+      case 'completed':
+        _statusFilter = 'Completed';
+        break;
+      case 'cancelled':
+        _statusFilter = 'Cancelled';
+        break;
+      default:
+        _statusFilter = 'All';
+    }
+  }
 
   @override
   void dispose() {

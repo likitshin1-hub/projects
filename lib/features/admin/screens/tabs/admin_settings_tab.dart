@@ -5,7 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/admin_provider.dart';
 
 class AdminSettingsTab extends ConsumerStatefulWidget {
-  const AdminSettingsTab({super.key});
+  final String? initialNavCategory;
+  const AdminSettingsTab({super.key, this.initialNavCategory});
 
   @override
   ConsumerState<AdminSettingsTab> createState() => _AdminSettingsTabState();
@@ -13,6 +14,45 @@ class AdminSettingsTab extends ConsumerStatefulWidget {
 
 class _AdminSettingsTabState extends ConsumerState<AdminSettingsTab> {
   String _selectedNavCategory = 'Admin Profile';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialNavCategory != null && widget.initialNavCategory!.isNotEmpty) {
+      _applyInitialCategory(widget.initialNavCategory!);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminSettingsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialNavCategory != oldWidget.initialNavCategory && widget.initialNavCategory != null) {
+      _applyInitialCategory(widget.initialNavCategory!);
+    }
+  }
+
+  void _applyInitialCategory(String cat) {
+    switch (cat.toLowerCase()) {
+      case 'security':
+        _selectedNavCategory = 'Security';
+        break;
+      case 'vehicletypes':
+      case 'vehicle_types':
+        _selectedNavCategory = 'Vehicle Types';
+        break;
+      case 'pricing':
+        _selectedNavCategory = 'Pricing';
+        break;
+      case 'cancellation':
+        _selectedNavCategory = 'Cancellation';
+        break;
+      case 'system':
+        _selectedNavCategory = 'System';
+        break;
+      default:
+        _selectedNavCategory = 'Admin Profile';
+    }
+  }
 
   // Admin Profile Controllers
   final _profileNameCtrl = TextEditingController(text: 'Super Admin');

@@ -30,7 +30,8 @@ class TransactionModel {
 }
 
 class AdminFinanceTab extends ConsumerStatefulWidget {
-  const AdminFinanceTab({super.key});
+  final String? initialSubTab;
+  const AdminFinanceTab({super.key, this.initialSubTab});
 
   @override
   ConsumerState<AdminFinanceTab> createState() => _AdminFinanceTabState();
@@ -38,8 +39,25 @@ class AdminFinanceTab extends ConsumerStatefulWidget {
 
 class _AdminFinanceTabState extends ConsumerState<AdminFinanceTab> {
   final TextEditingController _searchController = TextEditingController();
+  String _activeSection = 'transactions'; // transactions, wallets
   String _datePeriodFilter = 'Today'; // Today, Yesterday, ThisWeek, ThisMonth
   String _paymentStatusFilter = 'All'; // All, PAID, PENDING_PAYOUT, REFUNDED
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialSubTab != null && widget.initialSubTab!.isNotEmpty) {
+      _activeSection = widget.initialSubTab!;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminFinanceTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialSubTab != oldWidget.initialSubTab && widget.initialSubTab != null) {
+      setState(() => _activeSection = widget.initialSubTab!);
+    }
+  }
 
   @override
   void dispose() {
