@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../providers/admin_provider.dart';
+
 
 class AdminSettingsTab extends ConsumerStatefulWidget {
   final String? initialNavCategory;
@@ -491,13 +491,72 @@ class _AdminSettingsTabState extends ConsumerState<AdminSettingsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🖥️ System Settings (การตั้งค่าสถานะระบบ)', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text('🖥️ System Settings (การตั้งค่าสถานะระบบ & ฐานข้อมูล)', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 20),
 
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: const BoxConstraints(maxWidth: 550),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 🔌 Database Connection Section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFF334155))),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.storage_rounded, color: Color(0xFF1C7FF6), size: 20),
+                          const SizedBox(width: 8),
+                          Text('🔌 Database & REST API Connection', style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text('URL ฐานข้อมูล / REST API Endpoint:', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 12)),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: TextEditingController(text: 'http://127.0.0.1:8000/api'),
+                        style: GoogleFonts.kanit(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'https://api.tbmovehub.com/v1',
+                          filled: true,
+                          fillColor: const Color(0xFF1E293B),
+                          isDense: true,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF334155))),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              final result = await ref.read(adminServiceProvider).testDatabaseConnection();
+                              final isOnline = result['isOnline'] as bool;
+                              final msg = result['message'] as String;
+                              final ms = result['latencyMs'] as int;
+
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${isOnline ? "🟢" : "🟡"} $msg (${ms}ms)', style: GoogleFonts.kanit()),
+                                    backgroundColor: isOnline ? const Color(0xFF10B981) : Colors.amber.shade900,
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.bolt_rounded, size: 16),
+                            label: Text('Test Database Connection', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1C7FF6), foregroundColor: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
                 _buildSystemSwitchTile('Maintenance Mode (โหมดปิดปรับปรุงระบบ)', 'ปิดการสั่งซื้อชั่วคราว', _maintenanceMode, (v) => setState(() => _maintenanceMode = v)),
                 const Divider(color: Color(0xFF334155)),
                 _buildSystemSwitchTile('New Registration (เปิดรับสมัครลูกค้าใหม่)', 'อนุญาตให้ผู้ใช้ลงทะเบียนใหม่', _newRegistration, (v) => setState(() => _newRegistration = v)),

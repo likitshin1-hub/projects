@@ -787,7 +787,7 @@ class TrackingDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildReceiptRow(String title, String value, Color valColor, Color labelColor, {bool isDiscount = false}) {
+  Widget _buildReceiptRow(String title, String value, Color valColor, Color labelColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(

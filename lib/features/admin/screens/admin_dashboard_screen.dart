@@ -228,6 +228,30 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                       ),
                       Row(
                         children: [
+                          // Force DB Refresh Action Button
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              await ref.read(adminServiceProvider).forceRefreshAllFromDatabase();
+                              ref.invalidate(adminOrdersProvider);
+                              ref.invalidate(adminDriversProvider);
+                              ref.invalidate(adminCustomersProvider);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('🔄 ดึงข้อมูลสดจาก Database & REST API สำเร็จแล้ว!', style: GoogleFonts.kanit()),
+                                    backgroundColor: const Color(0xFF10B981),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF10B981)),
+                            label: Text('🔄 ดึงข้อมูลสดจาก DB', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 12, fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF10B981)),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           // Active Role Badge
                           Consumer(
                             builder: (context, ref, _) {

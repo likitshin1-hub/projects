@@ -495,4 +495,43 @@ class AdminService {
     _admins.add(newAdmin);
     return true;
   }
+
+  /// 🔌 Test Database / REST API Server Connectivity
+  Future<Map<String, dynamic>> testDatabaseConnection() async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final response = await _dioClient.get('/admin/orders');
+      stopwatch.stop();
+      if (response.statusCode != null && response.statusCode! < 400) {
+        return {
+          'isOnline': true,
+          'latencyMs': stopwatch.elapsedMilliseconds,
+          'message': 'Connected to Real Database/API (HTTP ${response.statusCode})',
+        };
+      }
+    } catch (e) {
+      stopwatch.stop();
+      return {
+        'isOnline': false,
+        'latencyMs': stopwatch.elapsedMilliseconds,
+        'message': 'Database offline / Standby local sync engine: $e',
+      };
+    }
+    return {
+      'isOnline': false,
+      'latencyMs': 0,
+      'message': 'Database connection standby',
+    };
+  }
+
+  /// 🔄 Force refresh all modules from live Database
+  Future<void> forceRefreshAllFromDatabase() async {
+    await Future.wait([
+      getCustomers(),
+      getDrivers(),
+      getOrders(),
+      getAdmins(),
+      getVehicleConfigs(),
+    ]);
+  }
 }
