@@ -185,3 +185,12 @@ final selectedTrackingOrderProvider = NotifierProvider<SelectedTrackingOrderNoti
 final vehicleConfigsProvider = FutureProvider<List<VehicleTypeConfig>>((ref) async {
   return ref.watch(adminServiceProvider).getVehicleConfigs();
 });
+
+// Real-Time Sync Stream Providers
+final realtimeAdminOrdersStreamProvider = StreamProvider<List<AdminOrderModel>>((ref) {
+  return ref.watch(adminServiceProvider).ordersStream;
+});
+
+final realtimeDriversStreamProvider = StreamProvider<List<DriverAdminModel>>((ref) {
+  return ref.watch(adminServiceProvider).driversStream;
+});

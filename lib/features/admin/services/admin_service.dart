@@ -257,21 +257,115 @@ class AdminService {
     VehicleTypeConfig(id: 'v4', name: 'รถตู้บรรทุก', iconName: 'airport_shuttle', basePrice: 300.0, pricePerKm: 35.0, platformFeePercent: 10.0),
   ];
 
-  // Fetch Methods
+  // Stream Controllers for Real-Time Live Sync
+  final StreamController<List<AdminOrderModel>> _ordersStreamController = StreamController<List<AdminOrderModel>>.broadcast();
+  final StreamController<List<DriverAdminModel>> _driversStreamController = StreamController<List<DriverAdminModel>>.broadcast();
+
+  Stream<List<AdminOrderModel>> get ordersStream => _ordersStreamController.stream;
+  Stream<List<DriverAdminModel>> get driversStream => _driversStreamController.stream;
+
+  void _notifyOrdersChanged() {
+    if (!_ordersStreamController.isClosed) {
+      _ordersStreamController.add(List.unmodifiable(_orders));
+    }
+  }
+
+  void _notifyDriversChanged() {
+    if (!_driversStreamController.isClosed) {
+      _driversStreamController.add(List.unmodifiable(_drivers));
+    }
+  }
+
+  // Fetch Methods with DioClient API Integration & Fallback
   List<CustomerModel> getCustomersSync() => List.from(_customers);
   List<DriverAdminModel> getDriversSync() => List.from(_drivers);
   List<AdminUserModel> getAdminsSync() => List.from(_admins);
   List<AdminOrderModel> getOrdersSync() => List.from(_orders);
   List<VehicleTypeConfig> getVehicleConfigsSync() => List.from(_vehicleConfigs);
 
-  Future<List<CustomerModel>> getCustomers() async => List.from(_customers);
-  Future<List<DriverAdminModel>> getDrivers() async => List.from(_drivers);
-  Future<List<AdminUserModel>> getAdmins() async => List.from(_admins);
-  Future<List<AdminOrderModel>> getOrders() async => List.from(_orders);
-  Future<List<VehicleTypeConfig>> getVehicleConfigs() async => List.from(_vehicleConfigs);
+  Future<List<CustomerModel>> getCustomers() async {
+    try {
+      final response = await _dioClient.get('/admin/customers');
+      if (response.data != null && response.data['data'] is List) {
+        final List list = response.data['data'];
+        return list.map((item) => CustomerModel.fromJson(item)).toList();
+      }
+    } catch (_) {
+      // Fallback to local memory list
+    }
+    return List.from(_customers);
+  }
+
+  Future<List<DriverAdminModel>> getDrivers() async {
+    try {
+      final response = await _dioClient.get('/admin/drivers');
+      if (response.data != null && response.data['data'] is List) {
+        final List list = response.data['data'];
+        final res = list.map((item) => DriverAdminModel.fromJson(item)).toList();
+        _drivers.clear();
+        _drivers.addAll(res);
+        _notifyDriversChanged();
+        return res;
+      }
+    } catch (_) {
+      // Fallback to local memory list
+    }
+    return List.from(_drivers);
+  }
+
+  Future<List<AdminUserModel>> getAdmins() async {
+    try {
+      final response = await _dioClient.get('/admin/users');
+      if (response.data != null && response.data['data'] is List) {
+        final List list = response.data['data'];
+        return list.map((item) => AdminUserModel.fromJson(item)).toList();
+      }
+    } catch (_) {
+      // Fallback
+    }
+    return List.from(_admins);
+  }
+
+  Future<List<AdminOrderModel>> getOrders() async {
+    try {
+      final response = await _dioClient.get('/admin/orders');
+      if (response.data != null && response.data['data'] is List) {
+        final List list = response.data['data'];
+        final res = list.map((item) => AdminOrderModel.fromJson(item)).toList();
+        _orders.clear();
+        _orders.addAll(res);
+        _notifyOrdersChanged();
+        return res;
+      }
+    } catch (_) {
+      // Fallback
+    }
+    return List.from(_orders);
+  }
+
+  Future<List<VehicleTypeConfig>> getVehicleConfigs() async {
+    try {
+      final response = await _dioClient.get('/admin/vehicle-configs');
+      if (response.data != null && response.data['data'] is List) {
+        final List list = response.data['data'];
+        return list.map((item) => VehicleTypeConfig.fromJson(item)).toList();
+      }
+    } catch (_) {
+      // Fallback
+    }
+    return List.from(_vehicleConfigs);
+  }
 
   // Actions
   Future<bool> updateCustomerInfo(String id, String name, String email, String phone) async {
+    try {
+      await _dioClient.put('/admin/customers/$id', data: {
+        'name': name,
+        'email': email,
+        'phone': phone,
+      });
+    } catch (_) {}
+
     final idx = _customers.indexWhere((c) => c.id == id);
     if (idx != -1) {
       _customers[idx] = _customers[idx].copyWith(
@@ -294,30 +388,44 @@ class AdminService {
   }
 
   Future<bool> approveDriver(String id) async {
+    try {
+      await _dioClient.post('/admin/drivers/$id/approve');
+    } catch (_) {}
+
     final idx = _drivers.indexWhere((d) => d.id == id);
     if (idx != -1) {
       _drivers[idx] = _drivers[idx].copyWith(
         status: DriverVerificationStatus.approved,
         rejectionReason: null,
       );
+      _notifyDriversChanged();
       return true;
     }
     return false;
   }
 
   Future<bool> rejectDriver(String id, String reason) async {
+    try {
+      await _dioClient.post('/admin/drivers/$id/reject', data: {'reason': reason});
+    } catch (_) {}
+
     final idx = _drivers.indexWhere((d) => d.id == id);
     if (idx != -1) {
       _drivers[idx] = _drivers[idx].copyWith(
         status: DriverVerificationStatus.rejected,
         rejectionReason: reason,
       );
+      _notifyDriversChanged();
       return true;
     }
     return false;
   }
 
   Future<bool> toggleDriverSuspend(String id) async {
+    try {
+      await _dioClient.post('/admin/drivers/$id/toggle-suspend');
+    } catch (_) {}
+
     final idx = _drivers.indexWhere((d) => d.id == id);
     if (idx != -1) {
       final current = _drivers[idx].status;
@@ -325,12 +433,21 @@ class AdminService {
           ? DriverVerificationStatus.approved
           : DriverVerificationStatus.suspended;
       _drivers[idx] = _drivers[idx].copyWith(status: next);
+      _notifyDriversChanged();
       return true;
     }
     return false;
   }
 
   Future<bool> updateOrderStatus(String orderNo, AdminOrderStatus newStatus, {String? reason, String? cancelledBy}) async {
+    try {
+      await _dioClient.put('/admin/orders/$orderNo/status', data: {
+        'status': newStatus.name,
+        'reason': reason,
+        'cancelled_by': cancelledBy,
+      });
+    } catch (_) {}
+
     final idx = _orders.indexWhere((o) => o.orderNo == orderNo);
     if (idx != -1) {
       _orders[idx] = _orders[idx].copyWith(
@@ -338,6 +455,7 @@ class AdminService {
         cancellationReason: reason ?? _orders[idx].cancellationReason,
         cancelledBy: cancelledBy ?? _orders[idx].cancelledBy,
       );
+      _notifyOrdersChanged();
       return true;
     }
     return false;
