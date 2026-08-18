@@ -1,6 +1,7 @@
 import 'dart:async';
 import '../models/admin_models.dart';
 import '../../../core/network/dio_client.dart';
+import '../../../core/services/push_notification_service.dart';
 
 class AdminService {
   final DioClient _dioClient;
@@ -399,6 +400,18 @@ class AdminService {
         rejectionReason: null,
       );
       _notifyDriversChanged();
+
+      // Trigger Push Notification to Driver User Account
+      PushNotificationService().triggerLocalPushNotification(
+        title: '🎉 บัญชีผู้ให้บริการของคุณได้รับการอนุมัติแล้ว!',
+        body: 'เอกสารสมัครคนขับของคุณ (${_drivers[idx].fullName}) ผ่านการอนุมัติเรียบร้อยแล้ว! คุณสามารถสลับโรลในหน้าโปรไฟล์เพื่อเริ่มต้นรับงานได้ทันที',
+        extraData: {
+          'driverId': id,
+          'status': 'APPROVED',
+          'type': 'driver_approval',
+        },
+      );
+
       return true;
     }
     return false;
@@ -416,6 +429,19 @@ class AdminService {
         rejectionReason: reason,
       );
       _notifyDriversChanged();
+
+      // Trigger Rejection Notification to Driver User Account
+      PushNotificationService().triggerLocalPushNotification(
+        title: '⚠️ เอกสารสมัครคนขับไม่ผ่านการอนุมัติ',
+        body: 'การสมัครเป็นผู้ให้บริการสำหรับ ${_drivers[idx].fullName} ถูกปฏิเสธ: $reason กรุณาแก้ไขและยื่นเอกสารใหม่อีกครั้ง',
+        extraData: {
+          'driverId': id,
+          'status': 'REJECTED',
+          'reason': reason,
+          'type': 'driver_rejection',
+        },
+      );
+
       return true;
     }
     return false;

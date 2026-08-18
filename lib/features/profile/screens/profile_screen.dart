@@ -11,6 +11,7 @@ import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/providers/user_role_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBackPressed;
@@ -534,6 +535,95 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // 🛵 Driver Role Switcher & Approved Status Banner
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDarkMode
+                              ? const [Color(0xFF065F46), Color(0xFF047857)]
+                              : const [Color(0xFFD1FAE5), Color(0xFFA7F3D0)],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFF10B981)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF10B981),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '🎉 บัญชีผู้ให้บริการได้รับการอนุมัติแล้ว',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDarkMode ? Colors.white : const Color(0xFF065F46),
+                                      ),
+                                    ),
+                                    Text(
+                                      'เอกสารผ่านการตรวจสอบแล้ว สามารถสลับโหมดรับงานได้ทันที',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 11,
+                                        color: isDarkMode ? Colors.white70 : const Color(0xFF047857),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.driver);
+                                context.go(AppRoutes.driver);
+                              },
+                              icon: const Icon(Icons.two_wheeler_rounded, size: 20),
+                              label: Text(
+                                '🔄 สลับโหมดเป็นผู้ให้บริการ (Driver App)',
+                                style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF059669),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 16),
 
                   // Menu Items (Separate cards)
