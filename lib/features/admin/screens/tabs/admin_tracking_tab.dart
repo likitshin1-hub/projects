@@ -17,26 +17,30 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
   final TextEditingController _searchController = TextEditingController();
   String _driverFilter = 'All'; // All, Online, Moving
   String _statusFilter = 'All'; // All, ACCEPTED, DRIVER_ARRIVING, PICKED_UP, IN_TRANSIT
+  String _mapStyle = 'Dark Grid'; // Dark Grid, Satellite
 
+  double _zoomLevel = 1.0;
   Timer? _liveSimulationTimer;
   double _latOffset = 0.0;
   double _lngOffset = 0.0;
-  int _lastUpdateSecondsAgo = 3;
+  int _lastUpdateSecondsAgo = 2;
+  double _currentSpeed = 42.5;
 
   @override
   void initState() {
     super.initState();
-    // Real-Time Auto-Update Simulation Timer (nudge live driver position every 4s)
-    _liveSimulationTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+    // Real-Time Auto-Update Telemetry & GPS Position Timer (nudge position every 3s)
+    _liveSimulationTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (mounted) {
         setState(() {
-          _latOffset += 0.0005;
-          _lngOffset += 0.0003;
-          if (_latOffset > 0.008) {
+          _latOffset += 0.0006;
+          _lngOffset += 0.0004;
+          _currentSpeed = 38.0 + (timer.tick % 10);
+          if (_latOffset > 0.012) {
             _latOffset = 0.0;
             _lngOffset = 0.0;
           }
-          _lastUpdateSecondsAgo = 2;
+          _lastUpdateSecondsAgo = 1;
         });
       }
     });
@@ -49,6 +53,19 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
     super.dispose();
   }
 
+  void _recenterMap() {
+    setState(() {
+      _zoomLevel = 1.0;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('🎯 ปรับกึ่งกลางแผนที่ไปยังพิกัดคนขับปัจจุบันสำเร็จ', style: GoogleFonts.kanit()),
+        backgroundColor: const Color(0xFF1C7FF6),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _showDriverInfoModal(AdminOrderModel order) {
     showDialog(
       context: context,
@@ -57,7 +74,7 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
           backgroundColor: const Color(0xFF1E293B),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Container(
-            width: 480,
+            width: 500,
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -70,7 +87,7 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
                       children: [
                         const Icon(Icons.two_wheeler_rounded, color: Color(0xFF1C7FF6), size: 24),
                         const SizedBox(width: 10),
-                        Text('🚚 Driver Live Detail (ข้อมูลคนขับ)', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('🚚 Driver Telemetry Details', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                       ],
                     ),
                     IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(ctx)),
@@ -78,21 +95,28 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
                 ),
                 const Divider(color: Color(0xFF334155)),
                 const SizedBox(height: 12),
-                _buildModalDetailRow('ชื่อคนขับ:', order.driverName.isEmpty ? 'ยังไม่ระบุ' : order.driverName),
+                _buildModalDetailRow('ชื่อผู้ให้บริการ:', order.driverName.isEmpty ? 'ยังไม่ระบุ' : order.driverName),
                 _buildModalDetailRow('เบอร์โทรศัพท์:', order.driverPhone.isEmpty ? '081-998-7711' : order.driverPhone),
-                _buildModalDetailRow('ประเภทรถ:', order.vehicleType),
-                _buildModalDetailRow('ทะเบียนรถ:', 'กข 8841 กรุงเทพมหานคร'),
-                _buildModalDetailRow('Order ปัจจุบัน:', '#${order.orderNo}'),
-                _buildModalDetailRow('Location ล่าสุด:', 'Lat: ${(13.7563 + _latOffset).toStringAsFixed(4)}, Lng: ${(100.5018 + _lngOffset).toStringAsFixed(4)}'),
-                _buildModalDetailRow('ความเร็วปัจจุบัน:', '38 km/h (กำลังเคลื่อนที่)'),
-                _buildModalDetailRow('อัปเดตล่าสุด:', 'เมื่อ $_lastUpdateSecondsAgo วินาทีที่แล้ว (Auto-Syncing)'),
+                _buildModalDetailRow('ประเภทพาหนะ:', order.vehicleType),
+                _buildModalDetailRow('คำสั่งซื้อปัจจุบัน:', '#${order.orderNo}'),
+                _buildModalDetailRow('พิกัด GPS ล่าสุด:', 'Lat: ${(order.currentDriverLat + _latOffset).toStringAsFixed(5)}, Lng: ${(order.currentDriverLng + _lngOffset).toStringAsFixed(5)}'),
+                _buildModalDetailRow('ความเร็วเรียลไทม์:', '${_currentSpeed.toStringAsFixed(1)} km/h (กำลังเคลื่อนที่)'),
+                _buildModalDetailRow('สถานะแบตเตอรี่โทรศัพท์:', '🔋 88% (Online Syncing)'),
+                _buildModalDetailRow('อัปเดตล่าสุด:', 'เมื่อ $_lastUpdateSecondsAgo วินาทีที่แล้ว'),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: const Icon(Icons.phone_in_talk_rounded, size: 18),
+                      label: Text('โทรหาคนขับ', style: GoogleFonts.kanit()),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
+                    ),
+                    const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1C7FF6), foregroundColor: Colors.white),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6), foregroundColor: Colors.white),
                       child: Text('ปิดหน้าต่าง', style: GoogleFonts.kanit()),
                     ),
                   ],
@@ -135,12 +159,12 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
                 const Divider(color: Color(0xFF334155)),
                 const SizedBox(height: 12),
                 _buildModalDetailRow('ลูกค้า (Customer):', '${order.customerName} (${order.customerPhone})'),
-                _buildModalDetailRow('คนขับ (Driver):', '${order.driverName} (${order.vehicleType})'),
+                _buildModalDetailRow('คนขับ (Driver):', '${order.driverName.isEmpty ? "ยังไม่มีคนขับ" : order.driverName} (${order.vehicleType})'),
                 _buildModalDetailRow('จุดรับสินค้า (Pickup):', order.pickupAddress),
                 _buildModalDetailRow('จุดส่งสินค้า (Destination):', order.dropoffAddress),
-                _buildModalDetailRow('สถานะการส่ง:', order.status.name.toUpperCase()),
-                _buildModalDetailRow('ETA ประมาณเวลาถึง:', 'ประมาณ 12 นาที'),
-                _buildModalDetailRow('Last Updated:', 'เพิ่งอัปเดตเมื่อ $_lastUpdateSecondsAgo วินาทีที่แล้ว'),
+                _buildModalDetailRow('ยอดบริการ:', '฿${order.amount.toStringAsFixed(2)}'),
+                _buildModalDetailRow('สถานะการจัดส่ง:', order.status.name.toUpperCase()),
+                _buildModalDetailRow('ETA เวลาคาดการณ์:', 'ประมาณ 10-15 นาที'),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -185,25 +209,60 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Navigation Bar with Pulsing Real-time Live Indicator
+          // Top Navigation Bar with Pulsing Real-time Live Indicator & Map Layer Switcher
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Live Map Tracking (ติดตามสถานะและพิกัดเรียลไทม์)', style: GoogleFonts.kanit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF10B981)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.sync_rounded, color: Color(0xFF10B981), size: 16),
-                    const SizedBox(width: 6),
-                    Text('Live Real-Time ●', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 13)),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('📍 Live Map Tracking (ติดตามสถานะและพิกัดเรียลไทม์)', style: GoogleFonts.kanit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 4),
+                  Text('สตรีมมิ่งพิกัด GPS คนขับและสถานะการขนส่งสินค้าทั่วประเทศแบบ Real-Time', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 13)),
+                ],
+              ),
+              Row(
+                children: [
+                  // Map Style Selector Button
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF334155)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _mapStyle,
+                        dropdownColor: const Color(0xFF1E293B),
+                        style: GoogleFonts.kanit(color: Colors.white, fontSize: 12),
+                        items: const [
+                          DropdownMenuItem(value: 'Dark Grid', child: Text('🗺️ Mode: Dark Grid')),
+                          DropdownMenuItem(value: 'Satellite', child: Text('🛰️ Mode: Satellite')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) setState(() => _mapStyle = val);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF10B981)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.sync_rounded, color: Color(0xFF10B981), size: 16),
+                        const SizedBox(width: 6),
+                        Text('Live Real-Time ●', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -381,7 +440,7 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
                           )
                         : Column(
                             children: [
-                              // Map View Header Bar
+                              // Map View Header Bar with Telemetry
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                                 decoration: const BoxDecoration(
@@ -401,8 +460,11 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
                                     ),
                                     Row(
                                       children: [
-                                        Text('Lat: ${(13.7563 + _latOffset).toStringAsFixed(4)}, Lng: ${(100.5018 + _lngOffset).toStringAsFixed(4)}', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 12)),
-                                        const SizedBox(width: 12),
+                                        Text('Lat: ${(selectedOrder.currentDriverLat + _latOffset).toStringAsFixed(5)}, Lng: ${(selectedOrder.currentDriverLng + _lngOffset).toStringAsFixed(5)}',
+                                            style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 12)),
+                                        const SizedBox(width: 14),
+                                        Text('Speed: ${_currentSpeed.toStringAsFixed(1)} km/h', style: GoogleFonts.kanit(color: const Color(0xFF3B82F6), fontWeight: FontWeight.bold, fontSize: 12)),
+                                        const SizedBox(width: 14),
                                         Text('ETA: ~12 นาที', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 12)),
                                       ],
                                     ),
@@ -417,22 +479,22 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
                                     // Grid Map Pattern Background Simulation
                                     Positioned.fill(
                                       child: CustomPaint(
-                                        painter: MapGridPainter(),
+                                        painter: MapGridPainter(isSatellite: _mapStyle == 'Satellite'),
                                       ),
                                     ),
 
                                     // Simulated Route Polyline Connection
                                     Center(
                                       child: CustomPaint(
-                                        size: const Size(400, 200),
+                                        size: Size(400 * _zoomLevel, 200 * _zoomLevel),
                                         painter: RoutePolylinePainter(),
                                       ),
                                     ),
 
                                     // 🟢 Pickup Pin Marker (Left)
                                     Positioned(
-                                      left: 120,
-                                      top: 140,
+                                      left: 120 * _zoomLevel,
+                                      top: 140 * _zoomLevel,
                                       child: GestureDetector(
                                         onTap: () => _showOrderInfoModal(selectedOrder),
                                         child: Column(
@@ -450,8 +512,8 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
 
                                     // 🔴 Destination Pin Marker (Right)
                                     Positioned(
-                                      right: 140,
-                                      bottom: 120,
+                                      right: 140 * _zoomLevel,
+                                      bottom: 120 * _zoomLevel,
                                       child: GestureDetector(
                                         onTap: () => _showOrderInfoModal(selectedOrder),
                                         child: Column(
@@ -469,21 +531,25 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
 
                                     // 🚚 Live Moving Driver Marker (Animated position offset)
                                     AnimatedPositioned(
-                                      duration: const Duration(seconds: 3),
+                                      duration: const Duration(seconds: 2),
                                       curve: Curves.easeInOut,
-                                      left: 240 + (_latOffset * 10000),
-                                      top: 180 - (_lngOffset * 8000),
+                                      left: (240 + (_latOffset * 10000)) * _zoomLevel,
+                                      top: (180 - (_lngOffset * 8000)) * _zoomLevel,
                                       child: GestureDetector(
                                         onTap: () => _showDriverInfoModal(selectedOrder),
                                         child: Column(
                                           children: [
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                              decoration: BoxDecoration(color: const Color(0xFF1C7FF6), borderRadius: BorderRadius.circular(8), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 10)]),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF1C7FF6),
+                                                borderRadius: BorderRadius.circular(8),
+                                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 10)],
+                                              ),
                                               child: Column(
                                                 children: [
                                                   Text('🚚 ${selectedOrder.driverName.isEmpty ? "Driver" : selectedOrder.driverName}', style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                                                  Text('38 km/h • Live ●', style: GoogleFonts.kanit(color: Colors.white70, fontSize: 10)),
+                                                  Text('${_currentSpeed.toStringAsFixed(1)} km/h • Live ●', style: GoogleFonts.kanit(color: Colors.white70, fontSize: 10)),
                                                 ],
                                               ),
                                             ),
@@ -493,13 +559,40 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
                                       ),
                                     ),
 
+                                    // Floating Map Control Action Buttons (Zoom & Recenter)
+                                    Positioned(
+                                      top: 20,
+                                      right: 20,
+                                      child: Column(
+                                        children: [
+                                          _buildMapControlButton(Icons.add, () {
+                                            setState(() {
+                                              if (_zoomLevel < 1.8) _zoomLevel += 0.2;
+                                            });
+                                          }),
+                                          const SizedBox(height: 8),
+                                          _buildMapControlButton(Icons.remove, () {
+                                            setState(() {
+                                              if (_zoomLevel > 0.6) _zoomLevel -= 0.2;
+                                            });
+                                          }),
+                                          const SizedBox(height: 8),
+                                          _buildMapControlButton(Icons.my_location_rounded, _recenterMap),
+                                        ],
+                                      ),
+                                    ),
+
                                     // Bottom Map Legend Overlay
                                     Positioned(
                                       left: 20,
                                       bottom: 20,
                                       child: Container(
                                         padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(color: const Color(0xFF1E293B).withValues(alpha: 0.9), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF334155))),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF1E293B).withValues(alpha: 0.9),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFF334155)),
+                                        ),
                                         child: Row(
                                           children: [
                                             _buildLegendItem(Icons.two_wheeler, const Color(0xFF1C7FF6), '🚚 ไรเดอร์กำลังเคลื่อนที่ (คลิกดู Driver)'),
@@ -522,6 +615,21 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMapControlButton(IconData icon, VoidCallback onTap) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF334155)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6)],
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white, size: 20),
+        onPressed: onTap,
       ),
     );
   }
@@ -572,10 +680,13 @@ class _AdminTrackingTabState extends ConsumerState<AdminTrackingTab> {
 
 // Map Grid Visual Painter
 class MapGridPainter extends CustomPainter {
+  final bool isSatellite;
+  MapGridPainter({this.isSatellite = false});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF1E293B).withValues(alpha: 0.5)
+      ..color = isSatellite ? const Color(0xFF0F2027).withValues(alpha: 0.8) : const Color(0xFF1E293B).withValues(alpha: 0.5)
       ..strokeWidth = 1.0;
 
     const step = 40.0;
@@ -588,7 +699,7 @@ class MapGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant MapGridPainter oldDelegate) => oldDelegate.isSatellite != isSatellite;
 }
 
 // Route Polyline Visual Painter
