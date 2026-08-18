@@ -94,20 +94,24 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     }
 
     final driver = ref.read(driverProvider);
-    _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('driver'),
-        position: newDriverLatLng,
-        anchor: const Offset(0.5, 0.5),
-        flat: true,
-        infoWindow: InfoWindow(
-          title: 'ไรเดอร์ผู้จัดส่ง (${driver.name})',
-          snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
-        ),
-        icon: _riderMarkerIcon,
-      ),
-    );
+    if (mounted) {
+      setState(() {
+        _markers.removeWhere((m) => m.markerId == const MarkerId('driver'));
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('driver'),
+            position: newDriverLatLng,
+            anchor: const Offset(0.5, 0.5),
+            flat: true,
+            infoWindow: InfoWindow(
+              title: 'ไรเดอร์ผู้จัดส่ง (${driver.name})',
+              snippet: 'กำลังเดินทางส่งพัสดุตามเส้นทางเรียลไทม์',
+            ),
+            icon: _riderMarkerIcon,
+          ),
+        );
+      });
+    }
 
     try {
       _mapController?.animateCamera(
@@ -523,6 +527,23 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     final driver = ref.watch(driverProvider);
     final trackingState = ref.watch(trackingProvider);
     final currentStep = trackingState.currentStep;
+
+    ref.listen<TrackingState>(trackingProvider, (previous, next) {
+      if (previous?.currentStep != next.currentStep) {
+        _updateRiderMarkerForCurrentStep(next.currentStep);
+      }
+
+      if (next.isCompleted && (previous == null || !previous.isCompleted)) {
+        if (!_hasShownCompletionDialog) {
+          _hasShownCompletionDialog = true;
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              context.push(AppRoutes.deliverySuccess);
+            }
+          });
+        }
+      }
+    });
 
     final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -1027,9 +1048,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.history_rounded, size: 20, color: Colors.white),
+                        icon: const Icon(Icons.verified_rounded, size: 22, color: Colors.white),
                         label: Text(
-                          'ดูประวัติการขนส่ง 📋',
+                          'ไปหน้ายืนยันการจัดส่งสำเร็จ 🏆',
                           style: GoogleFonts.kanit(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -1038,13 +1059,13 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF10B981),
                           foregroundColor: Colors.white,
-                          elevation: 2,
+                          elevation: 3,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         onPressed: () {
-                          _showDeliveryCompletedDialog(context);
+                          context.push(AppRoutes.deliverySuccess);
                         },
                       ),
                     ),

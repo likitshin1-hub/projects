@@ -76,7 +76,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       );
       return;
     }
-    context.pushReplacement(AppRoutes.successVerification);
+    context.pushReplacement(AppRoutes.resetPassword);
   }
 
   @override
