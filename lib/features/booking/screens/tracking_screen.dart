@@ -1022,7 +1022,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                   const SizedBox(height: 14),
 
                   // CARD 4: FULL DETAILS & HISTORY BUTTONS
-                  if (_currentStep == 3) ...[
+                  if (currentStep == 3) ...[
                     SizedBox(
                       width: double.infinity,
                       height: 52,
