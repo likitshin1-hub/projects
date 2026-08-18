@@ -64,7 +64,7 @@ import '../../features/admin/screens/admin_login_screen.dart';
 import '../../features/admin/guards/admin_auth_guard.dart';
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.admin,
+  initialLocation: AppRoutes.splash,
   redirect: AdminAuthGuard.guard,
   routes: [
     // Splash
