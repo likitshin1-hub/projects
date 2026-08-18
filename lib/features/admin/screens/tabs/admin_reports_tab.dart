@@ -250,20 +250,20 @@ class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('📊 Reports & Analytics (รายงานและสรุปข้อมูล)', style: GoogleFonts.kanit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text('📊 รายงานและสถิติการใช้งานระบบ', style: GoogleFonts.kanit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
               Row(
                 children: [
                   ElevatedButton.icon(
                     onPressed: _exportCSV,
                     icon: const Icon(Icons.download_rounded, size: 18),
-                    label: Text('Export CSV', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+                    label: Text('ส่งออกไฟล์ CSV', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
                   ),
                   const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: _exportPDF,
                     icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
-                    label: Text('Export PDF', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+                    label: Text('พิมพ์รายงาน PDF', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
                   ),
                 ],
@@ -275,13 +275,13 @@ class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
           // 4 Category Tabs
           Row(
             children: [
-              _buildCategoryTab('Order Report', Icons.shopping_bag_rounded, const Color(0xFF3B82F6)),
+              _buildCategoryTab('Order Report', Icons.shopping_bag_rounded, const Color(0xFF3B82F6), label: 'รายงานคำสั่งซื้อ'),
               const SizedBox(width: 12),
-              _buildCategoryTab('Revenue Report', Icons.account_balance_wallet_rounded, const Color(0xFF10B981)),
+              _buildCategoryTab('Revenue Report', Icons.account_balance_wallet_rounded, const Color(0xFF10B981), label: 'รายงานรายได้รวม'),
               const SizedBox(width: 12),
-              _buildCategoryTab('Driver Report', Icons.two_wheeler_rounded, const Color(0xFF8B5CF6)),
+              _buildCategoryTab('Driver Report', Icons.two_wheeler_rounded, const Color(0xFF8B5CF6), label: 'รายงานผลงานคนขับ'),
               const SizedBox(width: 12),
-              _buildCategoryTab('Customer Report', Icons.people_alt_rounded, const Color(0xFFF59E0B)),
+              _buildCategoryTab('Customer Report', Icons.people_alt_rounded, const Color(0xFFF59E0B), label: 'รายงานการเติบโตลูกค้า'),
             ],
           ),
           const SizedBox(height: 24),
@@ -653,7 +653,7 @@ class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
     );
   }
 
-  Widget _buildCategoryTab(String title, IconData icon, Color activeColor) {
+  Widget _buildCategoryTab(String title, IconData icon, Color activeColor, {String? label}) {
     final isSelected = _selectedReportType == title;
     return InkWell(
       onTap: () => setState(() => _selectedReportType = title),
@@ -669,7 +669,7 @@ class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
           children: [
             Icon(icon, color: isSelected ? activeColor : const Color(0xFF94A3B8), size: 18),
             const SizedBox(width: 8),
-            Text(title, style: GoogleFonts.kanit(color: isSelected ? Colors.white : const Color(0xFF94A3B8), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+            Text(label ?? title, style: GoogleFonts.kanit(color: isSelected ? Colors.white : const Color(0xFF94A3B8), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),

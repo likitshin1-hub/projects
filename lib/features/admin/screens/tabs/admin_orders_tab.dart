@@ -451,7 +451,7 @@ class _AdminOrdersTabState extends ConsumerState<AdminOrdersTab> {
                   style: GoogleFonts.kanit(color: Colors.white),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
-                    hintText: '🔍 Search Order ID / Customer / Driver / Address',
+                    hintText: '🔍 ค้นหาเลข Order / ลูกค้า / คนขับ / สถานที่',
                     hintStyle: GoogleFonts.kanit(color: const Color(0xFF64748B)),
                     filled: true,
                     fillColor: const Color(0xFF1E293B),
@@ -466,14 +466,14 @@ class _AdminOrdersTabState extends ConsumerState<AdminOrdersTab> {
               _buildDropdown(
                 value: _statusFilter,
                 items: const [
-                  DropdownMenuItem(value: 'All', child: Text('Status: ทั้งหมด')),
-                  DropdownMenuItem(value: 'PENDING', child: Text('PENDING (รอรับงาน)')),
-                  DropdownMenuItem(value: 'ACCEPTED', child: Text('ACCEPTED (รับงานแล้ว)')),
-                  DropdownMenuItem(value: 'DRIVER_ARRIVING', child: Text('ARRIVING (ไรเดอร์กำลังไป)')),
-                  DropdownMenuItem(value: 'PICKED_UP', child: Text('PICKED_UP (รับสินค้าแล้ว)')),
-                  DropdownMenuItem(value: 'IN_TRANSIT', child: Text('IN_TRANSIT (กำลังจัดส่ง)')),
-                  DropdownMenuItem(value: 'COMPLETED', child: Text('COMPLETED (สำเร็จ)')),
-                  DropdownMenuItem(value: 'CANCELLED', child: Text('CANCELLED (ยกเลิก)')),
+                  DropdownMenuItem(value: 'All', child: Text('สถานะ: ทั้งหมด')),
+                  DropdownMenuItem(value: 'PENDING', child: Text('รอรับงาน (Pending)')),
+                  DropdownMenuItem(value: 'ACCEPTED', child: Text('รับงานแล้ว (Accepted)')),
+                  DropdownMenuItem(value: 'DRIVER_ARRIVING', child: Text('ไรเดอร์กำลังไป (Arriving)')),
+                  DropdownMenuItem(value: 'PICKED_UP', child: Text('รับสินค้าแล้ว (Picked Up)')),
+                  DropdownMenuItem(value: 'IN_TRANSIT', child: Text('กำลังจัดส่ง (In Transit)')),
+                  DropdownMenuItem(value: 'COMPLETED', child: Text('สำเร็จแล้ว (Completed)')),
+                  DropdownMenuItem(value: 'CANCELLED', child: Text('ยกเลิก (Cancelled)')),
                 ],
                 onChanged: (val) => setState(() => _statusFilter = val!),
               ),
@@ -483,8 +483,8 @@ class _AdminOrdersTabState extends ConsumerState<AdminOrdersTab> {
               _buildDropdown(
                 value: _dateFilter,
                 items: const [
-                  DropdownMenuItem(value: 'All', child: Text('Date: ทั้งหมด')),
-                  DropdownMenuItem(value: 'Today', child: Text('วันนี้ (Today)')),
+                  DropdownMenuItem(value: 'All', child: Text('วันที่: ทั้งหมด')),
+                  DropdownMenuItem(value: 'Today', child: Text('วันนี้')),
                   DropdownMenuItem(value: 'ThisWeek', child: Text('สัปดาห์นี้')),
                   DropdownMenuItem(value: 'ThisMonth', child: Text('เดือนนี้')),
                 ],
@@ -496,7 +496,7 @@ class _AdminOrdersTabState extends ConsumerState<AdminOrdersTab> {
               _buildDropdown(
                 value: _vehicleFilter,
                 items: const [
-                  DropdownMenuItem(value: 'All', child: Text('Vehicle: ทั้งหมด')),
+                  DropdownMenuItem(value: 'All', child: Text('ประเภทรถ: ทั้งหมด')),
                   DropdownMenuItem(value: 'Motorcycle', child: Text('มอเตอร์ไซค์')),
                   DropdownMenuItem(value: 'Car', child: Text('รถเก๋ง/4 ประตู')),
                   DropdownMenuItem(value: 'Van', child: Text('รถตู้')),
@@ -510,7 +510,7 @@ class _AdminOrdersTabState extends ConsumerState<AdminOrdersTab> {
               _buildDropdown(
                 value: _driverFilter,
                 items: const [
-                  DropdownMenuItem(value: 'All', child: Text('Driver: ทั้งหมด')),
+                  DropdownMenuItem(value: 'All', child: Text('คนขับ: ทั้งหมด')),
                   DropdownMenuItem(value: 'Assigned', child: Text('มีคนขับรับงานแล้ว')),
                   DropdownMenuItem(value: 'Unassigned', child: Text('ยังไม่มีคนขับ')),
                 ],
@@ -556,16 +556,16 @@ class _AdminOrdersTabState extends ConsumerState<AdminOrdersTab> {
                     child: DataTable(
                       headingRowColor: WidgetStateProperty.all(const Color(0xFF0F172A)),
                       columns: [
-                        DataColumn(label: Text('Order ID', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Customer', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Driver', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Vehicle', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Pickup', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Destination', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Price', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Status', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Created At', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Action', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('รหัสคำสั่งซื้อ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ชื่อลูกค้า', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ผู้ให้บริการ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ประเภทรถ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('จุดรับสินค้า', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('จุดส่งสินค้า', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ค่าบริการ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('สถานะ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('เวลาที่สั่ง', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('จัดการ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
                       ],
                       rows: filtered.map((o) {
                         final dt = o.createdAt;

@@ -105,9 +105,9 @@ class AdminOverviewTab extends ConsumerWidget {
             children: [
               Expanded(
                 child: _buildClickableMetricCard(
-                  title: 'Total Users',
+                  title: 'ผู้ใช้งานทั้งหมด',
                   value: totalUsers.toString(),
-                  subTitle: 'Customers: $totalCustomers | Drivers: $totalDrivers',
+                  subTitle: 'ลูกค้า: $totalCustomers คน | คนขับ: $totalDrivers คน',
                   icon: Icons.people_rounded,
                   color: const Color(0xFF3B82F6),
                   onTap: () => ref.read(adminActiveTabProvider.notifier).setTab(1), // Navigates to Users
@@ -116,9 +116,9 @@ class AdminOverviewTab extends ConsumerWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildClickableMetricCard(
-                  title: 'Orders Today',
+                  title: 'คำสั่งซื้อวันนี้',
                   value: totalOrdersToday.toString(),
-                  subTitle: 'กำลังดำเนินการ: $inProgressOrders | สำเร็จ: $completedOrders',
+                  subTitle: 'กำลังจัดส่ง: $inProgressOrders | สำเร็จ: $completedOrders',
                   icon: Icons.local_shipping_rounded,
                   color: const Color(0xFF10B981),
                   onTap: () => ref.read(adminActiveTabProvider.notifier).setTab(4), // Navigates to Orders
@@ -127,9 +127,9 @@ class AdminOverviewTab extends ConsumerWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildClickableMetricCard(
-                  title: 'Active Drivers',
+                  title: 'คนขับพร้อมรับงาน',
                   value: activeDrivers.toString(),
-                  subTitle: 'ไรเดอร์ออนไลน์พร้อมรับงาน (จาก $totalDrivers คน)',
+                  subTitle: 'ไรเดอร์ออนไลน์ (จากทั้งหมด $totalDrivers คน)',
                   icon: Icons.two_wheeler_rounded,
                   color: const Color(0xFFF59E0B),
                   onTap: () => ref.read(adminActiveTabProvider.notifier).setTab(5), // Navigates to Tracking
@@ -138,7 +138,7 @@ class AdminOverviewTab extends ConsumerWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildClickableMetricCard(
-                  title: 'Revenue Today',
+                  title: 'รายได้รวมวันนี้',
                   value: '฿${revenueToday.toStringAsFixed(0)}',
                   subTitle: 'รายได้เดือนนี้สะสม: ฿${revenueThisMonth.toStringAsFixed(0)}',
                   icon: Icons.account_balance_wallet_rounded,
@@ -161,12 +161,12 @@ class AdminOverviewTab extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildKpiPill('จำนวน Customer', '$totalCustomers คน', Icons.person_outline, Colors.blueAccent),
-                _buildKpiPill('จำนวน Driver', '$totalDrivers คน', Icons.drive_eta_outlined, Colors.cyanAccent),
-                _buildKpiPill('Driver Online', '$activeDrivers คน', Icons.circle, Colors.greenAccent),
-                _buildKpiPill('Order กำลังดำเนินการ', '$inProgressOrders รายการ', Icons.pending_actions, Colors.amberAccent),
-                _buildKpiPill('Order สำเร็จ', '$completedOrders รายการ', Icons.check_circle_outline, const Color(0xFF10B981)),
-                _buildKpiPill('Order ยกเลิก', '$cancelledOrders รายการ', Icons.cancel_outlined, Colors.redAccent),
+                _buildKpiPill('จำนวนลูกค้าทั่วไป', '$totalCustomers คน', Icons.person_outline, Colors.blueAccent),
+                _buildKpiPill('จำนวนคนขับทั้งหมด', '$totalDrivers คน', Icons.drive_eta_outlined, Colors.cyanAccent),
+                _buildKpiPill('คนขับออนไลน์สด', '$activeDrivers คน', Icons.circle, Colors.greenAccent),
+                _buildKpiPill('กำลังดำเนินการจัดส่ง', '$inProgressOrders รายการ', Icons.pending_actions, Colors.amberAccent),
+                _buildKpiPill('จัดส่งสำเร็จแล้ว', '$completedOrders รายการ', Icons.check_circle_outline, const Color(0xFF10B981)),
+                _buildKpiPill('ยกเลิกคำสั่งซื้อ', '$cancelledOrders รายการ', Icons.cancel_outlined, Colors.redAccent),
               ],
             ),
           ),
@@ -192,7 +192,7 @@ class AdminOverviewTab extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('📈 Revenue Chart (สรุปแนวโน้มรายได้ประจำสัปดาห์)', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text('📈 กราฟสรุปแนวโน้มรายได้ประจำสัปดาห์', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(8)),

@@ -141,7 +141,7 @@ class _AdminCustomersTabState extends ConsumerState<AdminCustomersTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('👤 Customer Detail (รายละเอียดลูกค้า)', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    Text('👤 รายละเอียดข้อมูลลูกค้า', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                     IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(context)),
                   ],
                 ),
@@ -159,7 +159,7 @@ class _AdminCustomersTabState extends ConsumerState<AdminCustomersTab> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      customer.isSuspended ? 'Suspended (ถูกระงับ)' : 'Active (ปกติ)',
+                      customer.isSuspended ? 'ถูกระงับบัญชี' : 'สถานะปกติ',
                       style: GoogleFonts.kanit(color: customer.isSuspended ? Colors.redAccent : Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -174,15 +174,15 @@ class _AdminCustomersTabState extends ConsumerState<AdminCustomersTab> {
                 _buildDetailRow('ยอดใช้บริการสะสมทั้งหมด:', '฿${customer.totalSpent.toStringAsFixed(2)}'),
 
                 const SizedBox(height: 16),
-                Text('📜 Order History (ประวัติคำสั่งซื้อล่าสุด)', style: GoogleFonts.kanit(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text('📜 ประวัติคำสั่งซื้อล่าสุด', style: GoogleFonts.kanit(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(10)),
                   child: Column(
                     children: [
-                      _buildHistoryRow('ORD-8821', '2026-08-16 14:20', '฿350.00', 'COMPLETED'),
-                      _buildHistoryRow('ORD-8790', '2026-08-10 11:05', '฿1,200.00', 'COMPLETED'),
+                      _buildHistoryRow('ORD-8821', '2026-08-16 14:20', '฿350.00', 'สำเร็จ'),
+                      _buildHistoryRow('ORD-8790', '2026-08-10 11:05', '฿1,200.00', 'สำเร็จ'),
                     ],
                   ),
                 ),
@@ -269,7 +269,7 @@ class _AdminCustomersTabState extends ConsumerState<AdminCustomersTab> {
                   style: GoogleFonts.kanit(color: Colors.white),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
-                    hintText: '🔍 Search name / email / phone',
+                    hintText: '🔍 ค้นหาชื่อ / อีเมล / เบอร์โทรศัพท์',
                     hintStyle: GoogleFonts.kanit(color: const Color(0xFF64748B)),
                     filled: true,
                     fillColor: const Color(0xFF1E293B),
@@ -292,9 +292,9 @@ class _AdminCustomersTabState extends ConsumerState<AdminCustomersTab> {
                     dropdownColor: const Color(0xFF1E293B),
                     style: GoogleFonts.kanit(color: Colors.white),
                     items: const [
-                      DropdownMenuItem(value: 'All', child: Text('Status: ทั้งหมด')),
-                      DropdownMenuItem(value: 'Active', child: Text('Status: ปกติ (Active)')),
-                      DropdownMenuItem(value: 'Suspended', child: Text('Status: ถูกระงับ (Suspended)')),
+                      DropdownMenuItem(value: 'All', child: Text('สถานะ: ทั้งหมด')),
+                      DropdownMenuItem(value: 'Active', child: Text('สถานะ: ปกติ')),
+                      DropdownMenuItem(value: 'Suspended', child: Text('สถานะ: ถูกระงับ')),
                     ],
                     onChanged: (val) => setState(() => _statusFilter = val!),
                   ),
@@ -331,13 +331,13 @@ class _AdminCustomersTabState extends ConsumerState<AdminCustomersTab> {
                     child: DataTable(
                       headingRowColor: WidgetStateProperty.all(const Color(0xFF0F172A)),
                       columns: [
-                        DataColumn(label: Text('ID', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Name', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Email', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Phone', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Orders', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Status', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Action', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('รหัส ID', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ชื่อลูกค้า', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('อีเมล', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('เบอร์โทรศัพท์', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('จำนวนออเดอร์', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('สถานะบัญชี', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('จัดการ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
                       ],
                       rows: filtered.map((c) {
                         return DataRow(cells: [
@@ -353,7 +353,7 @@ class _AdminCustomersTabState extends ConsumerState<AdminCustomersTab> {
                                 color: c.isSuspended ? Colors.red.shade900.withValues(alpha: 0.3) : Colors.green.shade900.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(c.isSuspended ? 'Suspended' : 'Active', style: GoogleFonts.kanit(color: c.isSuspended ? Colors.redAccent : Colors.greenAccent, fontSize: 12)),
+                              child: Text(c.isSuspended ? 'ถูกระงับ' : 'ปกติ', style: GoogleFonts.kanit(color: c.isSuspended ? Colors.redAccent : Colors.greenAccent, fontSize: 12)),
                             ),
                           ),
                           DataCell(

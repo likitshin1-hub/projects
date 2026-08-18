@@ -386,8 +386,8 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
                     style: GoogleFonts.kanit(color: Colors.white),
                     items: const [
                       DropdownMenuItem(value: 'All', child: Text('สถานะทำงาน: ทั้งหมด')),
-                      DropdownMenuItem(value: 'Online', child: Text('🟢 Online (พร้อมรับงาน)')),
-                      DropdownMenuItem(value: 'Offline', child: Text('⚪ Offline (ปิดรับงาน)')),
+                      DropdownMenuItem(value: 'Online', child: Text('🟢 ออนไลน์ (พร้อมรับงาน)')),
+                      DropdownMenuItem(value: 'Offline', child: Text('⚪ ออฟไลน์ (ปิดรับงาน)')),
                     ],
                     onChanged: (val) => setState(() => _onlineFilter = val!),
                   ),
@@ -406,10 +406,10 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
                     style: GoogleFonts.kanit(color: Colors.white),
                     items: const [
                       DropdownMenuItem(value: 'All', child: Text('เอกสาร: ทั้งหมด')),
-                      DropdownMenuItem(value: 'Pending', child: Text('🟡 Pending (รอตรวจ)')),
-                      DropdownMenuItem(value: 'Approved', child: Text('🟢 Approved (อนุมัติ)')),
-                      DropdownMenuItem(value: 'Rejected', child: Text('🔴 Rejected (ปฏิเสธ)')),
-                      DropdownMenuItem(value: 'Suspended', child: Text('🟣 Suspended (ระงับ)')),
+                      DropdownMenuItem(value: 'Pending', child: Text('🟡 รอตรวจสอบเอกสาร')),
+                      DropdownMenuItem(value: 'Approved', child: Text('🟢 อนุมัติเอกสารแล้ว')),
+                      DropdownMenuItem(value: 'Rejected', child: Text('🔴 ปฏิเสธเอกสาร')),
+                      DropdownMenuItem(value: 'Suspended', child: Text('🟣 ถูกระงับบัญชี')),
                     ],
                     onChanged: (val) => setState(() => _verificationFilter = val!),
                   ),
@@ -451,13 +451,13 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
                     child: DataTable(
                       headingRowColor: WidgetStateProperty.all(const Color(0xFF0F172A)),
                       columns: [
-                        DataColumn(label: Text('Driver ID', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Name', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Phone', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Vehicle', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Status (รับงาน)', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Verification (เอกสาร)', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Action', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('รหัสคนขับ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ชื่อ-นามสกุล', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('เบอร์โทรศัพท์', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ยานพาหนะ & ทะเบียน', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('สถานะการทำงาน', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('สถานะเอกสาร', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('จัดการเอกสาร', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
                       ],
                       rows: filtered.map((d) {
                         return DataRow(cells: [
@@ -476,7 +476,7 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
                                   decoration: BoxDecoration(shape: BoxShape.circle, color: d.isOnline ? Colors.greenAccent : Colors.grey),
                                 ),
                                 const SizedBox(width: 6),
-                                Text(d.isOnline ? 'Online' : 'Offline', style: GoogleFonts.kanit(color: d.isOnline ? Colors.greenAccent : const Color(0xFF94A3B8), fontSize: 13)),
+                                Text(d.isOnline ? 'ออนไลน์' : 'ออฟไลน์', style: GoogleFonts.kanit(color: d.isOnline ? Colors.greenAccent : const Color(0xFF94A3B8), fontSize: 13)),
                               ],
                             ),
                           ),
@@ -521,22 +521,22 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
       case DriverVerificationStatus.pending:
         bg = Colors.amber.shade900.withValues(alpha: 0.3);
         fg = Colors.amberAccent;
-        label = 'Pending (รออนุมัติ)';
+        label = 'รอตรวจสอบเอกสาร';
         break;
       case DriverVerificationStatus.approved:
         bg = Colors.green.shade900.withValues(alpha: 0.3);
         fg = Colors.greenAccent;
-        label = 'Approved (อนุมัติ)';
+        label = 'อนุมัติเอกสารแล้ว';
         break;
       case DriverVerificationStatus.rejected:
         bg = Colors.red.shade900.withValues(alpha: 0.3);
         fg = Colors.redAccent;
-        label = 'Rejected (ปฏิเสธ)';
+        label = 'ปฏิเสธเอกสาร';
         break;
       case DriverVerificationStatus.suspended:
         bg = Colors.purple.shade900.withValues(alpha: 0.3);
         fg = Colors.purpleAccent;
-        label = 'Suspended (ระงับ)';
+        label = 'ถูกระงับบัญชี';
         break;
     }
 

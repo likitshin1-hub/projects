@@ -326,13 +326,13 @@ class _AdminManagementTabState extends ConsumerState<AdminManagementTab> {
                     child: DataTable(
                       headingRowColor: WidgetStateProperty.all(const Color(0xFF0F172A)),
                       columns: [
-                        DataColumn(label: Text('Admin ID', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Name', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Email', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Role', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Status', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Last Login', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                        DataColumn(label: Text('Action', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('รหัสผู้ดูแลระบบ', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('ชื่อ-นามสกุล', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('อีเมล', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('บทบาท/สิทธิ์', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('สถานะการใช้งาน', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('เข้าสู่ระบบล่าสุด', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        DataColumn(label: Text('จัดการสิทธิ์', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
                       ],
                       rows: filtered.map((a) {
                         final dt = a.lastLogin;

@@ -116,71 +116,71 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                     children: [
                       // 🏠 Dashboard
-                      _buildSingleNavItem('dashboard', '', 'Dashboard', Icons.dashboard_rounded, navState),
+                      _buildSingleNavItem('dashboard', '', 'แผงควบคุมหลัก (Dashboard)', Icons.dashboard_rounded, navState),
 
                       const SizedBox(height: 4),
 
                       // 👥 Users Group
-                      _buildGroupHeader('users', 'Users (จัดการผู้ใช้)', Icons.people_rounded, navState, defaultSubTab: 'customers'),
+                      _buildGroupHeader('users', 'จัดการผู้ใช้งาน', Icons.people_rounded, navState, defaultSubTab: 'customers'),
                       if (!_isSidebarCollapsed && _expandedGroups.contains('users')) ...[
-                        _buildSubNavItem('users', 'customers', 'Customers (ลูกค้า)', navState),
-                        _buildSubNavItem('users', 'drivers', 'Drivers (คนขับ/ไรเดอร์)', navState),
-                        _buildSubNavItem('users', 'admins', 'Admins (ผู้ดูแลระบบ)', navState),
+                        _buildSubNavItem('users', 'customers', 'รายชื่อลูกค้าทั่วไป', navState),
+                        _buildSubNavItem('users', 'drivers', 'รายชื่อคนขับ/ไรเดอร์', navState),
+                        _buildSubNavItem('users', 'admins', 'รายชื่อผู้ดูแลระบบ', navState),
                       ],
 
                       const SizedBox(height: 4),
 
                       // 📦 Orders Group
-                      _buildGroupHeader('orders', 'Orders (คำสั่งซื้อ)', Icons.shopping_bag_rounded, navState, defaultSubTab: 'all'),
+                      _buildGroupHeader('orders', 'จัดการคำสั่งซื้อ', Icons.shopping_bag_rounded, navState, defaultSubTab: 'all'),
                       if (!_isSidebarCollapsed && _expandedGroups.contains('orders')) ...[
-                        _buildSubNavItem('orders', 'all', 'All Orders (ทั้งหมด)', navState),
-                        _buildSubNavItem('orders', 'pending', 'Pending (รอรับงาน)', navState),
-                        _buildSubNavItem('orders', 'inProgress', 'In Progress (กำลังขนส่ง)', navState),
-                        _buildSubNavItem('orders', 'completed', 'Completed (สำเร็จ)', navState),
-                        _buildSubNavItem('orders', 'cancelled', 'Cancelled (ยกเลิก)', navState),
+                        _buildSubNavItem('orders', 'all', 'คำสั่งซื้อทั้งหมด', navState),
+                        _buildSubNavItem('orders', 'pending', 'รอรับงาน', navState),
+                        _buildSubNavItem('orders', 'inProgress', 'กำลังจัดส่ง', navState),
+                        _buildSubNavItem('orders', 'completed', 'จัดส่งสำเร็จแล้ว', navState),
+                        _buildSubNavItem('orders', 'cancelled', 'ยกเลิกคำสั่งซื้อ', navState),
                       ],
 
                       const SizedBox(height: 4),
 
                       // 📍 Live Tracking
-                      _buildSingleNavItem('tracking', '', 'Live Tracking (ติดตามพิกัด)', Icons.map_rounded, navState),
+                      _buildSingleNavItem('tracking', '', 'ติดตามพิกัดเรียลไทม์', Icons.map_rounded, navState),
 
                       const SizedBox(height: 4),
 
                       // 💰 Finance Group
-                      _buildGroupHeader('finance', 'Finance (การเงิน)', Icons.account_balance_wallet_rounded, navState, defaultSubTab: 'transactions'),
+                      _buildGroupHeader('finance', 'ระบบการเงิน', Icons.account_balance_wallet_rounded, navState, defaultSubTab: 'transactions'),
                       if (!_isSidebarCollapsed && _expandedGroups.contains('finance')) ...[
-                        _buildSubNavItem('finance', 'transactions', 'Transactions (รายการโอน)', navState),
-                        _buildSubNavItem('finance', 'wallets', 'Driver Wallets (กระเป๋าเงินไรเดอร์)', navState),
+                        _buildSubNavItem('finance', 'transactions', 'ประวัติการโอนเงิน', navState),
+                        _buildSubNavItem('finance', 'wallets', 'กระเป๋าเงินไรเดอร์', navState),
                       ],
 
                       const SizedBox(height: 4),
 
                       // 📊 Reports Group
-                      _buildGroupHeader('reports', 'Reports (รายงานสถิติ)', Icons.bar_chart_rounded, navState, defaultSubTab: 'orders'),
+                      _buildGroupHeader('reports', 'รายงานและสถิติ', Icons.bar_chart_rounded, navState, defaultSubTab: 'orders'),
                       if (!_isSidebarCollapsed && _expandedGroups.contains('reports')) ...[
-                        _buildSubNavItem('reports', 'orders', 'Orders Analytics', navState),
-                        _buildSubNavItem('reports', 'revenue', 'Revenue Reports', navState),
-                        _buildSubNavItem('reports', 'drivers', 'Drivers Performance', navState),
-                        _buildSubNavItem('reports', 'customers', 'Customers Growth', navState),
+                        _buildSubNavItem('reports', 'orders', 'รายงานคำสั่งซื้อ', navState),
+                        _buildSubNavItem('reports', 'revenue', 'รายงานรายได้รวม', navState),
+                        _buildSubNavItem('reports', 'drivers', 'รายงานผลงานคนขับ', navState),
+                        _buildSubNavItem('reports', 'customers', 'รายงานการเติบโตลูกค้า', navState),
                       ],
 
                       const SizedBox(height: 4),
 
                       // 🔔 Notifications
-                      _buildSingleNavItem('notifications', '', 'Notifications (แจ้งเตือน)', Icons.notifications_rounded, navState),
+                      _buildSingleNavItem('notifications', '', 'ศูนย์แจ้งเตือน', Icons.notifications_rounded, navState),
 
                       const SizedBox(height: 4),
 
                       // ⚙️ Settings Group
-                      _buildGroupHeader('settings', 'Settings (ตั้งค่าระบบ)', Icons.settings_rounded, navState, defaultSubTab: 'profile'),
+                      _buildGroupHeader('settings', 'ตั้งค่าระบบ', Icons.settings_rounded, navState, defaultSubTab: 'profile'),
                       if (!_isSidebarCollapsed && _expandedGroups.contains('settings')) ...[
-                        _buildSubNavItem('settings', 'profile', 'Profile (โปรไฟล์)', navState),
-                        _buildSubNavItem('settings', 'security', 'Security (ความปลอดภัย)', navState),
-                        _buildSubNavItem('settings', 'vehicleTypes', 'Vehicle Types (ประเภทรถ)', navState),
-                        _buildSubNavItem('settings', 'pricing', 'Pricing (ตั้งค่าราคา)', navState),
-                        _buildSubNavItem('settings', 'cancellation', 'Cancellation (วิธียกเลิก)', navState),
-                        _buildSubNavItem('settings', 'system', 'System Config (ตั้งค่าระบบ)', navState),
+                        _buildSubNavItem('settings', 'profile', 'ข้อมูลโปรไฟล์ส่วนตัว', navState),
+                        _buildSubNavItem('settings', 'security', 'ความปลอดภัยและรหัสผ่าน', navState),
+                        _buildSubNavItem('settings', 'vehicleTypes', 'ประเภทพาหนะขนส่ง', navState),
+                        _buildSubNavItem('settings', 'pricing', 'กำหนดอัตราค่าบริการ', navState),
+                        _buildSubNavItem('settings', 'cancellation', 'เงื่อนไขการยกเลิกงาน', navState),
+                        _buildSubNavItem('settings', 'system', 'การกำหนดค่าระบบ', navState),
                       ],
                     ],
                   ),
@@ -197,7 +197,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                       mainAxisAlignment: _isSidebarCollapsed ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
                       children: [
                         if (!_isSidebarCollapsed)
-                          Text('ย่อเมนู', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 13)),
+                          Text('ย่อเมนูข้าง', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 13)),
                         Icon(_isSidebarCollapsed ? Icons.chevron_right_rounded : Icons.chevron_left_rounded, color: const Color(0xFF94A3B8)),
                       ],
                     ),
@@ -271,6 +271,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                           Consumer(
                             builder: (context, ref, _) {
                               final currentRole = ref.watch(adminCurrentRoleProvider);
+                              final roleLabel = currentRole == AdminRole.superAdmin
+                                  ? 'Super Admin (สิทธิ์สูงสุด)'
+                                  : currentRole == AdminRole.admin
+                                      ? 'Admin (ผู้ดูแลระบบ)'
+                                      : 'Staff (เจ้าหน้าที่)';
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
@@ -289,7 +294,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  '🛡️ RBAC: ${currentRole.name.toUpperCase()}',
+                                  '🛡️ สิทธิ์สถิติ: $roleLabel',
                                   style: GoogleFonts.kanit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                                 ),
                               );
@@ -320,11 +325,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                             itemBuilder: (context) => [
                               PopupMenuItem(
                                 value: 'role_super',
-                                child: Text('👑 Switch to Super Admin Role', style: GoogleFonts.kanit(color: Colors.purpleAccent, fontSize: 13)),
+                                child: Text('👑 สลับเป็นสิทธิ์ Super Admin', style: GoogleFonts.kanit(color: Colors.purpleAccent, fontSize: 13)),
                               ),
                               PopupMenuItem(
                                 value: 'role_staff',
-                                child: Text('👤 Switch to Staff Role', style: GoogleFonts.kanit(color: Colors.tealAccent, fontSize: 13)),
+                                child: Text('👤 สลับเป็นสิทธิ์ Staff', style: GoogleFonts.kanit(color: Colors.tealAccent, fontSize: 13)),
                               ),
                               const PopupMenuDivider(),
                               PopupMenuItem(
@@ -344,7 +349,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Admin Account', style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    Text('ผู้ดูแลระบบหลัก', style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                                     Text('admin@tbmovehub.com', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 11)),
                                   ],
                                 ),
@@ -513,27 +518,34 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   String _getNavTitle(AdminNavState navState) {
     switch (navState.mainTab) {
       case 'dashboard':
-        return '🏠 Overview Dashboard';
+        return '🏠 ภาพรวมระบบ (Dashboard)';
       case 'users':
-        if (navState.subTab == 'drivers') return '👥 Users > Drivers (จัดการคนขับ & ตรวจสอบเอกสาร)';
-        if (navState.subTab == 'admins') return '👥 Users > Admins (ผู้ดูแลระบบและกำหนดสิทธิ์)';
-        return '👥 Users > Customers (จัดการข้อมูลลูกค้า)';
+        if (navState.subTab == 'drivers') return '👥 จัดการผู้ใช้งาน > รายชื่อคนขับ & ตรวจสอบเอกสาร';
+        if (navState.subTab == 'admins') return '👥 จัดการผู้ใช้งาน > รายชื่อผู้ดูแลระบบ';
+        return '👥 จัดการผู้ใช้งาน > รายชื่อลูกค้าทั่วไป';
       case 'orders':
-        final statusLabel = navState.subTab.isEmpty ? 'All' : navState.subTab.toUpperCase();
-        return '📦 Orders > Filter: $statusLabel (จัดการคำสั่งซื้อ)';
+        final statusMap = {
+          'all': 'ทั้งหมด',
+          'pending': 'รอรับงาน',
+          'inProgress': 'กำลังจัดส่ง',
+          'completed': 'สำเร็จแล้ว',
+          'cancelled': 'ยกเลิก',
+        };
+        final label = statusMap[navState.subTab] ?? 'ทั้งหมด';
+        return '📦 จัดการคำสั่งซื้อ > กรองสถานะ: $label';
       case 'tracking':
-        return '📍 Live Tracking (ติดตามตำแหน่งเรียลไทม์)';
+        return '📍 ติดตามพิกัดเรียลไทม์ (Live Tracking)';
       case 'finance':
-        if (navState.subTab == 'wallets') return '💰 Finance > Driver Wallets (กระเป๋าเงินไรเดอร์)';
-        return '💰 Finance > Transactions (สรุปรายการโอน)';
+        if (navState.subTab == 'wallets') return '💰 ระบบการเงิน > กระเป๋าเงินไรเดอร์';
+        return '💰 ระบบการเงิน > ประวัติรายการโอน';
       case 'reports':
-        return '📊 Reports & Analytics > ${navState.subTab.toUpperCase()}';
+        return '📊 รายงานและสถิติการใช้งานระบบ';
       case 'notifications':
-        return '🔔 Notifications Center (ศูนย์แจ้งเตือน & บรอดแคสต์)';
+        return '🔔 ศูนย์แจ้งเตือน & ยิงข้อความบรอดแคสต์';
       case 'settings':
-        return '⚙️ System Settings > ${navState.subTab.toUpperCase()}';
+        return '⚙️ การตั้งค่าระบบและการกำหนดค่า';
       default:
-        return 'TBMoveHub Admin Web';
+        return 'ระบบดูแลหลังบ้าน TBMoveHub Admin';
     }
   }
 }
