@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../history/providers/history_provider.dart';
 import '../providers/booking_provider.dart';
 import '../providers/driver_provider.dart';
 
@@ -46,6 +47,41 @@ class _DeliverySuccessScreenState extends ConsumerState<DeliverySuccessScreen> w
       curve: Curves.elasticOut,
     );
     _animationController.forward();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bookingState = ref.read(bookingProvider);
+      final driver = ref.read(driverProvider);
+      final orderNo = (bookingState.bookingId != null && bookingState.bookingId!.isNotEmpty)
+          ? bookingState.bookingId!
+          : 'TB668511';
+
+      String emoji = '🛵';
+      if (bookingState.vehicleType.contains('กระบะ') || bookingState.vehicleType.contains('บรรทุก')) emoji = '🚚';
+      if (bookingState.vehicleType.contains('เก๋ง')) emoji = '🚗';
+      if (bookingState.vehicleType.contains('ห้องเย็น')) emoji = '🚛';
+
+      final pName = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'ตำแหน่งปัจจุบันของคุณ';
+      final dName = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'วิทยาลัยอาชีวศึกษาชลบุรี';
+      final pAddr = bookingState.pickup.isNotEmpty ? bookingState.pickup : 'กรุงเทพมหานคร';
+      final dAddr = bookingState.dropoff.isNotEmpty ? bookingState.dropoff : 'ชลบุรี';
+
+      final completedItem = HistoryItemModel(
+        orderNo: orderNo,
+        pickupAddress: pAddr,
+        destinationAddress: dAddr,
+        route: '$pName ➔ $dName',
+        dateTime: 'เมื่อสักครู่ (จัดส่งสำเร็จ)',
+        price: bookingState.estimatedPrice.toStringAsFixed(2),
+        status: HistoryStatus.completed,
+        vehicle: emoji,
+        vehicleName: bookingState.vehicleType,
+        statusText: 'จัดส่งสำเร็จ (ผู้รับเซ็นชื่อเรียบร้อย)',
+        driverName: driver.name,
+        driverPhone: driver.phone,
+      );
+
+      ref.read(historyProvider.notifier).addOrUpdateOrder(completedItem);
+    });
   }
 
   @override

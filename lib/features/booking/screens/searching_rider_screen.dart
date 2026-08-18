@@ -250,14 +250,18 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                               children: [
                                 const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 20),
                                 const SizedBox(width: 8),
-                                Text(
-                                  currentLang == AppLanguage.en
-                                      ? 'Driver accepted your order!'
-                                      : 'คนขับตอบรับออเดอร์ของคุณแล้ว!',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF10B981),
+                                Flexible(
+                                  child: Text(
+                                    currentLang == AppLanguage.en
+                                        ? 'Driver accepted your order!'
+                                        : 'คนขับตอบรับออเดอร์ของคุณแล้ว!',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF10B981),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
@@ -265,7 +269,7 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                           )
                         : Container(
                             key: const ValueKey('searching'),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
                               color: const Color(0xFF1C7FF6).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(30),
@@ -282,15 +286,19 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                     valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1C7FF6)),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  currentLang == AppLanguage.en
-                                      ? 'Broadcasting to nearby riders ($_searchSeconds s)...'
-                                      : 'กำลังกระจายงานให้ไรเดอร์ในพื้นที่ ($_searchSeconds วินาที)...',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF1C7FF6),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    currentLang == AppLanguage.en
+                                        ? 'Broadcasting to nearby riders ($_searchSeconds s)...'
+                                        : 'กำลังกระจายงานให้ไรเดอร์ในพื้นที่ ($_searchSeconds วินาที)...',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF1C7FF6),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
