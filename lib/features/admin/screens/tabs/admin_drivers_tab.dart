@@ -29,42 +29,7 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(
-          backgroundColor: const Color(0xFF0F172A),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Container(
-            width: 600,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(title, style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                    IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(context)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    imageUrl,
-                    width: double.infinity,
-                    height: 350,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 250,
-                      color: const Color(0xFF1E293B),
-                      child: Center(child: Text('ไม่สามารถโหลดรูปภาพเอกสารได้', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        return DriverDocumentLightboxDialog(title: title, imageUrl: imageUrl);
       },
     );
   }
@@ -74,69 +39,106 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
     showDialog(
       context: context,
       builder: (ctx) {
-        return Dialog(
-          backgroundColor: const Color(0xFF1E293B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
-            width: 450,
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Dialog(
+              backgroundColor: const Color(0xFF1E293B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Container(
+                width: 520,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('❌ ปฏิเสธเอกสารคนขับ', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(ctx)),
-                  ],
-                ),
-                const Divider(color: Color(0xFF334155)),
-                const SizedBox(height: 12),
-                Text('ระบุเหตุผลในการปฏิเสธ (Driver จะเห็นข้อความนี้เพื่อทำการแก้ไขและส่งเอกสารใหม่):', style: GoogleFonts.kanit(color: const Color(0xFFCBD5E1), fontSize: 13)),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _rejectReasonController,
-                  maxLines: 3,
-                  style: GoogleFonts.kanit(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'เช่น ภาพถ่ายบัตรประชาชนไม่ชัดเจน / ใบขับขี่หมดอายุ',
-                    hintStyle: GoogleFonts.kanit(color: const Color(0xFF64748B)),
-                    filled: true,
-                    fillColor: const Color(0xFF0F172A),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF334155))),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(onPressed: () => Navigator.pop(ctx), child: Text('ยกเลิก', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final reason = _rejectReasonController.text.trim();
-                        if (reason.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาระบุเหตุผลในการปฏิเสธ', style: GoogleFonts.kanit()), backgroundColor: Colors.orange));
-                          return;
-                        }
-                        await ref.read(adminDriversProvider.notifier).rejectDriver(driver.id, reason);
-                        if (ctx.mounted) Navigator.pop(ctx);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('ปฏิเสธเอกสารของ ${driver.fullName} เรียบร้อยแล้ว', style: GoogleFonts.kanit()), backgroundColor: Colors.redAccent),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
-                      child: Text('ยืนยันปฏิเสธ', style: GoogleFonts.kanit()),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.cancel_outlined, color: Colors.redAccent, size: 22),
+                            const SizedBox(width: 8),
+                            Text('❌ ปฏิเสธเอกสารคนขับ', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          ],
+                        ),
+                        IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(ctx)),
+                      ],
+                    ),
+                    const Divider(color: Color(0xFF334155)),
+                    const SizedBox(height: 12),
+                    Text('เลือกเหตุผลด่วน (Presets):', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 13)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildPresetChip('📷 ภาพถ่ายเอกสารไม่ชัดเจน', setModalState),
+                        _buildPresetChip('⚠️ ใบขับขี่หมดอายุ', setModalState),
+                        _buildPresetChip('🏦 หน้าสมุดบัญชีอ่านเลขไม่ชัด', setModalState),
+                        _buildPresetChip('🚗 ข้อมูลรถไม่ตรงกับเอกสาร', setModalState),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('ระบุรายละเอียดเหตุผลเพิ่มเติม (Driver จะได้รับการแจ้งเตือน FCM ป๊อปอัป):', style: GoogleFonts.kanit(color: const Color(0xFFCBD5E1), fontSize: 13)),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _rejectReasonController,
+                      maxLines: 3,
+                      style: GoogleFonts.kanit(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'พิมพ์เหตุผลรายละเอียดในการปฏิเสธที่นี่...',
+                        hintStyle: GoogleFonts.kanit(color: const Color(0xFF64748B)),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF334155))),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(onPressed: () => Navigator.pop(ctx), child: Text('ยกเลิก', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8)))),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            final reason = _rejectReasonController.text.trim();
+                            if (reason.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาระบุเหตุผลในการปฏิเสธ', style: GoogleFonts.kanit()), backgroundColor: Colors.orange));
+                              return;
+                            }
+                            await ref.read(adminDriversProvider.notifier).rejectDriver(driver.id, reason);
+                            if (ctx.mounted) Navigator.pop(ctx);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('📲 ปฏิเสธเอกสารและส่ง FCM แจ้งเตือนคนขับ ${driver.fullName} เรียบร้อย', style: GoogleFonts.kanit()), backgroundColor: Colors.redAccent),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.send_rounded, size: 16),
+                          label: Text('ยืนยันส่งการแจ้งเตือน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
+      },
+    );
+  }
+
+  Widget _buildPresetChip(String text, StateSetter setModalState) {
+    return ActionChip(
+      label: Text(text, style: GoogleFonts.kanit(fontSize: 12, color: Colors.white)),
+      backgroundColor: const Color(0xFF0F172A),
+      side: const BorderSide(color: Color(0xFF334155)),
+      onPressed: () {
+        setModalState(() {
+          _rejectReasonController.text = text;
+        });
       },
     );
   }
@@ -542,6 +544,168 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
       child: Text(label, style: GoogleFonts.kanit(color: fg, fontSize: 12, fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
+// 🖼️ Interactive Document Lightbox Dialog (Zooming, Rotation, Panning)
+class DriverDocumentLightboxDialog extends StatefulWidget {
+  final String title;
+  final String imageUrl;
+
+  const DriverDocumentLightboxDialog({
+    super.key,
+    required this.title,
+    required this.imageUrl,
+  });
+
+  @override
+  State<DriverDocumentLightboxDialog> createState() => _DriverDocumentLightboxDialogState();
+}
+
+class _DriverDocumentLightboxDialogState extends State<DriverDocumentLightboxDialog> {
+  final TransformationController _transformationController = TransformationController();
+  int _quarterTurns = 0;
+  bool _isFullscreen = false;
+
+  void _rotateLeft() {
+    setState(() {
+      _quarterTurns = (_quarterTurns - 1) % 4;
+    });
+  }
+
+  void _rotateRight() {
+    setState(() {
+      _quarterTurns = (_quarterTurns + 1) % 4;
+    });
+  }
+
+  void _resetZoom() {
+    setState(() {
+      _transformationController.value = Matrix4.identity();
+      _quarterTurns = 0;
+    });
+  }
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF0F172A),
+      insetPadding: _isFullscreen ? EdgeInsets.zero : const EdgeInsets.all(24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_isFullscreen ? 0 : 20)),
+      child: Container(
+        width: _isFullscreen ? MediaQuery.of(context).size.width : 780,
+        height: _isFullscreen ? MediaQuery.of(context).size.height : 580,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            // Lightbox Top Bar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.document_scanner_rounded, color: Color(0xFF1C7FF6), size: 22),
+                    const SizedBox(width: 10),
+                    Text(
+                      '🔍 Document Inspector: ${widget.title}',
+                      style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'หมุนซ้าย 90°',
+                      icon: const Icon(Icons.rotate_left_rounded, color: Colors.white),
+                      onPressed: _rotateLeft,
+                    ),
+                    IconButton(
+                      tooltip: 'หมุนขวา 90°',
+                      icon: const Icon(Icons.rotate_right_rounded, color: Colors.white),
+                      onPressed: _rotateRight,
+                    ),
+                    IconButton(
+                      tooltip: 'รีเซ็ตมุมมอง',
+                      icon: const Icon(Icons.restart_alt_rounded, color: Colors.white),
+                      onPressed: _resetZoom,
+                    ),
+                    IconButton(
+                      tooltip: _isFullscreen ? 'ออกจากหน้าจอเต็ม' : 'ขยายเต็มจอ',
+                      icon: Icon(_isFullscreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded, color: Colors.white),
+                      onPressed: () => setState(() => _isFullscreen = !_isFullscreen),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Divider(color: Color(0xFF334155)),
+            const SizedBox(height: 10),
+
+            // Interactive Image Canvas
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  color: const Color(0xFF020617),
+                  child: InteractiveViewer(
+                    transformationController: _transformationController,
+                    minScale: 0.8,
+                    maxScale: 4.5,
+                    child: Center(
+                      child: RotatedBox(
+                        quarterTurns: _quarterTurns,
+                        child: Image.network(
+                          widget.imageUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.broken_image_rounded, color: Color(0xFF64748B), size: 48),
+                                const SizedBox(height: 10),
+                                Text('ไม่สามารถโหลดรูปภาพเอกสารได้', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Lightbox Footer Controls Hint
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '💡 คำแนะนำ: ใช้นิ้วเลื่อน/Scroll Mouse เพื่อซูมขยาย และลากเพื่อเคลื่อนย้ายมุมมองเอกสาร',
+                  style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 12),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1C7FF6), foregroundColor: Colors.white),
+                  child: Text('ปิดหน้าต่าง', style: GoogleFonts.kanit()),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
