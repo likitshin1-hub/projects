@@ -222,15 +222,20 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        _getNavTitle(navState),
-                        style: GoogleFonts.kanit(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.white),
+                      Expanded(
+                        child: Text(
+                          _getNavTitle(navState),
+                          style: GoogleFonts.kanit(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                      const SizedBox(width: 16),
                       Row(
                         children: [
                           // Force DB Refresh Action Button
-                          OutlinedButton.icon(
-                            onPressed: () async {
+                          InkWell(
+                            onTap: () async {
                               await ref.read(adminServiceProvider).forceRefreshAllFromDatabase();
                               ref.invalidate(adminOrdersProvider);
                               ref.invalidate(adminDriversProvider);
@@ -244,11 +249,21 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                                 );
                               }
                             },
-                            icon: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF10B981)),
-                            label: Text('🔄 ดึงข้อมูลสดจาก DB', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 12, fontWeight: FontWeight.bold)),
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF10B981)),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFF10B981)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF10B981)),
+                                  const SizedBox(width: 6),
+                                  Text('🔄 ดึงข้อมูลสดจาก DB', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 12, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
