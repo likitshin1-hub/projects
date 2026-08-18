@@ -317,15 +317,19 @@ class _DeliverySuccessScreenState extends ConsumerState<DeliverySuccessScreen> w
                               child: const Icon(Icons.route_rounded, color: Color(0xFF1C7FF6), size: 20),
                             ),
                             const SizedBox(width: 10),
-                            Text(
-                              isEn ? 'Route & Receiver Details' : 'เส้นทางและข้อมูลการจัดส่ง',
-                              style: GoogleFonts.kanit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
+                            Expanded(
+                              child: Text(
+                                isEn ? 'Route & Receiver Details' : 'เส้นทางและข้อมูลการจัดส่ง',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const Spacer(),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
@@ -382,31 +386,36 @@ class _DeliverySuccessScreenState extends ConsumerState<DeliverySuccessScreen> w
 
                         // Summary details grid
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildMiniInfo(
-                              icon: Icons.straighten_rounded,
-                              label: 'ระยะทางรวม',
-                              value: '${bookingState.distanceKm} กม.',
-                              isDark: isDarkMode,
-                              textColor: textColor,
-                              subTextColor: subTextColor,
+                            Expanded(
+                              child: _buildMiniInfo(
+                                icon: Icons.straighten_rounded,
+                                label: 'ระยะทางรวม',
+                                value: '${bookingState.distanceKm} กม.',
+                                isDark: isDarkMode,
+                                textColor: textColor,
+                                subTextColor: subTextColor,
+                              ),
                             ),
-                            _buildMiniInfo(
-                              icon: Icons.timer_outlined,
-                              label: 'เวลาจัดส่งรวม',
-                              value: '${bookingState.estimatedDurationMinutes} นาที',
-                              isDark: isDarkMode,
-                              textColor: textColor,
-                              subTextColor: subTextColor,
+                            Expanded(
+                              child: _buildMiniInfo(
+                                icon: Icons.timer_outlined,
+                                label: 'เวลาจัดส่งรวม',
+                                value: '${bookingState.estimatedDurationMinutes} นาที',
+                                isDark: isDarkMode,
+                                textColor: textColor,
+                                subTextColor: subTextColor,
+                              ),
                             ),
-                            _buildMiniInfo(
-                              icon: Icons.payments_outlined,
-                              label: 'ชำระเงินสุทธิ',
-                              value: '${bookingState.estimatedPrice.toInt()} ฿',
-                              isDark: isDarkMode,
-                              textColor: textColor,
-                              subTextColor: subTextColor,
+                            Expanded(
+                              child: _buildMiniInfo(
+                                icon: Icons.payments_outlined,
+                                label: 'ชำระเงินสุทธิ',
+                                value: '${bookingState.estimatedPrice.toInt()} ฿',
+                                isDark: isDarkMode,
+                                textColor: textColor,
+                                subTextColor: subTextColor,
+                              ),
                             ),
                           ],
                         ),

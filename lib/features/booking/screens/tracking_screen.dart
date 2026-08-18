@@ -982,12 +982,16 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
                           children: [
                             const Icon(Icons.receipt_long_rounded, color: Color(0xFF1C7FF6), size: 20),
                             const SizedBox(width: 8),
-                            Text(
-                              'รายละเอียดการเดินทางข้ามจังหวัด',
-                              style: GoogleFonts.kanit(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
+                            Expanded(
+                              child: Text(
+                                'รายละเอียดการเดินทางข้ามจังหวัด',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

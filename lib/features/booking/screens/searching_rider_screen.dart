@@ -358,13 +358,17 @@ class _SearchingRiderScreenState extends ConsumerState<SearchingRiderScreen>
                                             color: textColor,
                                           ),
                                         ),
-                                        Text(
-                                          currentLang == AppLanguage.en
-                                              ? ' (${driver.reviewCount} completed deliveries)'
-                                              : ' (${driver.reviewCount} ออเดอร์สำเร็จ)',
-                                          style: GoogleFonts.kanit(
-                                            fontSize: 12,
-                                            color: subTextColor,
+                                        Expanded(
+                                          child: Text(
+                                            currentLang == AppLanguage.en
+                                                ? ' (${driver.reviewCount} completed deliveries)'
+                                                : ' (${driver.reviewCount} ออเดอร์สำเร็จ)',
+                                            style: GoogleFonts.kanit(
+                                              fontSize: 12,
+                                              color: subTextColor,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],

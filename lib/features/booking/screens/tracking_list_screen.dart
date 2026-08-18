@@ -498,20 +498,24 @@ class TrackingListScreen extends ConsumerWidget {
   }
 
   Widget _buildLiveMapBannerCard(bool isDarkMode, AppLanguage currentLang, BuildContext context) {
+    final cardBgColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final titleTextColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+    final subtitleTextColor = isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF1C7FF6);
+    final iconColor = isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF1C7FF6);
+    final iconBgColor = isDarkMode ? const Color(0xFF1C7FF6).withValues(alpha: 0.2) : const Color(0xFF1C7FF6).withValues(alpha: 0.12);
+    final borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFF1C7FF6).withValues(alpha: 0.3);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
+        border: Border.all(color: borderColor),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black26,
+            color: isDarkMode ? Colors.black26 : const Color(0xFF1C7FF6).withValues(alpha: 0.08),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -527,12 +531,12 @@ class TrackingListScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1C7FF6).withValues(alpha: 0.2),
+                    color: iconBgColor,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.alt_route_rounded,
-                    color: Color(0xFF38BDF8),
+                    color: iconColor,
                     size: 28,
                   ),
                 ),
@@ -548,7 +552,7 @@ class TrackingListScreen extends ConsumerWidget {
                         style: GoogleFonts.kanit(
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: titleTextColor,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -558,15 +562,15 @@ class TrackingListScreen extends ConsumerWidget {
                             : 'กำลังขนส่งบนเส้นทางหลัก (Live GPS)',
                         style: GoogleFonts.kanit(
                           fontSize: 12,
-                          color: const Color(0xFF38BDF8),
+                          color: subtitleTextColor,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: Colors.white70,
+                  color: iconColor,
                   size: 16,
                 ),
               ],
