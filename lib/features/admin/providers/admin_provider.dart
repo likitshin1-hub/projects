@@ -186,11 +186,12 @@ final vehicleConfigsProvider = FutureProvider<List<VehicleTypeConfig>>((ref) asy
   return ref.watch(adminServiceProvider).getVehicleConfigs();
 });
 
-// Real-Time Sync Stream Providers
-final realtimeAdminOrdersStreamProvider = StreamProvider<List<AdminOrderModel>>((ref) {
-  return ref.watch(adminServiceProvider).ordersStream;
-});
+// Current Active Admin Role State (RBAC)
+class AdminCurrentRoleNotifier extends Notifier<AdminRole> {
+  @override
+  AdminRole build() => AdminRole.superAdmin;
 
-final realtimeDriversStreamProvider = StreamProvider<List<DriverAdminModel>>((ref) {
-  return ref.watch(adminServiceProvider).driversStream;
-});
+  void setRole(AdminRole role) => state = role;
+}
+
+final adminCurrentRoleProvider = NotifierProvider<AdminCurrentRoleNotifier, AdminRole>(AdminCurrentRoleNotifier.new);

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
+import '../models/admin_models.dart';
 import '../providers/admin_provider.dart';
 import 'tabs/admin_overview_tab.dart';
 import 'tabs/admin_customers_tab.dart';
@@ -227,18 +228,51 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                       ),
                       Row(
                         children: [
+                          // Active Role Badge
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final currentRole = ref.watch(adminCurrentRoleProvider);
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: currentRole == AdminRole.superAdmin
+                                      ? Colors.purple.shade900.withValues(alpha: 0.4)
+                                      : currentRole == AdminRole.admin
+                                          ? Colors.blue.shade900.withValues(alpha: 0.4)
+                                          : Colors.teal.shade900.withValues(alpha: 0.4),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: currentRole == AdminRole.superAdmin
+                                        ? Colors.purpleAccent
+                                        : currentRole == AdminRole.admin
+                                            ? Colors.blueAccent
+                                            : Colors.tealAccent,
+                                  ),
+                                ),
+                                child: Text(
+                                  '🛡️ RBAC: ${currentRole.name.toUpperCase()}',
+                                  style: GoogleFonts.kanit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
                           IconButton(
                             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
                             onPressed: () {
                               ref.read(adminNavProvider.notifier).setNav('notifications');
                             },
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           PopupMenuButton<String>(
                             color: const Color(0xFF1E293B),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             onSelected: (val) {
-                              if (val == 'profile') {
+                              if (val == 'role_super') {
+                                ref.read(adminCurrentRoleProvider.notifier).setRole(AdminRole.superAdmin);
+                              } else if (val == 'role_staff') {
+                                ref.read(adminCurrentRoleProvider.notifier).setRole(AdminRole.staff);
+                              } else if (val == 'profile') {
                                 ref.read(adminNavProvider.notifier).setNav('settings', 'profile');
                               } else if (val == 'logout') {
                                 context.go(AppRoutes.login);
@@ -246,8 +280,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                             },
                             itemBuilder: (context) => [
                               PopupMenuItem(
-                                value: 'profile',
-                                child: Text('Super Admin (admin@tbmovehub.com)', style: GoogleFonts.kanit(color: Colors.white, fontSize: 13)),
+                                value: 'role_super',
+                                child: Text('👑 Switch to Super Admin Role', style: GoogleFonts.kanit(color: Colors.purpleAccent, fontSize: 13)),
+                              ),
+                              PopupMenuItem(
+                                value: 'role_staff',
+                                child: Text('👤 Switch to Staff Role', style: GoogleFonts.kanit(color: Colors.tealAccent, fontSize: 13)),
                               ),
                               const PopupMenuDivider(),
                               PopupMenuItem(
@@ -267,7 +305,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Super Admin', style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    Text('Admin Account', style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                                     Text('admin@tbmovehub.com', style: GoogleFonts.kanit(color: const Color(0xFF94A3B8), fontSize: 11)),
                                   ],
                                 ),
