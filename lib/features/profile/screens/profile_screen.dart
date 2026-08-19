@@ -14,10 +14,12 @@ import '../../auth/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBackPressed;
+  final VoidCallback? onMenuPressed;
 
   const ProfileScreen({
     super.key,
     this.onBackPressed,
+    this.onMenuPressed,
   });
 
   @override
@@ -343,46 +345,65 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                 ),
                 padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
-                      onPressed: widget.onBackPressed ?? () {
-                        if (context.canPop()) {
-                          context.pop();
-                        }
-                      },
-                    ),
-                    Text(
-                      t('profile_title'),
-                      style: GoogleFonts.kanit(
-                        fontSize: 22,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                        icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
+                        onPressed: () {
+                          if (widget.onMenuPressed != null) {
+                            widget.onMenuPressed!();
+                          } else if (Scaffold.maybeOf(context)?.hasDrawer ?? false) {
+                            Scaffold.of(context).openDrawer();
+                          } else if (widget.onBackPressed != null) {
+                            widget.onBackPressed!();
+                          } else if (context.canPop()) {
+                            context.pop();
+                          }
+                        },
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () => context.push(AppRoutes.notification),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
-                          Positioned(
-                            top: -1, right: -1,
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                              child: Text('3', style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                      Expanded(
+                        child: Text(
+                          t('profile_title'),
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.kanit(
+                            fontSize: 19,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () => context.push(AppRoutes.notification),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
+                                Positioned(
+                                  top: -1,
+                                  right: -1,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                    constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                                    child: Text('3', style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -565,12 +586,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     icon: Icons.settings_outlined,
                     title: t('settings'),
                     onTap: () => context.push(AppRoutes.settings),
-                    isDarkMode: isDarkMode,
-                  ),
-                  _buildMenuItemCard(
-                    icon: Icons.admin_panel_settings_outlined,
-                    title: 'ระบบหลังบ้าน (Admin Dashboard)',
-                    onTap: () => context.push(AppRoutes.admin),
                     isDarkMode: isDarkMode,
                   ),
                 ],

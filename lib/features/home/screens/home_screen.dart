@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_routes.dart';
-import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
@@ -19,6 +18,8 @@ import '../../booking/screens/tracking_list_screen.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../partner/providers/partner_application_provider.dart';
 import '../../rewards/providers/rewards_provider.dart';
+import '../../booking/providers/driver_provider.dart';
+import '../../chat/providers/chat_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -32,6 +33,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 2;
   String _selectedLocation = 'ชลบุรี';
   String _selectedChatCategory = 'ทั้งหมด';
+  final TextEditingController _chatSearchController = TextEditingController();
+  String _chatSearchQuery = '';
+
+  @override
+  void dispose() {
+    _chatSearchController.dispose();
+    super.dispose();
+  }
 
   // ============================================================
   // TAB SELECT
@@ -264,11 +273,113 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final currentLang = ref.watch(languageProvider);
+    final driver = ref.watch(driverProvider);
+    final chatState = ref.watch(chatProvider);
     String t(String key) => AppTranslations.getText(currentLang, key);
 
     final categories = currentLang == AppLanguage.en
-        ? ['All', 'Delivery', 'Driver', 'Support', 'Promos']
+        ? ['All', 'Delivery', 'Driver', 'Support', 'Promotions']
         : ['ทั้งหมด', 'การขนส่ง', 'คนขับ', 'ฝ่ายบริการ', 'โปรโมชั่น'];
+
+    final driverMsgs = chatState.getMessagesFor('driver_somchai');
+    final lastDriverMsg = driverMsgs.isNotEmpty ? driverMsgs.last : null;
+
+    final supportMsgs = chatState.getMessagesFor('support');
+    final lastSupportMsg = supportMsgs.isNotEmpty ? supportMsgs.last : null;
+
+    // All chat room items definitions (Driver & Support)
+    final allChatRooms = [
+      _ChatRoomItemData(
+        id: 'driver_somchai',
+        categoryTag: 'คนขับ',
+        categoryTagEn: 'Driver',
+        avatarWidget: Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.blue.shade100, width: 1.5),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/default_avatar.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.person, color: Color(0xFF1C7FF6)),
+                ),
+              ),
+            ),
+            Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: const Color(0xFF22C55E),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+            ),
+          ],
+        ),
+        name: currentLang == AppLanguage.en ? 'Driver: ${driver.name}' : '${driver.name} (คนขับ)',
+        message: lastDriverMsg?.text ?? (currentLang == AppLanguage.en ? 'Heading to pickup location' : 'กำลังไปยังจุดรับพัสดุครับ'),
+        time: lastDriverMsg?.timeText ?? '09:15',
+        badgeCount: 1,
+        onTap: () => context.push('${AppRoutes.chat}/driver_somchai'),
+      ),
+      _ChatRoomItemData(
+        id: 'support',
+        categoryTag: 'ฝ่ายบริการ',
+        categoryTagEn: 'Support',
+        avatarWidget: Container(
+          width: 52,
+          height: 52,
+          decoration: const BoxDecoration(
+            color: Color(0xFF1C7FF6),
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: const Text(
+            'TB\nMOVE\nHUB',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              height: 1.1,
+            ),
+          ),
+        ),
+        name: 'TBMOVEHUB Support (ศูนย์บริการลูกค้า)',
+        isVerified: true,
+        message: ref.watch(partnerApplicationProvider) != null
+            ? '📢 [Driver Application Update]: ${ref.watch(partnerApplicationProvider)!.currentStatusText}'
+            : (lastSupportMsg?.text ?? (currentLang == AppLanguage.en ? 'Hello! 👋 How can we help you today?' : 'สวัสดีค่ะ 👋 ยินดีให้บริการค่ะ คุณต้องการให้เราช่วยเรื่องใดคะ ?')),
+        time: ref.watch(partnerApplicationProvider) != null
+            ? (currentLang == AppLanguage.en ? 'Just now' : 'เมื่อครู่')
+            : (lastSupportMsg?.timeText ?? '10:30'),
+        badgeCount: ref.watch(partnerApplicationProvider) != null ? 3 : 2,
+        onTap: () => context.push('${AppRoutes.chat}/support'),
+      ),
+    ];
+
+    // Filter chat rooms by selected category and search query
+    final filteredRooms = allChatRooms.where((room) {
+      final isAllCategory = _selectedChatCategory == 'ทั้งหมด' || _selectedChatCategory == 'All';
+      final categoryMatch = isAllCategory ||
+          room.categoryTag == _selectedChatCategory ||
+          room.categoryTagEn == _selectedChatCategory ||
+          (_selectedChatCategory == 'การขนส่ง' && (room.categoryTag == 'การขนส่ง' || room.categoryTag == 'คนขับ')) ||
+          (_selectedChatCategory == 'Delivery' && (room.categoryTagEn == 'Delivery' || room.categoryTagEn == 'Driver'));
+
+      final query = _chatSearchQuery.trim().toLowerCase();
+      final queryMatch = query.isEmpty ||
+          room.name.toLowerCase().contains(query) ||
+          room.message.toLowerCase().contains(query);
+      return categoryMatch && queryMatch;
+    }).toList();
 
     return Column(
       children: [
@@ -288,41 +399,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               bottomRight: Radius.circular(28),
             ),
           ),
-          padding: EdgeInsets.fromLTRB(20, statusBarHeight + 16, 20, 24),
+          padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Title and Compose icon
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    t('messages_title'),
-                    style: GoogleFonts.kanit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                    icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
+                    onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  ),
+                  Expanded(
+                    child: Text(
+                      t('messages_title'),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.kanit(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.edit_square,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            currentLang == AppLanguage.en
-                                ? 'New message composition coming soon...'
-                                : 'กำลังพัฒนาฟังก์ชันเขียนข้อความใหม่...',
-                            style: GoogleFonts.kanit(),
-                          ),
-                          behavior: SnackBarBehavior.floating,
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.edit_square,
+                          color: Colors.white,
+                          size: 22,
                         ),
-                      );
-                    },
+                        onPressed: () {
+                          context.push('${AppRoutes.chat}/support');
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -343,11 +459,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
                 child: TextField(
+                  controller: _chatSearchController,
                   style: GoogleFonts.kanit(fontSize: 14),
+                  onChanged: (val) {
+                    setState(() {
+                      _chatSearchQuery = val;
+                    });
+                  },
                   decoration: InputDecoration(
                     hintText: t('search_chat_placeholder'),
                     hintStyle: GoogleFonts.kanit(color: const Color(0xFF9CA3AF), fontSize: 13.5),
                     prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF9CA3AF), size: 20),
+                    suffixIcon: _chatSearchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, color: Color(0xFF9CA3AF), size: 18),
+                            onPressed: () {
+                              setState(() {
+                                _chatSearchController.clear();
+                                _chatSearchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -413,232 +546,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         Expanded(
           child: Container(
             color: isDarkMode ? const Color(0xFF0B0F17) : Colors.white,
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.zero,
-              children: [
-                // Chat Item 1: TBMOVEHUB Support
-                _buildChatListItem(
-                  avatarWidget: Container(
-                    width: 52,
-                    height: 52,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1C7FF6),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'TB\nMOVE\nHUB',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        height: 1.1,
-                      ),
-                    ),
-                  ),
-                  name: 'TBMOVEHUB Support',
-                  isVerified: true,
-                  message: ref.watch(partnerApplicationProvider) != null
-                      ? '📢 [Driver Application Update]: ${ref.watch(partnerApplicationProvider)!.currentStatusText}'
-                      : (currentLang == AppLanguage.en ? 'Hello! 👋 How can we help you today?' : 'สวัสดีครับ 👋 มีอะไรให้เราช่วยไหมครับ?'),
-                  time: ref.watch(partnerApplicationProvider) != null
-                      ? (currentLang == AppLanguage.en ? 'Just now' : 'เมื่อครู่')
-                      : '09:30',
-                  badgeCount: ref.watch(partnerApplicationProvider) != null ? 3 : 2,
-                  onTap: () {
-                    context.push(AppRoutes.chat);
-                  },
-                ),
-                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-
-                // Chat Item 2: คนขับ : สมชาย
-                _buildChatListItem(
-                  avatarWidget: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.blue.shade100, width: 1.5),
-                        ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            AppAssets.defaultDriver,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.person, color: Color(0xFF1C7FF6)),
+            child: filteredRooms.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off_rounded, size: 48, color: Colors.grey.shade400),
+                          const SizedBox(height: 12),
+                          Text(
+                            currentLang == AppLanguage.en ? 'No matching chat conversations found' : 'ไม่พบรายการข้อความสนทนาที่ค้นหา',
+                            style: GoogleFonts.kanit(color: Colors.grey.shade500, fontSize: 14),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
+                        ],
                       ),
-                      Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF22C55E),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                      ),
-                    ],
+                    ),
+                  )
+                : ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: filteredRooms.length,
+                    separatorBuilder: (_, __) => Divider(
+                      height: 1,
+                      indent: 80,
+                      color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    ),
+                    itemBuilder: (context, index) {
+                      final item = filteredRooms[index];
+                      return _buildChatListItem(
+                        avatarWidget: item.avatarWidget,
+                        name: item.name,
+                        isVerified: item.isVerified,
+                        message: item.message,
+                        time: item.time,
+                        badgeCount: item.badgeCount,
+                        onTap: item.onTap,
+                      );
+                    },
                   ),
-                  name: currentLang == AppLanguage.en ? 'Driver: Somchai' : 'คนขับ : สมชาย',
-                  message: currentLang == AppLanguage.en ? 'Heading to pickup location' : 'กำลังไปยังจุดรับพัสดุครับ',
-                  time: '09:15',
-                  badgeCount: 1,
-                  onTap: () {
-                    context.push(AppRoutes.chatDetail);
-                  },
-                ),
-                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-
-                // Chat Item 3: ออเดอร์ #TB2405081234
-                _buildChatListItem(
-                  avatarWidget: Container(
-                    width: 52,
-                    height: 52,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE8F2FE),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.inventory_2_rounded,
-                      color: Color(0xFF1C7FF6),
-                      size: 26,
-                    ),
-                  ),
-                  name: currentLang == AppLanguage.en ? 'Order #TB2405081234' : 'ออเดอร์ #TB2405081234',
-                  message: currentLang == AppLanguage.en ? 'Parcel in transit' : 'กำลังจัดส่งพัสดุ',
-                  time: currentLang == AppLanguage.en ? 'Yesterday' : 'เมื่อวาน',
-                  badgeCount: 1,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          currentLang == AppLanguage.en ? 'Opening order details...' : 'เปิดหน้ารายละเอียดออเดอร์นี้...',
-                          style: GoogleFonts.kanit(),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-
-                // Chat Item 4: ทีมงานลูกค้าสัมพันธ์
-                _buildChatListItem(
-                  avatarWidget: Container(
-                    width: 52,
-                    height: 52,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF1F5F9),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.support_agent_rounded,
-                      color: Color(0xFF64748B),
-                      size: 26,
-                    ),
-                  ),
-                  name: currentLang == AppLanguage.en ? 'Customer Support Team' : 'ทีมงานลูกค้าสัมพันธ์',
-                  message: currentLang == AppLanguage.en
-                      ? 'Thank you for contacting TBMOVEHUB. We are glad to help...'
-                      : 'ขอบคุณที่ติดต่อเรา TBMOVEHUB ยินดีให้...',
-                  time: currentLang == AppLanguage.en ? '2d ago' : '2 วัน',
-                  badgeCount: 0,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          currentLang == AppLanguage.en ? 'Connecting to Customer Support...' : 'กำลังเชื่อมต่อฝ่ายลูกค้าสัมพันธ์...',
-                          style: GoogleFonts.kanit(),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-
-                // Chat Item 5: โปรโมชั่น & ข่าวสาร
-                _buildChatListItem(
-                  avatarWidget: Container(
-                    width: 52,
-                    height: 52,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFFF8E1),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.campaign_rounded,
-                      color: Color(0xFFFFB300),
-                      size: 26,
-                    ),
-                  ),
-                  name: currentLang == AppLanguage.en ? 'Promotions & News' : 'โปรโมชั่น & ข่าวสาร',
-                  message: currentLang == AppLanguage.en
-                      ? 'Free Delivery! All orders today - 31 May 2024'
-                      : 'ส่งฟรี! ทุกออเดอร์ วันนี้ - 31 พ.ค. 67',
-                  time: currentLang == AppLanguage.en ? '3d ago' : '3 วัน',
-                  badgeCount: 0,
-                  hasRedDot: true,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          currentLang == AppLanguage.en ? 'Opening latest promotions...' : 'กำลังเปิดข่าวสารโปรโมชั่นล่าสุด...',
-                          style: GoogleFonts.kanit(),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-                Divider(height: 1, indent: 80, color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-
-                // Chat Item 6: คนขับ : วิทยา
-                _buildChatListItem(
-                  avatarWidget: Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey.shade200, width: 1.5),
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        AppAssets.defaultDriver,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.person, color: Color(0xFF64748B)),
-                      ),
-                    ),
-                  ),
-                  name: currentLang == AppLanguage.en ? 'Driver: Witthaya' : 'คนขับ : วิทยา',
-                  message: currentLang == AppLanguage.en ? 'Where are you located?' : 'ลูกค้าอยู่ที่ไหนครับ?',
-                  time: currentLang == AppLanguage.en ? '5d ago' : '5 วัน',
-                  badgeCount: 0,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          currentLang == AppLanguage.en ? 'Opening chat with Witthaya...' : 'กำลังเปิดห้องแชทของ วิทยา...',
-                          style: GoogleFonts.kanit(),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 40),
-              ],
-            ),
           ),
         ),
       ],
@@ -785,12 +732,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       case 4:
         activeBody = ProfileScreen(
-          onBackPressed: () {
-            if (!mounted) return;
-
-            setState(() {
-              _currentIndex = 2;
-            });
+          onMenuPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
           },
         );
         break;
@@ -812,4 +755,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+}
+
+class _ChatRoomItemData {
+  final String id;
+  final String categoryTag;
+  final String categoryTagEn;
+  final Widget avatarWidget;
+  final String name;
+  final bool isVerified;
+  final String message;
+  final String time;
+  final int badgeCount;
+  final VoidCallback onTap;
+
+  _ChatRoomItemData({
+    required this.id,
+    required this.categoryTag,
+    required this.categoryTagEn,
+    required this.avatarWidget,
+    required this.name,
+    this.isVerified = false,
+    required this.message,
+    required this.time,
+    this.badgeCount = 0,
+    required this.onTap,
+  });
 }

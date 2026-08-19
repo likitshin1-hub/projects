@@ -95,7 +95,6 @@ class TrackingListScreen extends ConsumerWidget {
               children: [
                 // Top bar Row
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
                       padding: EdgeInsets.zero,
@@ -103,35 +102,45 @@ class TrackingListScreen extends ConsumerWidget {
                       icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
                       onPressed: () => onMenuPressed?.call(),
                     ),
-                    Text(
-                      currentLang == AppLanguage.en ? 'Live Parcel Tracking' : 'ติดตามพัสดุเรียลไทม์',
-                      style: GoogleFonts.kanit(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        currentLang == AppLanguage.en ? 'Live Parcel Tracking' : 'ติดตามพัสดุเรียลไทม์',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.kanit(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => context.push(AppRoutes.notification),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
-                          Positioned(
-                            top: -1,
-                            right: -1,
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                              child: Text(
-                                '3',
-                                style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center,
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () => context.push(AppRoutes.notification),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
+                              Positioned(
+                                top: -1,
+                                right: -1,
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                                  child: Text(
+                                    '3',
+                                    style: GoogleFonts.kanit(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ],

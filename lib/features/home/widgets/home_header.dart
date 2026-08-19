@@ -28,11 +28,11 @@ class HomeHeader extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(
-        top: statusBarHeight + 12,
-        left: 20,
-        right: 20,
-        bottom: 32,
+      padding: EdgeInsets.fromLTRB(
+        16,
+        statusBarHeight + 8,
+        16,
+        32,
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -78,44 +78,51 @@ class HomeHeader extends ConsumerWidget {
                 ),
                 onPressed: onMenuPressed,
               ),
-              GestureDetector(
-                onTap: () {
-                  context.push(AppRoutes.notification);
-                },
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(
-                      Icons.notifications_none_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                    if (notificationCount > 0)
-                      Positioned(
-                        top: -1,
-                        right: -1,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 14,
-                            minHeight: 14,
-                          ),
-                          child: Text(
-                            '$notificationCount',
-                            style: GoogleFonts.kanit(
-                              fontSize: 8,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      context.push(AppRoutes.notification);
+                    },
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(
+                          Icons.notifications_none_rounded,
+                          color: Colors.white,
+                          size: 26,
                         ),
-                      ),
-                  ],
+                        if (notificationCount > 0)
+                          Positioned(
+                            top: -1,
+                            right: -1,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 14,
+                                minHeight: 14,
+                              ),
+                              child: Text(
+                                '$notificationCount',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 8,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

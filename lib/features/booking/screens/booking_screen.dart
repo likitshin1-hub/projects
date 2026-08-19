@@ -1114,6 +1114,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 runSpacing: 8,
                 children: List.generate(types.length, (index) {
                   return ChoiceChip(
+                    showCheckmark: false,
                     label: Text(
                       types[index],
                       style: GoogleFonts.kanit(),
