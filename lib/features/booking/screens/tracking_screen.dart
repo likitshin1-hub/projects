@@ -34,7 +34,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
   late AnimationController _pulseController;
 
   bool _isLoadingRoute = true;
-  final bool _hasShownCompletionDialog = false;
+  bool _hasShownCompletionDialog = false;
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
