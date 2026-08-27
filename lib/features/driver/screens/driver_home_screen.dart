@@ -9,6 +9,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../auth/providers/user_role_provider.dart';
 import '../../admin/providers/admin_provider.dart';
 import '../../admin/models/admin_models.dart';
+import '../providers/driver_shift_provider.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
@@ -18,8 +19,7 @@ class DriverHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
-  bool _isOnline = true;
-  String _activeTab = 'jobs'; // 'jobs', 'earnings', 'profile'
+  final String _activeTab = 'jobs'; // 'jobs', 'earnings', 'profile'
   AdminOrderModel? _activeJob;
 
   void _acceptJob(AdminOrderModel order) {
@@ -82,12 +82,43 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
+  void _confirmClockOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('🔴 ยืนยันการออกงาน (Clock Out)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+        content: Text('คุณต้องการออกจากระบบงานคนขับและสลับกลับเป็นผู้ใช้ทั่วไปหรือไม่?', style: GoogleFonts.kanit()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('ยกเลิก', style: GoogleFonts.kanit(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(driverShiftProvider.notifier).clockOut();
+              context.go(AppRoutes.home);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('ยืนยันออกงาน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeProvider);
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final ordersState = ref.watch(adminOrdersProvider);
+    final shiftStatus = ref.watch(driverShiftProvider);
 
     final bgBtnColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
@@ -106,80 +137,211 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           ],
         ),
         actions: [
-          // Switch back to Customer Mode
-          TextButton.icon(
-            onPressed: () {
-              ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.customer);
-              context.go(AppRoutes.home);
-            },
-            icon: const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 18),
-            label: Text('สลับเป็นลูกค้า', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          // Clock Out & Switch back to Customer Mode Button
+          ElevatedButton.icon(
+            onPressed: () => _confirmClockOut(context),
+            icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 16),
+            label: Text('ออกงาน', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Status Switch Banner (Online / Offline Toggle)
+            // Driver Shift Status Manager Banner (🟢 เข้างาน | ☕ พักงาน | 🔴 ออกงาน)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               decoration: BoxDecoration(
-                color: _isOnline
-                    ? (isDarkMode ? Colors.green.shade900.withValues(alpha: 0.4) : const Color(0xFFECFDF5))
-                    : (isDarkMode ? const Color(0xFF1E293B) : Colors.white),
-                border: Border(bottom: BorderSide(color: _isOnline ? Colors.green.shade400 : Colors.grey.shade400)),
+                color: shiftStatus == DriverShiftStatus.working
+                    ? (isDarkMode ? Colors.green.shade900.withValues(alpha: 0.35) : const Color(0xFFECFDF5))
+                    : shiftStatus == DriverShiftStatus.breakTime
+                        ? (isDarkMode ? Colors.amber.shade900.withValues(alpha: 0.35) : const Color(0xFFFFFBEB))
+                        : (isDarkMode ? const Color(0xFF1E293B) : Colors.white),
+                border: Border(
+                  bottom: BorderSide(
+                    color: shiftStatus == DriverShiftStatus.working
+                        ? Colors.green.shade400
+                        : shiftStatus == DriverShiftStatus.breakTime
+                            ? Colors.amber.shade400
+                            : Colors.grey.shade400,
+                  ),
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _isOnline ? Colors.greenAccent : Colors.grey,
-                          boxShadow: [
-                            if (_isOnline)
-                              BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.6), blurRadius: 8, spreadRadius: 2),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Text(
-                            _isOnline ? '🟢 ออนไลน์ (พร้อมรับงาน)' : '⚪ ออฟไลน์ (ปิดรับงาน)',
-                            style: GoogleFonts.kanit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: _isOnline ? (isDarkMode ? Colors.greenAccent : const Color(0xFF065F46)) : textColor,
+                          Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: shiftStatus == DriverShiftStatus.working
+                                  ? Colors.greenAccent
+                                  : shiftStatus == DriverShiftStatus.breakTime
+                                      ? Colors.amberAccent
+                                      : Colors.redAccent,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (shiftStatus == DriverShiftStatus.working
+                                          ? Colors.greenAccent
+                                          : shiftStatus == DriverShiftStatus.breakTime
+                                              ? Colors.amberAccent
+                                              : Colors.redAccent)
+                                      .withValues(alpha: 0.6),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
                             ),
                           ),
-                          Text(
-                            _isOnline ? 'พร้อมรับคำสั่งซื้อใกล้เคียงตลอดเวลา' : 'เลื่อนเพื่อเปิดระบบรับงาน',
-                            style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                shiftStatus == DriverShiftStatus.working
+                                    ? '🟢 เข้างาน (พร้อมรับงาน)'
+                                    : shiftStatus == DriverShiftStatus.breakTime
+                                        ? '☕ พักงาน (หยุดรับงานชั่วคราว)'
+                                        : '🔴 ออกงาน (หยุดการทำงานแล้ว)',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: shiftStatus == DriverShiftStatus.working
+                                      ? (isDarkMode ? Colors.greenAccent : const Color(0xFF065F46))
+                                      : shiftStatus == DriverShiftStatus.breakTime
+                                          ? (isDarkMode ? Colors.amberAccent : const Color(0xFF92400E))
+                                          : textColor,
+                                ),
+                              ),
+                              Text(
+                                shiftStatus == DriverShiftStatus.working
+                                    ? 'พร้อมรับคำสั่งซื้อใกล้เคียงตลอดเวลา'
+                                    : shiftStatus == DriverShiftStatus.breakTime
+                                        ? 'ระบบระงับการส่งงานให้อัตโนมัติ'
+                                        : 'กดเข้างานเพื่อเริ่มรับส่งพัสดุ',
+                                style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ],
                   ),
-                  Switch.adaptive(
-                    value: _isOnline,
-                    activeColor: const Color(0xFF10B981),
-                    onChanged: (val) {
-                      setState(() => _isOnline = val);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(val ? '🟢 เปิดสถานะพร้อมรับงานแล้ว' : '⚪ ปิดสถานะรับงานแล้ว', style: GoogleFonts.kanit()),
-                          duration: const Duration(seconds: 1),
+                  const SizedBox(height: 14),
+
+                  // 3-State Shift Segment Control Bar
+                  Row(
+                    children: [
+                      // 1. เข้างาน (Working)
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            ref.read(driverShiftProvider.notifier).resumeWork();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('🟢 สลับสถานะเป็น "เข้างานพร้อมรับงาน"', style: GoogleFonts.kanit()),
+                                backgroundColor: const Color(0xFF10B981),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: shiftStatus == DriverShiftStatus.working
+                                  ? const Color(0xFF10B981)
+                                  : (isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '🟢 เข้างาน',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: shiftStatus == DriverShiftStatus.working ? Colors.white : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      );
-                    },
+                      ),
+                      const SizedBox(width: 8),
+
+                      // 2. พักงาน (Break)
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            ref.read(driverShiftProvider.notifier).takeBreak();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('☕ สลับสถานะเป็น "พักงานชั่วคราว"', style: GoogleFonts.kanit()),
+                                backgroundColor: const Color(0xFFF59E0B),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: shiftStatus == DriverShiftStatus.breakTime
+                                  ? const Color(0xFFF59E0B)
+                                  : (isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '☕ พักงาน',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: shiftStatus == DriverShiftStatus.breakTime ? Colors.white : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // 3. ออกงาน (Clock Out)
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _confirmClockOut(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '🔴 ออกงาน',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEF4444),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -329,17 +491,34 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  if (!_isOnline) ...[
+                  if (shiftStatus == DriverShiftStatus.breakTime) ...[
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(30),
-                      decoration: BoxDecoration(color: bgBtnColor, borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.all(26),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5)),
+                      ),
                       child: Column(
                         children: [
-                          const Icon(Icons.power_settings_new_rounded, size: 48, color: Colors.grey),
+                          const Icon(Icons.coffee_rounded, size: 48, color: Color(0xFFF59E0B)),
                           const SizedBox(height: 12),
-                          Text('คุณกำลังออฟไลน์อยู่', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-                          Text('สไลด์ปุ่มเปิดระบบออนไลน์ด้านบนเพื่อเริ่มรับงานขนส่ง', style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey)),
+                          Text('คุณกำลังอยู่ในช่วง "พักงาน"', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+                          Text('ระบบระงับการจ่ายงานให้อัตโนมัติ เพื่อให้คุณพักผ่อนอย่างเต็มที่', style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey), textAlign: TextAlign.center),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              ref.read(driverShiftProvider.notifier).resumeWork();
+                            },
+                            icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                            label: Text('▶️ สิ้นสุดการพัก & พร้อมรับงานต่อ', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF10B981),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
                         ],
                       ),
                     ),

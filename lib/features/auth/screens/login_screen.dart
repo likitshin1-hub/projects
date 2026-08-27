@@ -9,6 +9,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
+import '../../driver/providers/driver_shift_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -22,6 +23,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController(text: 'tbmovehub@gmail.com');
   final _passwordController = TextEditingController(text: '12345678');
   bool _obscurePassword = true;
+
+  void _onDriverTestLogin() {
+    ref.read(authProvider.notifier).login(
+          email: 'driver.test@tbmovehub.com',
+          password: 'password123',
+        );
+    ref.read(driverShiftProvider.notifier).clockIn();
+    context.go(AppRoutes.driver);
+  }
 
   @override
   void dispose() {
@@ -467,7 +477,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 36),
+                    const SizedBox(height: 20),
+
+                    // Quick Driver System Test Button
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF059669), Color(0xFF10B981)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: isLoading ? null : _onDriverTestLogin,
+                        icon: const Icon(Icons.two_wheeler_rounded, color: Colors.white, size: 22),
+                        label: Text(
+                          '⚡ เข้าทดสอบระบบฝั่งคนขับ (Driver Test Mode)',
+                          style: GoogleFonts.kanit(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
 
                     // Register Footer Link
                     Row(

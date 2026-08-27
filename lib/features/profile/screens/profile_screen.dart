@@ -12,6 +12,7 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/providers/user_role_provider.dart';
+import '../../driver/providers/driver_shift_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBackPressed;
@@ -623,12 +624,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.driver);
+                                ref.read(driverShiftProvider.notifier).clockIn();
                                 context.go(AppRoutes.driver);
                               },
-                              icon: const Icon(Icons.two_wheeler_rounded, size: 20),
+                              icon: const Icon(Icons.power_settings_new_rounded, size: 20),
                               label: Text(
-                                '🔄 สลับโหมดเป็นผู้ให้บริการ (Driver App)',
+                                '🟢 กดเข้างาน (Start Shift & Switch to Driver App)',
                                 style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               style: ElevatedButton.styleFrom(
