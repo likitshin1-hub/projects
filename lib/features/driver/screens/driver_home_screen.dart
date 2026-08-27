@@ -412,7 +412,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                user?.name.isNotEmpty == true ? user!.name : 'คุณสมชาย สายบิด (คนขับอนุมัติแล้ว)',
+                                (user != null && user.name.isNotEmpty) ? user.name : 'คุณสมชาย สายบิด (คนขับอนุมัติแล้ว)',
                                 style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: textColor),
                               ),
                               Row(

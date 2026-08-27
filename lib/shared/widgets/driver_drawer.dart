@@ -396,7 +396,7 @@ class DriverDrawer extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user?.name.isNotEmpty == true ? user!.name : 'คุณสมชาย สายบิด',
+                            (user != null && user.name.isNotEmpty) ? user.name : 'คุณสมชาย สายบิด',
                             style: GoogleFonts.kanit(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

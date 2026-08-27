@@ -79,7 +79,7 @@ class PartnerScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user?.name.isNotEmpty == true ? user!.name : 'พาร์ทเนอร์คนขับ TBMoveHub',
+                          (user != null && user.name.isNotEmpty) ? user.name : 'พาร์ทเนอร์คนขับ TBMoveHub',
                           style: GoogleFonts.kanit(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

@@ -524,7 +524,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
                           // Name
                           Text(
-                            user?.name.isNotEmpty == true ? user!.name : 'ผู้ใช้งาน TB MoveHub',
+                            (user != null && user.name.isNotEmpty) ? user.name : 'ผู้ใช้งาน TB MoveHub',
                             style: GoogleFonts.kanit(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
