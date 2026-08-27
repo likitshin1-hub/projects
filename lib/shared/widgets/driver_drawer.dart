@@ -456,7 +456,7 @@ class DriverDrawer extends ConsumerWidget {
                 // 1. กระเป๋าเงิน
                 _buildDrawerItem(
                   icon: Icons.account_balance_wallet_rounded,
-                  title: 'กระเป๋าเงิน (฿1,250.00)',
+                  title: 'กระเป๋าเงิน',
                   iconColor: const Color(0xFF10B981),
                   iconBgColor: isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
                   textColor: textColor,
