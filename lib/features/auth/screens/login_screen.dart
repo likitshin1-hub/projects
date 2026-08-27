@@ -9,6 +9,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_role_provider.dart';
 import '../../driver/providers/driver_shift_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -29,6 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: 'driver.test@tbmovehub.com',
           password: 'password123',
         );
+    ref.read(isDriverApprovedProvider.notifier).setApproved(true);
     ref.read(driverShiftProvider.notifier).clockIn();
     context.go(AppRoutes.driver);
   }

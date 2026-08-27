@@ -16,3 +16,14 @@ class UserActiveModeNotifier extends Notifier<UserActiveMode> {
 }
 
 final userActiveModeProvider = NotifierProvider<UserActiveModeNotifier, UserActiveMode>(UserActiveModeNotifier.new);
+
+class DriverApprovalNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setApproved(bool isApproved) {
+    state = isApproved;
+  }
+}
+
+final isDriverApprovedProvider = NotifierProvider<DriverApprovalNotifier, bool>(DriverApprovalNotifier.new);

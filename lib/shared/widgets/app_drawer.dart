@@ -8,6 +8,8 @@ import '../../core/constants/app_translations.dart';
 import '../../core/providers/language_provider.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/auth/providers/user_role_provider.dart';
+import '../../features/driver/providers/driver_shift_provider.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -19,6 +21,7 @@ class AppDrawer extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final isLoggedIn = authState.status == AuthStatus.success && user != null;
+    final isDriverApproved = ref.watch(isDriverApprovedProvider) || (user?.email == 'driver.test@tbmovehub.com');
 
     final drawerBg = isDarkMode ? const Color(0xFF0B0F17) : Colors.white;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
@@ -168,18 +171,33 @@ class AppDrawer extends ConsumerWidget {
                   },
                 ),
 
-                // 6. สมัครพาร์ทเนอร์คนขับ / ไรเดอร์
-                _buildDrawerItem(
-                  icon: Icons.two_wheeler_rounded,
-                  title: t('partner_apply'),
-                  iconColor: const Color(0xFFF59E0B),
-                  iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
-                  textColor: textColor,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push(AppRoutes.partnerLanding);
-                  },
-                ),
+                // 6. สมัครเป็นคนขับ (กรณีรอดำเนินการ/ยังไม่อนุมัติ) OR ระบบเข้างาน (กรณีอนุมัติแล้ว)
+                if (isDriverApproved) ...[
+                  _buildDrawerItem(
+                    icon: Icons.power_settings_new_rounded,
+                    title: '🟢 กดเข้างาน (Driver App)',
+                    iconColor: const Color(0xFF10B981),
+                    iconBgColor: isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.pop(context);
+                      ref.read(driverShiftProvider.notifier).clockIn();
+                      context.go(AppRoutes.driver);
+                    },
+                  ),
+                ] else ...[
+                  _buildDrawerItem(
+                    icon: Icons.two_wheeler_rounded,
+                    title: t('partner_apply'),
+                    iconColor: const Color(0xFFF59E0B),
+                    iconBgColor: isDarkMode ? const Color(0xFF3B2D11) : const Color(0xFFFFF8E1),
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push(AppRoutes.partnerLanding);
+                    },
+                  ),
+                ],
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
