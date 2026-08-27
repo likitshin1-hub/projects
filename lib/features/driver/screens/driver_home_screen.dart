@@ -132,9 +132,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       appBar: AppBar(
         backgroundColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFF047857),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
