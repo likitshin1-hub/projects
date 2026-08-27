@@ -212,7 +212,12 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             _currentIndex = index;
           });
           if (index == 2) {
-            _openOrderMatchingSheet(context);
+            if (shiftStatus == DriverShiftStatus.working) {
+              _confirmClockOut(context);
+            } else {
+              ref.read(driverShiftProvider.notifier).resumeWork();
+              _openOrderMatchingSheet(context);
+            }
           }
         },
       ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/providers/theme_provider.dart';
+import '../../features/driver/providers/driver_shift_provider.dart';
 
 class DriverBottomNavigation extends ConsumerWidget {
   final int currentIndex;
@@ -71,6 +72,8 @@ class DriverBottomNavigation extends ConsumerWidget {
   Widget _buildCenterNavItem(
     int index,
     String label,
+    IconData icon,
+    Color circleColor,
     Color activeColor,
     Color inactiveColor,
     Color dividerColor,
@@ -91,14 +94,14 @@ class DriverBottomNavigation extends ConsumerWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(5),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1E3A8A),
+                  decoration: BoxDecoration(
+                    color: circleColor,
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: Color(0x4D1E3A8A), blurRadius: 6, offset: Offset(0, 2)),
+                      BoxShadow(color: circleColor.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 2)),
                     ],
                   ),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                  child: Icon(icon, color: Colors.white, size: 20),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -106,7 +109,7 @@ class DriverBottomNavigation extends ConsumerWidget {
                   style: GoogleFonts.kanit(
                     fontSize: 11,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                    color: isActive ? activeColor : inactiveColor,
+                    color: circleColor == const Color(0xFFEF4444) ? const Color(0xFFEF4444) : (isActive ? activeColor : inactiveColor),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -122,10 +125,17 @@ class DriverBottomNavigation extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(themeProvider);
+    final shiftStatus = ref.watch(driverShiftProvider);
+    final isWorking = shiftStatus == DriverShiftStatus.working;
+
     final navBgColor = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final activeColor = isDarkMode ? const Color(0xFF60A5FA) : const Color(0xFF1E3A8A);
     final inactiveColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF4B5563);
     final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    final centerLabel = isWorking ? 'ออกงาน' : 'เริ่มงาน';
+    final centerIcon = isWorking ? Icons.power_settings_new_rounded : Icons.play_arrow_rounded;
+    final centerColor = isWorking ? const Color(0xFFEF4444) : const Color(0xFF1E3A8A);
 
     return SafeArea(
       child: Container(
@@ -151,7 +161,7 @@ class DriverBottomNavigation extends ConsumerWidget {
           children: [
             _buildNavItem(0, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'กระเป๋าเงิน', activeColor, inactiveColor, dividerColor, true),
             _buildNavItem(1, Icons.calendar_month_outlined, Icons.calendar_month_rounded, 'ประวัติการขนส่ง', activeColor, inactiveColor, dividerColor, true),
-            _buildCenterNavItem(2, 'เริ่มงาน', activeColor, inactiveColor, dividerColor),
+            _buildCenterNavItem(2, centerLabel, centerIcon, centerColor, activeColor, inactiveColor, dividerColor),
             _buildNavItem(3, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'แชต', activeColor, inactiveColor, dividerColor, true),
             _buildNavItem(4, Icons.person_outline_rounded, Icons.person_rounded, 'โปรไฟล์', activeColor, inactiveColor, dividerColor, false),
           ],
