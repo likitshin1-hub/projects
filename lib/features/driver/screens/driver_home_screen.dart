@@ -669,39 +669,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         ),
         const SizedBox(height: 12),
 
-        if (shiftStatus == DriverShiftStatus.breakTime) ...[
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(26),
-            decoration: BoxDecoration(
-              color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5)),
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.coffee_rounded, size: 48, color: Color(0xFFF59E0B)),
-                const SizedBox(height: 12),
-                Text('คุณกำลังอยู่ในช่วง "พักงาน"', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-                Text('ระบบระงับการจ่ายงานให้อัตโนมัติ เพื่อให้คุณพักผ่อนอย่างเต็มที่', style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey), textAlign: TextAlign.center),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    ref.read(driverShiftProvider.notifier).resumeWork();
-                  },
-                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-                  label: Text('▶️ สิ้นสุดการพัก & พร้อมรับงานต่อ', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ] else ...[
-          ordersState.when(
+        ordersState.when(
             data: (orders) {
               final pendingOrders = orders.where((o) => o.status == AdminOrderStatus.pending).toList();
 
@@ -721,85 +689,83 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 );
               }
 
-              return ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: pendingOrders.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 14),
-                itemBuilder: (context, index) {
-                  final order = pendingOrders[index];
-                  return Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: bgBtnColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                  child: const Icon(Icons.local_shipping, color: Color(0xFF10B981), size: 18),
-                                ),
-                                const SizedBox(width: 8),
-                                Text('#${order.orderNo}', style: GoogleFonts.kanit(fontSize: 15, fontWeight: FontWeight.bold, color: textColor)),
-                              ],
-                            ),
-                            Text('฿${order.amount.toStringAsFixed(2)}', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF10B981))),
-                          ],
-                        ),
-                        const Divider(height: 20),
-                        Text('ลูกค้า: ${order.customerName}', style: GoogleFonts.kanit(fontSize: 13, color: textColor, fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_outlined, size: 16, color: Colors.green),
-                            const SizedBox(width: 6),
-                            Expanded(child: Text('จุดรับ: ${order.pickupAddress}', style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.flag_outlined, size: 16, color: Colors.red),
-                            const SizedBox(width: 6),
-                            Expanded(child: Text('จุดส่ง: ${order.dropoffAddress}', style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () => _acceptJob(order),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1E3A8A),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                                child: Text('✅ รับงานนี้', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+              return Column(
+                children: pendingOrders.map((order) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: bgBtnColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                    child: const Icon(Icons.local_shipping, color: Color(0xFF10B981), size: 18),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text('#${order.orderNo}', style: GoogleFonts.kanit(fontSize: 15, fontWeight: FontWeight.bold, color: textColor)),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              Text('฿${order.amount.toStringAsFixed(2)}', style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF10B981))),
+                            ],
+                          ),
+                          const Divider(height: 20),
+                          Text('ลูกค้า: ${order.customerName}', style: GoogleFonts.kanit(fontSize: 13, color: textColor, fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on_outlined, size: 16, color: Colors.green),
+                              const SizedBox(width: 6),
+                              Expanded(child: Text('จุดรับ: ${order.pickupAddress}', style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.flag_outlined, size: 16, color: Colors.red),
+                              const SizedBox(width: 6),
+                              Expanded(child: Text('จุดส่ง: ${order.dropoffAddress}', style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => _acceptJob(order),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1E3A8A),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  child: Text('✅ รับงานนี้', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
-                },
+                }).toList(),
               );
             },
             loading: () => const Padding(
@@ -812,9 +778,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             ),
           ),
         ],
-      ],
-    );
-  }
+      );
+    }
 }
 
 class _DriverOrderMatchingModal extends StatefulWidget {
