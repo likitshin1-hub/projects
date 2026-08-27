@@ -6,10 +6,12 @@ import '../../core/providers/theme_provider.dart';
 
 class DriverHeader extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
+  final VoidCallback? onClockOutPressed;
 
   const DriverHeader({
     super.key,
     this.onMenuPressed,
+    this.onClockOutPressed,
   });
 
   @override
@@ -64,23 +66,41 @@ class DriverHeader extends ConsumerWidget {
                 ),
                 onPressed: onMenuPressed,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.circle, color: Color(0xFF38BDF8), size: 10),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Rider Mode',
-                      style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.circle, color: Color(0xFF38BDF8), size: 10),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Rider Mode',
+                          style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (onClockOutPressed != null) ...[
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: onClockOutPressed,
+                      icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 14),
+                      label: Text('ออกงาน', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF4444),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
                   ],
-                ),
+                ],
               ),
             ],
           ),
