@@ -558,7 +558,7 @@ class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
             decoration: const BoxDecoration(
-              color: Color(0xFF0F192C),
+              color: Color(0xFF1E3A8A),
             ),
             child: Column(
               children: [
