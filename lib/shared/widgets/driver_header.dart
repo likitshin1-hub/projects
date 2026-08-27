@@ -72,36 +72,20 @@ class DriverHeader extends ConsumerWidget {
                 ),
                 onPressed: onMenuPressed,
               ),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: onNotificationPressed,
-                        child: const Icon(
-                          Icons.notifications_none_rounded,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: onNotificationPressed,
+                    child: const Icon(
+                      Icons.notifications_none_rounded,
+                      color: Colors.white,
+                      size: 26,
                     ),
                   ),
-                  if (onClockOutPressed != null) ...[
-                    const SizedBox(width: 4),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.power_settings_new_rounded,
-                        color: Color(0xFFEF4444),
-                        size: 24,
-                      ),
-                      onPressed: onClockOutPressed,
-                      tooltip: 'ออกงาน',
-                    ),
-                  ],
-                ],
+                ),
               ),
             ],
           ),
