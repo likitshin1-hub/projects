@@ -23,7 +23,7 @@ class DriverBottomNavigation extends ConsumerWidget {
     required bool isDarkMode,
     bool hasRightDivider = false,
   }) {
-    final activeColor = isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF10B981);
+    final activeColor = isDarkMode ? const Color(0xFF60A5FA) : const Color(0xFF1E3A8A);
     final inactiveColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF4B5563);
     final dividerColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
@@ -99,7 +99,7 @@ class DriverBottomNavigation extends ConsumerWidget {
     required String label,
     required Color dividerColor,
   }) {
-    final activeColor = isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF10B981);
+    final activeColor = isDarkMode ? const Color(0xFF60A5FA) : const Color(0xFF1E3A8A);
     final inactiveColor = isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF4B5563);
 
     return Expanded(
@@ -129,14 +129,14 @@ class DriverBottomNavigation extends ConsumerWidget {
                             height: 58,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF047857), Color(0xFF10B981)],
+                                colors: [Color(0xFF0F192C), Color(0xFF1E3A8A)],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.45),
+                                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.45),
                                   blurRadius: 14,
                                   spreadRadius: 2,
                                   offset: const Offset(0, 5),
@@ -212,7 +212,7 @@ class DriverBottomNavigation extends ConsumerWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF10B981).withValues(alpha: isDarkMode ? 0.2 : 0.12),
+              color: const Color(0xFF1E3A8A).withValues(alpha: isDarkMode ? 0.25 : 0.15),
               blurRadius: 28,
               spreadRadius: 2,
               offset: const Offset(0, 8),

@@ -349,8 +349,8 @@ class DriverDrawer extends ConsumerWidget {
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF047857),
-                  Color(0xFF10B981),
+                  Color(0xFF0F192C),
+                  Color(0xFF1E3A8A),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

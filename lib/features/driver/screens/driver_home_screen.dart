@@ -595,7 +595,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                                         child: ElevatedButton(
                                           onPressed: () => _acceptJob(order),
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF10B981),
+                                            backgroundColor: const Color(0xFF1E3A8A),
                                             foregroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                           ),

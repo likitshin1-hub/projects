@@ -28,8 +28,8 @@ class DriverHeader extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDarkMode
-              ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-              : [const Color(0xFF047857), const Color(0xFF059669)],
+              ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
+              : [const Color(0xFF0F192C), const Color(0xFF1E3A8A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -39,7 +39,7 @@ class DriverHeader extends ConsumerWidget {
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x4D047857),
+            color: Color(0x660F172A),
             blurRadius: 16,
             offset: Offset(0, 8),
           ),
@@ -67,13 +67,13 @@ class DriverHeader extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.circle, color: Color(0xFF10B981), size: 10),
+                    const Icon(Icons.circle, color: Color(0xFF38BDF8), size: 10),
                     const SizedBox(width: 6),
                     Text(
                       'Rider Mode',
