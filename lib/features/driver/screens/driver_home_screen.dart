@@ -11,6 +11,7 @@ import '../../admin/providers/admin_provider.dart';
 import '../../admin/models/admin_models.dart';
 import '../providers/driver_shift_provider.dart';
 import '../../../shared/widgets/driver_drawer.dart';
+import '../../../shared/widgets/driver_header.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
@@ -129,42 +130,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       key: _scaffoldKey,
       drawer: const DriverDrawer(),
       backgroundColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-      appBar: AppBar(
-        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFF047857),
-        elevation: 0,
-        leading: Builder(
-          builder: (builderCtx) => IconButton(
-            icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
-            onPressed: () {
-              Scaffold.of(builderCtx).openDrawer();
-            },
-          ),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('TBMoveHub Driver Panel', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-            Text('คนขับ/ผู้ให้บริการขนส่ง', style: GoogleFonts.kanit(fontSize: 11, color: Colors.white70)),
-          ],
-        ),
-        actions: [
-          ElevatedButton.icon(
-            onPressed: () => _confirmClockOut(context),
-            icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 16),
-            label: Text('ออกงาน', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
+            // Driver Top Header Bar (1:1 identical pattern to HomeHeader)
+            DriverHeader(
+              onMenuPressed: () {
+                _scaffoldKey.currentState?.openDrawer();
+              },
+            ),
             // Driver Shift Status Manager Banner (🟢 เข้างาน | ☕ พักงาน | 🔴 ออกงาน)
             Container(
               width: double.infinity,
