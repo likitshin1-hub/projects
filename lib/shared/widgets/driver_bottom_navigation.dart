@@ -142,7 +142,7 @@ class DriverBottomNavigation extends ConsumerWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E3A8A).withValues(alpha: isDarkMode ? 0.25 : 0.15),
+              color: const Color(0xFF1E3A8A).withOpacity(isDarkMode ? 0.25 : 0.15),
               blurRadius: 20,
               spreadRadius: 1,
               offset: const Offset(0, 6),

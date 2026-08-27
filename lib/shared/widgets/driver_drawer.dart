@@ -46,7 +46,7 @@ class DriverDrawer extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                    color: const Color(0xFF10B981).withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF10B981), size: 28),
@@ -76,7 +76,7 @@ class DriverDrawer extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                    color: const Color(0xFF10B981).withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -192,7 +192,7 @@ class DriverDrawer extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                      color: const Color(0xFF3B82F6).withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.payments_rounded, color: Color(0xFF3B82F6), size: 28),
@@ -413,7 +413,7 @@ class DriverDrawer extends ConsumerWidget {
                                 '4.95 (148 รีวิว)',
                                 style: GoogleFonts.kanit(
                                   fontSize: 12,
-                                  color: Colors.white.withValues(alpha: 0.9),
+                                  color: Colors.white.withOpacity(0.9),
                                 ),
                               ),
                             ],
@@ -427,7 +427,7 @@ class DriverDrawer extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: Colors.black.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(

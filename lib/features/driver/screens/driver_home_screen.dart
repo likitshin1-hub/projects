@@ -314,7 +314,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: 0.1), shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), shape: BoxShape.circle),
                     child: const Icon(Icons.add_task_rounded, color: Color(0xFF10B981)),
                   ),
                   const SizedBox(width: 12),
@@ -354,7 +354,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   Text('คำสั่งซื้อ #TB-88410', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, color: textColor, fontSize: 15)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                     child: Text('✅ สำเร็จแล้ว', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ],
@@ -857,7 +857,7 @@ class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.5),
+                    color: const Color(0xFF3B82F6).withOpacity(0.5),
                     blurRadius: 20,
                     spreadRadius: 4,
                   ),
