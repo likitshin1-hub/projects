@@ -56,13 +56,6 @@ class ChatService {
         timestamp: now.subtract(const Duration(minutes: 15)),
         timeText: '10:30',
       ),
-      ChatMessageModel(
-        id: '2',
-        text: 'สวัสดีครับ พัสดุกำลังจัดส่งนะครับ ให้ช่วยอะไรบอกได้เลยครับ 🛵',
-        sender: 'driver',
-        timestamp: now.subtract(const Duration(minutes: 12)),
-        timeText: '10:32',
-      ),
     ];
   }
 

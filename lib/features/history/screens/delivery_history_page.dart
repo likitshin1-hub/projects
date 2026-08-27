@@ -453,7 +453,6 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
                       children: [
                         // Top bar
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             IconButton(
                               padding: EdgeInsets.zero,
@@ -461,7 +460,7 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
                               icon: Icon(
                                 widget.onMenuPressed != null ? Icons.menu_rounded : Icons.arrow_back_ios_new_rounded,
                                 color: Colors.white,
-                                size: 24,
+                                size: 28,
                               ),
                               onPressed: () {
                                 if (widget.onMenuPressed != null) {
@@ -473,50 +472,60 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
                                 }
                               },
                             ),
-                            Text(
-                              isEn ? 'Delivery History' : 'ประวัติการขนส่ง',
-                              style: GoogleFonts.kanit(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            Expanded(
+                              child: Text(
+                                isEn ? 'Delivery History' : 'ประวัติการขนส่ง',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.kanit(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () => context.push(AppRoutes.notification),
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  const Icon(
-                                    Icons.notifications_none_rounded,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                  if (notificationCount > 0)
-                                    Positioned(
-                                      top: -1,
-                                      right: -1,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        constraints: const BoxConstraints(
-                                          minWidth: 14,
-                                          minHeight: 14,
-                                        ),
-                                        child: Text(
-                                          '$notificationCount',
-                                          style: GoogleFonts.kanit(
-                                            fontSize: 8,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: GestureDetector(
+                                  onTap: () => context.push(AppRoutes.notification),
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      const Icon(
+                                        Icons.notifications_none_rounded,
+                                        color: Colors.white,
+                                        size: 26,
                                       ),
-                                    ),
-                                ],
+                                      if (notificationCount > 0)
+                                        Positioned(
+                                          top: -1,
+                                          right: -1,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(2),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            constraints: const BoxConstraints(
+                                              minWidth: 14,
+                                              minHeight: 14,
+                                            ),
+                                            child: Text(
+                                              '$notificationCount',
+                                              style: GoogleFonts.kanit(
+                                                fontSize: 8,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -1002,70 +1011,72 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
 
                 // Bottom Row: Price & Reorder / View Detail Buttons
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: isEn ? 'Price: ' : 'ค่าขนส่ง: ',
-                            style: GoogleFonts.kanit(
-                              fontSize: 12,
-                              color: secondaryTextColor,
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: isEn ? 'Price: ' : 'ค่าขนส่ง: ',
+                              style: GoogleFonts.kanit(
+                                fontSize: 11.5,
+                                color: secondaryTextColor,
+                              ),
                             ),
-                          ),
-                          TextSpan(
-                            text: isEn ? '${item.price} THB' : '${item.price} บาท',
-                            style: GoogleFonts.kanit(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.bold,
-                              color: primaryTextColor,
+                            TextSpan(
+                              text: isEn ? '${item.price} THB' : '${item.price} บาท',
+                              style: GoogleFonts.kanit(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: primaryTextColor,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Row(
-                      children: [
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.refresh_rounded, size: 13),
-                          label: Text('สั่งอีกครั้ง', style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold)),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            minimumSize: const Size(0, 32),
-                            side: const BorderSide(color: Color(0xFF1C7FF6)),
-                            foregroundColor: const Color(0xFF1C7FF6),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          onPressed: () => _reorderItem(item),
+                    const SizedBox(width: 4),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.refresh_rounded, size: 12),
+                      label: Text('สั่งอีกครั้ง', style: GoogleFonts.kanit(fontSize: 10.5, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: const Size(0, 32),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        side: const BorderSide(color: Color(0xFF1C7FF6)),
+                        foregroundColor: const Color(0xFF1C7FF6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: () => _reorderItem(item),
+                    ),
+                    const SizedBox(width: 4),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.receipt_long_rounded, size: 13, color: Colors.white),
+                      label: Text(
+                        isEn ? 'View Detail' : 'ดูรายละเอียด',
+                        style: GoogleFonts.kanit(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(width: 6),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.receipt_long_rounded, size: 14, color: Colors.white),
-                          label: Text(
-                            isEn ? 'View Detail' : 'ดูรายละเอียด',
-                            style: GoogleFonts.kanit(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: item.status == _HistoryStatus.completed
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFF6B7280),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            minimumSize: const Size(0, 32),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: () {
-                            context.push('${AppRoutes.trackingDetail}/${item.orderNo}');
-                          },
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: item.status == _HistoryStatus.completed
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFF6B7280),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: const Size(0, 32),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ],
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        context.push('${AppRoutes.trackingDetail}/${item.orderNo}');
+                      },
                     ),
                   ],
                 ),

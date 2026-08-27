@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -198,6 +200,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return StatefulBuilder(
@@ -401,6 +404,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       alignment: Alignment.center,
                       children: [
                         GoogleMap(
+                          gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                            Factory<OneSequenceGestureRecognizer>(
+                              () => EagerGestureRecognizer(),
+                            ),
+                          },
+                          zoomControlsEnabled: false,
+                          myLocationButtonEnabled: false,
                           initialCameraPosition: CameraPosition(
                             target: activePinTab == 0 ? tempPickupLatLng : tempDropoffLatLng,
                             zoom: 11.5,
@@ -472,37 +482,46 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           ),
                         ),
 
-                        // GPS Current Location Floating Action Button
+                        // GPS Current Location Prominent Large Touch Target Button (Redesigned)
                         Positioned(
                           bottom: 16,
                           right: 16,
-                          child: FloatingActionButton.extended(
-                            heroTag: 'gps_fetch_btn',
-                            backgroundColor: const Color(0xFF10B981),
-                            icon: const Icon(Icons.my_location_rounded, color: Colors.white, size: 20),
-                            label: Text(
-                              currentLang == AppLanguage.en ? 'GPS My Location' : 'ดึง GPS ปัจจุบัน',
-                              style: GoogleFonts.kanit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                            onPressed: () async {
-                              final loc = await LocationService.getCurrentLocation();
-                              if (loc != null) {
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () async {
+                              final latLng = await LocationService.getCurrentLatLng();
+                              if (latLng != null) {
                                 setModalState(() {
                                   if (activePinTab == 0) {
-                                    tempPickupLatLng = loc.location;
-                                    pickupCtrl.text = loc.address;
+                                    tempPickupLatLng = latLng;
+                                    pickupCtrl.text =
+                                        '${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)} (ตำแหน่ง GPS เครื่องจริง)';
                                   } else {
-                                    tempDropoffLatLng = loc.location;
-                                    dropoffCtrl.text = loc.address;
+                                    tempDropoffLatLng = latLng;
+                                    dropoffCtrl.text =
+                                        '${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)} (ตำแหน่ง GPS เครื่องจริง)';
                                   }
                                 });
+
+                                // Calculate actual driving route with the new real GPS position
+                                final routeResult = await DirectionsService.getDrivingRoute(
+                                  origin: tempPickupLatLng,
+                                  destination: tempDropoffLatLng,
+                                );
+
+                                setModalState(() {
+                                  if (routeResult != null && routeResult.distanceKm > 0) {
+                                    tempDistanceKm = routeResult.distanceKm;
+                                  }
+                                });
+
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
                                         currentLang == AppLanguage.en
-                                            ? 'GPS Position Set Successfully!'
-                                            : 'ปักหมุดตำแหน่งจาก GPS เครื่องเรียบร้อยแล้ว!',
+                                            ? 'Real GPS Position Set Successfully!'
+                                            : 'ปักหมุดพิกัดตำแหน่งจริงจาก GPS เครื่องเรียบร้อยแล้ว!',
                                         style: GoogleFonts.kanit(),
                                       ),
                                       backgroundColor: const Color(0xFF10B981),
@@ -512,6 +531,72 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                 }
                               }
                             },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF10B981), Color(0xFF047857)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(28),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.45),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white24,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.gps_fixed_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        currentLang == AppLanguage.en ? 'GPS My Location' : 'ตำแหน่ง GPS ปัจจุบัน',
+                                        style: GoogleFonts.kanit(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13.5,
+                                          height: 1.1,
+                                        ),
+                                      ),
+                                      Text(
+                                        currentLang == AppLanguage.en ? 'Fetch Device Location' : 'ดึงพิกัดจากเครื่องจริง',
+                                        style: GoogleFonts.kanit(
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                          fontSize: 10.5,
+                                          height: 1.1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -707,14 +792,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     ),
                   );
 
-                  final result = await LocationService.getCurrentLocation();
-                  if (result != null) {
+                  final realLatLng = await LocationService.getCurrentLatLng();
+                  if (realLatLng != null) {
                     setState(() {
-                      _pickupLatLng = result.location;
-                      _pickupAddress1 = result.address;
-                      _pickupAddress2 = result.districtProvince;
-                      addr1Ctrl.text = result.address;
-                      addr2Ctrl.text = result.districtProvince;
+                      _pickupLatLng = realLatLng;
+                      _pickupAddress1 = '${realLatLng.latitude.toStringAsFixed(4)}, ${realLatLng.longitude.toStringAsFixed(4)} (ตำแหน่ง GPS เครื่อง)';
+                      addr1Ctrl.text = _pickupAddress1;
                     });
                     _syncToProvider();
 
@@ -1031,6 +1114,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 runSpacing: 8,
                 children: List.generate(types.length, (index) {
                   return ChoiceChip(
+                    showCheckmark: false,
                     label: Text(
                       types[index],
                       style: GoogleFonts.kanit(),

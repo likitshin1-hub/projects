@@ -5,21 +5,51 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/chat_service.dart';
 
 class ChatState {
-  final List<ChatMessageModel> messages;
+  final Map<String, List<ChatMessageModel>> conversations;
   final bool isLoading;
+  final bool isTyping;
 
   const ChatState({
-    this.messages = const [],
+    this.conversations = const {},
     this.isLoading = false,
+    this.isTyping = false,
   });
 
+  List<ChatMessageModel> getMessagesFor(String driverId) {
+    if (conversations.containsKey(driverId)) {
+      return conversations[driverId]!;
+    }
+    final isSupport = driverId == 'call_center' || driverId == 'support' || driverId == 'center';
+    final now = DateTime.now();
+    return [
+      if (isSupport)
+        ChatMessageModel(
+          id: '1',
+          text: 'สวัสดีค่ะ 👋 ยินดีให้บริการค่ะ คุณต้องการให้เราช่วยเรื่องใดคะ ?',
+          sender: 'bot',
+          timestamp: now.subtract(const Duration(minutes: 15)),
+          timeText: '10:30',
+        )
+      else
+        ChatMessageModel(
+          id: '1',
+          text: 'กำลังไปยังจุดรับพัสดุครับ',
+          sender: 'driver',
+          timestamp: now.subtract(const Duration(minutes: 12)),
+          timeText: '09:15',
+        )
+    ];
+  }
+
   ChatState copyWith({
-    List<ChatMessageModel>? messages,
+    Map<String, List<ChatMessageModel>>? conversations,
     bool? isLoading,
+    bool? isTyping,
   }) {
     return ChatState(
-      messages: messages ?? this.messages,
+      conversations: conversations ?? this.conversations,
       isLoading: isLoading ?? this.isLoading,
+      isTyping: isTyping ?? this.isTyping,
     );
   }
 }
@@ -29,28 +59,10 @@ class ChatNotifier extends Notifier<ChatState> {
 
   @override
   ChatState build() {
-    final now = DateTime.now();
-    return ChatState(
-      messages: [
-        ChatMessageModel(
-          id: '1',
-          text: 'สวัสดีค่ะ 👋 ยินดีให้บริการค่ะ คุณต้องการให้เราช่วยเรื่องใดคะ ?',
-          sender: 'bot',
-          timestamp: now.subtract(const Duration(minutes: 15)),
-          timeText: '10:30',
-        ),
-        ChatMessageModel(
-          id: '2',
-          text: 'สวัสดีครับ พัสดุกำลังจัดส่งนะครับ ให้ช่วยอะไรบอกได้เลยครับ 🛵',
-          sender: 'driver',
-          timestamp: now.subtract(const Duration(minutes: 12)),
-          timeText: '10:32',
-        ),
-      ],
-    );
+    return const ChatState();
   }
 
-  void sendMessage(String text) {
+  void sendMessage(String text, {required String driverId}) {
     if (text.trim().isEmpty) return;
 
     final now = DateTime.now();
@@ -64,15 +76,18 @@ class ChatNotifier extends Notifier<ChatState> {
       timeText: timeStr,
     );
 
-    state = state.copyWith(messages: [...state.messages, userMsg]);
+    final currentMessages = state.getMessagesFor(driverId);
+    final updatedMap = Map<String, List<ChatMessageModel>>.from(state.conversations);
+    updatedMap[driverId] = [...currentMessages, userMsg];
 
-    _chatService.sendMessage(driverId: 'driver_somchai', text: text);
+    state = state.copyWith(conversations: updatedMap);
 
-    // Auto driver response simulation
-    _triggerDriverReply(text);
+    _chatService.sendMessage(driverId: driverId, text: text);
+
+    _triggerDriverReply(text, driverId: driverId);
   }
 
-  void sendImageMessage(Uint8List imageBytes, {String caption = 'ส่งรูปภาพแล้ว'}) {
+  void sendImageMessage(Uint8List imageBytes, {String caption = 'ส่งรูปภาพแล้ว', required String driverId}) {
     final now = DateTime.now();
     final String timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
@@ -86,19 +101,23 @@ class ChatNotifier extends Notifier<ChatState> {
       timeText: timeStr,
     );
 
-    state = state.copyWith(messages: [...state.messages, imageMsg]);
+    final currentMessages = state.getMessagesFor(driverId);
+    final updatedMap = Map<String, List<ChatMessageModel>>.from(state.conversations);
+    updatedMap[driverId] = [...currentMessages, imageMsg];
+
+    state = state.copyWith(conversations: updatedMap);
 
     _chatService.sendMessage(
-      driverId: 'driver_somchai',
+      driverId: driverId,
       text: caption,
       type: ChatMessageType.image,
       imageBytes: imageBytes,
     );
 
-    _triggerDriverReply('รูปภาพ');
+    _triggerDriverReply('รูปภาพ', driverId: driverId);
   }
 
-  void sendLocationMessage(LatLng location, {String locationName = 'พิกัดปัจจุบันของฉัน'}) {
+  void sendLocationMessage(LatLng location, {String locationName = 'พิกัดปัจจุบันของฉัน', required String driverId}) {
     final now = DateTime.now();
     final String timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
@@ -113,33 +132,54 @@ class ChatNotifier extends Notifier<ChatState> {
       timeText: timeStr,
     );
 
-    state = state.copyWith(messages: [...state.messages, locMsg]);
+    final currentMessages = state.getMessagesFor(driverId);
+    final updatedMap = Map<String, List<ChatMessageModel>>.from(state.conversations);
+    updatedMap[driverId] = [...currentMessages, locMsg];
+
+    state = state.copyWith(conversations: updatedMap);
 
     _chatService.sendMessage(
-      driverId: 'driver_somchai',
+      driverId: driverId,
       text: locationName,
       type: ChatMessageType.location,
       location: location,
     );
 
-    _triggerDriverReply('พิกัด');
+    _triggerDriverReply('พิกัด', driverId: driverId);
   }
 
-  void _triggerDriverReply(String userText) {
-    Timer(const Duration(milliseconds: 1400), () {
-      String replyText = 'รับทราบครับผม! เดี๋ยวรีบขับรถนำส่งให้ถึงจุดหมายอย่างปลอดภัยครับ 🛵';
+  void _triggerDriverReply(String userText, {required String driverId}) {
+    // Show real-time typing indicator
+    state = state.copyWith(isTyping: true);
+
+    Timer(const Duration(milliseconds: 1200), () {
+      final isSupport = driverId == 'call_center' || driverId == 'support' || driverId == 'center';
+      String replyText = isSupport
+          ? 'รับเรื่องเรียบร้อยแล้วครับ เจ้าหน้าที่กำลังดำเนินการช่วยเหลือให้สักครู่นะครับ ✨'
+          : 'รับทราบครับผม! เดี๋ยวรีบขับรถนำส่งให้ถึงจุดหมายอย่างปลอดภัยครับ 🛵';
+
       final lower = userText.toLowerCase();
 
-      if (lower.contains('รูปภาพ') || lower.contains('รูป')) {
-        replyText = 'ได้รับรูปภาพเรียบร้อยแล้วครับ ขอบคุณครับ! 📸';
-      } else if (lower.contains('พิกัด') || lower.contains('ตำแหน่ง') || lower.contains('หมุด')) {
-        replyText = 'ได้รับพิกัดสถานที่แล้วครับ เดี๋ยวผมปักหมุดขับตรงไปหาตามตำแหน่งนี้เลยครับ 📍';
-      } else if (lower.contains('ตรงไหน') || lower.contains('ไหน') || lower.contains('ถึงไหน')) {
-        replyText = 'ตอนนี้ผมอยู่ห่างออกไปราว ๆ 1.5 กิโลเมตรครับ ขับขี่มาถึงแถวแยกถนนหลักแล้วครับ ใกล้ถึงแล้วครับ! 🛣️';
-      } else if (lower.contains('ขอบคุณ') || lower.contains('thx') || lower.contains('thanks')) {
-        replyText = 'ด้วยความยินดีครับคุณลูกค้า เดินทางปลอดภัยและขอบคุณที่เลือกใช้บริการของเรานะครับ 😊';
-      } else if (lower.contains('ฝาก') || lower.contains('ป้อมยาม')) {
-        replyText = 'รับทราบครับ เดี๋ยวเมื่อถึงจุดหมายแล้วผมจะฝากไว้ที่ป้อมยามพร้อมถ่ายรูปยืนยันให้นะครับ!';
+      if (isSupport) {
+        if (lower.contains('ยกเลิก') || lower.contains('คืนเงิน')) {
+          replyText = 'สำหรับการยกเลิกออเดอร์ หรือขอคืนเงิน ระบบกำลังส่งเรื่องให้ฝ่ายการเงินตรวจสอบ จะแจ้งผลกลับภายใน 5 นาทีครับ 💳';
+        } else if (lower.contains('ช้า') || lower.contains('ยังไม่ถึง')) {
+          replyText = 'ขออภัยในความไม่สะดวกครับ เจ้าหน้าที่เร่งติดตามคนขับในเส้นทางให้เรียบร้อยแล้วครับ 🛵';
+        } else if (lower.contains('ขอบคุณ')) {
+          replyText = 'ยินดีให้บริการครับ หากต้องการความช่วยเหลือเพิ่มเติม สามารถทักแชทหาศูนย์บริการได้ตลอด 24 ชม. ครับ 🙏';
+        }
+      } else {
+        if (lower.contains('รูปภาพ') || lower.contains('รูป')) {
+          replyText = 'ได้รับรูปภาพเรียบร้อยแล้วครับ ขอบคุณครับ! 📸';
+        } else if (lower.contains('พิกัด') || lower.contains('ตำแหน่ง') || lower.contains('หมุด')) {
+          replyText = 'ได้รับพิกัดสถานที่แล้วครับ เดี๋ยวผมปักหมุดขับตรงไปหาตามตำแหน่งนี้เลยครับ 📍';
+        } else if (lower.contains('ตรงไหน') || lower.contains('ไหน') || lower.contains('ถึงไหน')) {
+          replyText = 'ตอนนี้ผมอยู่ห่างออกไปราว ๆ 1.5 กิโลเมตรครับ ขับขี่มาถึงแถวแยกถนนหลักแล้วครับ ใกล้ถึงแล้วครับ! 🛣️';
+        } else if (lower.contains('ขอบคุณ') || lower.contains('thx') || lower.contains('thanks')) {
+          replyText = 'ด้วยความยินดีครับคุณลูกค้า เดินทางปลอดภัยและขอบคุณที่เลือกใช้บริการของเรานะครับ 😊';
+        } else if (lower.contains('ฝาก') || lower.contains('ป้อมยาม')) {
+          replyText = 'รับทราบครับ เดี๋ยวเมื่อถึงจุดหมายแล้วผมจะฝากไว้ที่ป้อมยามพร้อมถ่ายรูปยืนยันให้นะครับ!';
+        }
       }
 
       final replyNow = DateTime.now();
@@ -148,12 +188,19 @@ class ChatNotifier extends Notifier<ChatState> {
       final driverMsg = ChatMessageModel(
         id: replyNow.millisecondsSinceEpoch.toString(),
         text: replyText,
-        sender: 'driver',
+        sender: isSupport ? 'bot' : 'driver',
         timestamp: replyNow,
         timeText: replyTimeStr,
       );
 
-      state = state.copyWith(messages: [...state.messages, driverMsg]);
+      final currentMessages = state.getMessagesFor(driverId);
+      final updatedMap = Map<String, List<ChatMessageModel>>.from(state.conversations);
+      updatedMap[driverId] = [...currentMessages, driverMsg];
+
+      state = state.copyWith(
+        conversations: updatedMap,
+        isTyping: false,
+      );
     });
   }
 }

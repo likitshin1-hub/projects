@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../history/providers/history_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
 import 'driver_provider.dart';
 
@@ -100,6 +101,7 @@ class TrackingNotifier extends Notifier<TrackingState> {
       case 3:
         title = 'ออเดอร์ #$orderNo: เสร็จสิ้นแล้ว';
         message = 'จัดส่งสำเร็จ! ผู้รับปลายทางเซ็นรับพัสดุเรียบร้อยแล้ว ขอบคุณที่ใช้บริการ TB MOVE HUB';
+        ref.read(historyProvider.notifier).markCompleted(orderNo);
         break;
     }
 

@@ -216,6 +216,7 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 10),
                         child: ChoiceChip(
+                          showCheckmark: false,
                           avatar: Icon(
                             _categoryIcons[index],
                             size: 16,

@@ -8,7 +8,10 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../history/providers/history_provider.dart';
 import '../providers/booking_provider.dart';
+import '../providers/driver_provider.dart';
+import '../providers/tracking_provider.dart';
 import '../services/payment_service.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
@@ -143,6 +146,43 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
     // Create order record in Backend MySQL API
     await ref.read(bookingProvider.notifier).submitBooking();
+
+    // Start background tracking timer for this order
+    ref.read(trackingProvider.notifier).startTrackingTimer(ref);
+
+    // Save order into global HistoryProvider
+    final bookingState = ref.read(bookingProvider);
+    final driver = ref.read(driverProvider);
+    final orderNo = (bookingState.bookingId != null && bookingState.bookingId!.isNotEmpty)
+        ? bookingState.bookingId!
+        : 'TB${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+
+    String emoji = '🛵';
+    if (bookingState.vehicleType.contains('กระบะ') || bookingState.vehicleType.contains('บรรทุก')) emoji = '🚚';
+    if (bookingState.vehicleType.contains('เก๋ง')) emoji = '🚗';
+    if (bookingState.vehicleType.contains('ห้องเย็น')) emoji = '🚛';
+
+    final pName = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'ตำแหน่งปัจจุบันของคุณ';
+    final dName = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'วิทยาลัยอาชีวศึกษาชลบุรี';
+    final pAddr = bookingState.pickup.isNotEmpty ? bookingState.pickup : 'กรุงเทพมหานคร';
+    final dAddr = bookingState.dropoff.isNotEmpty ? bookingState.dropoff : 'ชลบุรี';
+
+    final newHistoryItem = HistoryItemModel(
+      orderNo: orderNo,
+      pickupAddress: pAddr,
+      destinationAddress: dAddr,
+      route: '$pName ➔ $dName',
+      dateTime: 'เมื่อสักครู่ (กำลังดำเนินการ)',
+      price: bookingState.estimatedPrice.toStringAsFixed(2),
+      status: HistoryStatus.inProgress,
+      vehicle: emoji,
+      vehicleName: bookingState.vehicleType,
+      statusText: 'ชำระเงินแล้ว - ไรเดอร์กำลังมุ่งหน้าไปรับพัสดุ',
+      driverName: driver.name,
+      driverPhone: driver.phone,
+    );
+
+    ref.read(historyProvider.notifier).addOrUpdateOrder(newHistoryItem);
 
     // Simulate transaction validation delay
     await Future.delayed(const Duration(seconds: 1));

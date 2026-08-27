@@ -56,7 +56,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final text = predefinedText ?? _textController.text;
     if (text.trim().isEmpty) return;
 
-    ref.read(chatProvider.notifier).sendMessage(text);
+    ref.read(chatProvider.notifier).sendMessage(text, driverId: widget.driverId);
     _textController.clear();
     _scrollToBottom();
   }
@@ -69,7 +69,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
       if (image != null) {
         final Uint8List bytes = await image.readAsBytes();
-        ref.read(chatProvider.notifier).sendImageMessage(bytes);
+        ref.read(chatProvider.notifier).sendImageMessage(bytes, driverId: widget.driverId);
         _scrollToBottom();
       }
     } catch (e) {
@@ -89,6 +89,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ref.read(chatProvider.notifier).sendLocationMessage(
           currentLoc,
           locationName: '123 อาคารสุขุมวิท กรุงเทพฯ (ตำแหน่งของฉัน)',
+          driverId: widget.driverId,
         );
     _scrollToBottom();
   }
@@ -322,12 +323,78 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  Widget _buildTypingIndicator(bool isDarkMode, DriverModel driver, bool isCallCenter) {
+    final avatarBg = isCallCenter ? const Color(0xFF4285F4) : driver.avatarBgColor;
+    final avatarIcon = isCallCenter ? Icons.headset_mic_rounded : driver.avatarIcon;
+    final bubbleBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12, right: 40),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: avatarBg,
+              child: Icon(avatarIcon, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: bubbleBg,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(18),
+                  topRight: Radius.circular(18),
+                  bottomRight: Radius.circular(18),
+                ),
+                border: Border.all(
+                  color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'กำลังพิมพ์...',
+                    style: GoogleFonts.kanit(
+                      fontSize: 12.5,
+                      fontStyle: FontStyle.italic,
+                      color: isDarkMode ? Colors.blue.shade200 : const Color(0xFF1C7FF6),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 1.8),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<ChatState>(chatProvider, (previous, next) {
+      final prevLen = previous?.getMessagesFor(widget.driverId).length ?? 0;
+      final nextLen = next.getMessagesFor(widget.driverId).length;
+      if (prevLen != nextLen || next.isTyping) {
+        _scrollToBottom();
+      }
+    });
+
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
     final driver = ref.watch(driverProvider);
     final chatState = ref.watch(chatProvider);
+    final messages = chatState.getMessagesFor(widget.driverId);
 
     final isCallCenter = widget.driverId == 'call_center' || widget.driverId == 'support' || widget.driverId == 'center';
     final displayName = isCallCenter ? 'ศูนย์บริการลูกค้า (Call Center)' : '${driver.name} (คนขับ)';
@@ -443,9 +510,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              itemCount: chatState.messages.length,
+              itemCount: messages.length + (chatState.isTyping ? 1 : 0),
               itemBuilder: (context, index) {
-                final message = chatState.messages[index];
+                if (index == messages.length && chatState.isTyping) {
+                  return _buildTypingIndicator(isDarkMode, driver, isCallCenter);
+                }
+                final message = messages[index];
                 return _buildMessageBubble(message, isDarkMode, driver);
               },
             ),

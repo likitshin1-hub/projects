@@ -8,6 +8,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_translations.dart';
 import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../history/providers/history_provider.dart';
 import '../providers/booking_provider.dart';
 import '../providers/driver_provider.dart';
 
@@ -22,6 +23,7 @@ class TrackingDetailScreen extends ConsumerWidget {
     final currentLang = ref.watch(languageProvider);
     final bookingState = ref.watch(bookingProvider);
     final driver = ref.watch(driverProvider);
+    final historyList = ref.watch(historyProvider);
     String t(String key) => AppTranslations.getText(currentLang, key);
 
     final bgColor = isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFF);
@@ -33,6 +35,29 @@ class TrackingDetailScreen extends ConsumerWidget {
     final displayBookingId = (bookingId.isEmpty || bookingId == 'default') 
         ? (bookingState.bookingId ?? 'TB504321-5598') 
         : bookingId;
+
+    final historyItem = historyList.firstWhere(
+      (h) => h.orderNo == displayBookingId || h.orderNo == bookingId,
+      orElse: () {
+        if (historyList.isNotEmpty) {
+          return historyList.first;
+        }
+        return HistoryItemModel(
+          orderNo: displayBookingId,
+          pickupAddress: bookingState.pickup.isNotEmpty ? bookingState.pickup : 'ตำแหน่งปัจจุบันของคุณ',
+          destinationAddress: bookingState.dropoff.isNotEmpty ? bookingState.dropoff : 'วิทยาลัยอาชีวศึกษาชลบุรี',
+          route: '${bookingState.pickupName.isNotEmpty ? bookingState.pickupName : "ตำแหน่งปัจจุบัน"} ➔ ${bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : "ปลายทาง"}',
+          dateTime: 'เมื่อสักครู่',
+          price: bookingState.estimatedPrice.toStringAsFixed(2),
+          status: HistoryStatus.completed,
+          vehicle: '🛵',
+          vehicleName: bookingState.vehicleType,
+          statusText: 'จัดส่งสำเร็จ (ผู้รับเซ็นชื่อเรียบร้อย)',
+          driverName: driver.name,
+          driverPhone: driver.phone,
+        );
+      },
+    );
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -147,27 +172,27 @@ class TrackingDetailScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   // STEPPER: HORIZONTAL PROGRESS PIPES
-                  _buildHorizontalStepper(isDarkMode),
+                  _buildHorizontalStepper(historyItem, isDarkMode),
                   const SizedBox(height: 16),
 
                   // CARD 1: ROUTE & ADDRESS DETAILS (PICKUP & DROPOFF)
-                  _buildRouteCard(bookingState, cardBg, borderColor, textColor, subTextColor, isDarkMode),
+                  _buildRouteCard(historyItem, bookingState, cardBg, borderColor, textColor, subTextColor, isDarkMode),
                   const SizedBox(height: 16),
 
                   // CARD 2: DRIVER & VEHICLE BANNER
-                  _buildDriverCard(context, driver, cardBg, borderColor, textColor, subTextColor, isDarkMode),
+                  _buildDriverCard(context, historyItem, driver, cardBg, borderColor, textColor, subTextColor, isDarkMode),
                   const SizedBox(height: 16),
 
                   // CARD 3: PARCEL SPECIFICATIONS GRID
-                  _buildParcelSpecsCard(bookingState, cardBg, borderColor, textColor, subTextColor, isDarkMode),
+                  _buildParcelSpecsCard(historyItem, bookingState, cardBg, borderColor, textColor, subTextColor, isDarkMode),
                   const SizedBox(height: 16),
 
                   // CARD 4: RECEIPT STYLE PAYMENT DETAILS
-                  _buildReceiptCard(bookingState, cardBg, borderColor, textColor, subTextColor, isDarkMode),
+                  _buildReceiptCard(historyItem, bookingState, cardBg, borderColor, textColor, subTextColor, isDarkMode),
                   const SizedBox(height: 16),
 
                   // CARD 5: DETAILED STATUS TIMELINE LOG
-                  _buildTimelineCard(cardBg, borderColor, textColor, subTextColor, isDarkMode),
+                  _buildTimelineCard(historyItem, cardBg, borderColor, textColor, subTextColor, isDarkMode),
                   const SizedBox(height: 16),
                 ],
               ),
@@ -179,7 +204,16 @@ class TrackingDetailScreen extends ConsumerWidget {
   }
 
   // Horizontal stepper widget
-  Widget _buildHorizontalStepper(bool isDark) {
+  Widget _buildHorizontalStepper(HistoryItemModel historyItem, bool isDark) {
+    final bool isCompleted = historyItem.status == HistoryStatus.completed;
+    final bool isCancelled = historyItem.status == HistoryStatus.cancelled;
+    final String currentStatusStr = isCompleted
+        ? 'สถานะปัจจุบัน: จัดส่งสำเร็จเรียบร้อย'
+        : (isCancelled ? 'สถานะปัจจุบัน: ยกเลิกคำสั่งซื้อแล้ว' : 'สถานะปัจจุบัน: กำลังจัดส่งพัสดุ');
+    final Color badgeColor = isCompleted
+        ? const Color(0xFF10B981)
+        : (isCancelled ? const Color(0xFFEF4444) : const Color(0xFF1C7FF6));
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
       decoration: BoxDecoration(
@@ -188,7 +222,7 @@ class TrackingDetailScreen extends ConsumerWidget {
         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1C7FF6).withValues(alpha: isDark ? 0.2 : 0.08),
+            color: badgeColor.withValues(alpha: isDark ? 0.2 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -204,14 +238,14 @@ class TrackingDetailScreen extends ConsumerWidget {
                   Container(
                     width: 10,
                     height: 10,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
+                    decoration: BoxDecoration(
+                      color: badgeColor,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'สถานะปัจจุบัน: กำลังจัดส่งพัสดุ',
+                    currentStatusStr,
                     style: GoogleFonts.kanit(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -223,15 +257,15 @@ class TrackingDetailScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
+                  color: badgeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'ตรงเวลา',
+                  isCompleted ? 'เรียบร้อย' : (isCancelled ? 'ยกเลิก' : 'ตรงเวลา'),
                   style: GoogleFonts.kanit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1C7FF6),
+                    color: badgeColor,
                   ),
                 ),
               ),
@@ -244,9 +278,9 @@ class TrackingDetailScreen extends ConsumerWidget {
               _buildStepLine(true),
               _buildStepNode(Icons.check_circle_rounded, 'เข้ารับพัสดุ', true),
               _buildStepLine(true),
-              _buildStepNode(Icons.local_shipping_rounded, 'ระหว่างนำส่ง', true, isActive: true),
-              _buildStepLine(false),
-              _buildStepNode(Icons.stars_rounded, 'ส่งสำเร็จ', false),
+              _buildStepNode(Icons.local_shipping_rounded, 'ระหว่างนำส่ง', !isCancelled, isActive: !isCompleted && !isCancelled),
+              _buildStepLine(isCompleted),
+              _buildStepNode(isCancelled ? Icons.cancel_rounded : Icons.stars_rounded, isCancelled ? 'ยกเลิก' : 'ส่งสำเร็จ', isCompleted, isActive: isCompleted),
             ],
           ),
         ],
@@ -304,12 +338,12 @@ class TrackingDetailScreen extends ConsumerWidget {
   }
 
   // Route / Location Card
-  Widget _buildRouteCard(BookingState bookingState, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
-    final senderName = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'ผู้ส่ง (ตำแหน่งปัจจุบัน)';
-    final senderAddress = bookingState.pickup.isNotEmpty ? bookingState.pickup : '123 อาคาร ชั้น 5 ถนนสุขุมวิท กรุงเทพมหานคร';
-    final receiverName = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'ผู้รับปลายทาง';
+  Widget _buildRouteCard(HistoryItemModel historyItem, BookingState bookingState, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
+    final senderName = bookingState.pickupName.isNotEmpty ? bookingState.pickupName : 'ตำแหน่งต้นทาง';
+    final senderAddress = historyItem.pickupAddress.isNotEmpty ? historyItem.pickupAddress : (bookingState.pickup.isNotEmpty ? bookingState.pickup : 'กรุงเทพมหานคร');
+    final receiverName = bookingState.dropoffName.isNotEmpty ? bookingState.dropoffName : 'ปลายทาง';
     final receiverPhone = bookingState.receiverPhone.isNotEmpty ? ' (${bookingState.receiverPhone})' : '';
-    final receiverAddress = bookingState.dropoff.isNotEmpty ? bookingState.dropoff : '88/9 หมู่ 3 ตำบลแม่เหียะ อำเภอเมืองเชียงใหม่';
+    final receiverAddress = historyItem.destinationAddress.isNotEmpty ? historyItem.destinationAddress : (bookingState.dropoff.isNotEmpty ? bookingState.dropoff : 'ชลบุรี');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -427,7 +461,9 @@ class TrackingDetailScreen extends ConsumerWidget {
   }
 
   // Driver details card
-  Widget _buildDriverCard(BuildContext context, DriverModel driver, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
+  Widget _buildDriverCard(BuildContext context, HistoryItemModel historyItem, DriverModel driver, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
+    final driverNameText = historyItem.driverName.isNotEmpty ? historyItem.driverName : driver.name;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -481,7 +517,7 @@ class TrackingDetailScreen extends ConsumerWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            driver.name,
+                            driverNameText,
                             style: GoogleFonts.kanit(
                               fontSize: 15.5,
                               fontWeight: FontWeight.bold,
@@ -495,7 +531,7 @@ class TrackingDetailScreen extends ConsumerWidget {
                       ],
                     ),
                     Text(
-                      driver.fullVehicleInfo,
+                      '${historyItem.vehicleName} • TB MOVE Professional Driver',
                       style: GoogleFonts.kanit(
                         fontSize: 12,
                         color: subTextColor,
@@ -560,9 +596,9 @@ class TrackingDetailScreen extends ConsumerWidget {
   }
 
   // Parcel Specs Grid Card
-  Widget _buildParcelSpecsCard(BookingState bookingState, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
-    final pType = bookingState.parcelType.isNotEmpty ? bookingState.parcelType : 'กล่อง / เอกสาร';
-    final vType = bookingState.vehicleType.isNotEmpty ? bookingState.vehicleType : 'มอเตอร์ไซค์';
+  Widget _buildParcelSpecsCard(HistoryItemModel historyItem, BookingState bookingState, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
+    final pType = bookingState.parcelType.isNotEmpty ? bookingState.parcelType : 'กล่อง / เอกสาร / สินค้าทั่วไป';
+    final vType = historyItem.vehicleName.isNotEmpty ? historyItem.vehicleName : (bookingState.vehicleType.isNotEmpty ? bookingState.vehicleType : 'มอเตอร์ไซค์');
     final weight = '${bookingState.parcelWeight} กิโลกรัม';
     final details = bookingState.details.isNotEmpty ? bookingState.details : 'ไม่มีระบุเพิ่มเติม';
 
@@ -612,53 +648,6 @@ class TrackingDetailScreen extends ConsumerWidget {
               _buildGridItem('รายละเอียดสินค้า', details, isDark),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'รูปพัสดุและเอกสารยืนยันการจัดส่ง:',
-            style: GoogleFonts.kanit(fontSize: 12, color: subTextColor, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.photo_library_rounded, color: Color(0xFF1C7FF6), size: 18),
-                      const SizedBox(width: 6),
-                      Text('ภาพถ่ายพัสดุ', style: GoogleFonts.kanit(fontSize: 12, color: textColor)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.qr_code_2_rounded, color: Color(0xFF10B981), size: 18),
-                      const SizedBox(width: 6),
-                      Text('บาร์โค้ดใบจ่าหน้า', style: GoogleFonts.kanit(fontSize: 12, color: textColor)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -694,9 +683,11 @@ class TrackingDetailScreen extends ConsumerWidget {
   }
 
   // Receipt Card
-  Widget _buildReceiptCard(BookingState bookingState, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
-    final priceStr = '${bookingState.estimatedPrice.toStringAsFixed(2)} บาท';
-    final distanceStr = '${bookingState.distanceKm} กม.';
+  Widget _buildReceiptCard(HistoryItemModel historyItem, BookingState bookingState, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
+    final priceStr = historyItem.price.contains('บาท') || historyItem.price.contains('THB')
+        ? historyItem.price
+        : '${historyItem.price} บาท';
+    final distanceStr = bookingState.distanceKm > 0 ? '${bookingState.distanceKm} กม.' : 'ตามเส้นทางถนนจริง';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -811,7 +802,7 @@ class TrackingDetailScreen extends ConsumerWidget {
   }
 
   // Status timeline card
-  Widget _buildTimelineCard(Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
+  Widget _buildTimelineCard(HistoryItemModel historyItem, Color cardBg, Color borderColor, Color textColor, Color subTextColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

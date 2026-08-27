@@ -10,6 +10,7 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/verification_screen.dart';
+import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/auth/screens/success_screen.dart';
 import '../../features/auth/screens/terms_screen.dart';
 
@@ -89,6 +90,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.verification,
       builder: (context, state) => const VerificationScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.resetPassword,
+      builder: (context, state) => const ResetPasswordScreen(),
     ),
     GoRoute(
       path: AppRoutes.successVerification,
