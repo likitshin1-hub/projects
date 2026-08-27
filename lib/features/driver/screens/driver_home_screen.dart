@@ -477,7 +477,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
+                color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
                 blurRadius: 15,
                 offset: const Offset(0, 4),
               ),
@@ -530,10 +530,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             decoration: BoxDecoration(
               color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5), width: 1.5),
+              border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.5), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                  color: const Color(0xFFF59E0B).withOpacity(0.15),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -597,7 +597,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFF1C7FF6), width: 2),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF1C7FF6).withValues(alpha: 0.3), blurRadius: 12),
+                BoxShadow(color: const Color(0xFF1C7FF6).withOpacity(0.3), blurRadius: 12),
               ],
             ),
             child: Column(
@@ -704,12 +704,12 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+                            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
                         ],
-                        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,7 +721,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                    decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                                     child: const Icon(Icons.local_shipping, color: Color(0xFF10B981), size: 18),
                                   ),
                                   const SizedBox(width: 8),

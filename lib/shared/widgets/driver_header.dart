@@ -71,9 +71,9 @@ class DriverHeader extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
+                      color: Colors.white.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                      border: Border.all(color: Colors.white.withOpacity(0.25)),
                     ),
                     child: Row(
                       children: [
@@ -111,7 +111,7 @@ class DriverHeader extends ConsumerWidget {
           ),
           Text(
             'ระบบงานคนขับ / ผู้ให้บริการขนส่งสินค้า',
-            style: GoogleFonts.kanit(fontSize: 13, color: Colors.white.withValues(alpha: 0.85)),
+            style: GoogleFonts.kanit(fontSize: 13, color: Colors.white.withOpacity(0.85)),
           ),
         ],
       ),
