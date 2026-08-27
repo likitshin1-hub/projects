@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/auth/providers/user_role_provider.dart';
 import '../../features/driver/providers/driver_shift_provider.dart';
 
 class DriverDrawer extends ConsumerWidget {
@@ -307,6 +308,7 @@ class DriverDrawer extends ConsumerWidget {
             onPressed: () {
               Navigator.pop(ctx);
               ref.read(driverShiftProvider.notifier).clockOut();
+              ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.customer);
               context.go(AppRoutes.home);
             },
             style: ElevatedButton.styleFrom(

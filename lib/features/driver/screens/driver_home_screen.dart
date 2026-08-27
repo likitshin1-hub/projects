@@ -153,6 +153,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             onPressed: () {
               Navigator.pop(ctx);
               ref.read(driverShiftProvider.notifier).clockOut();
+              ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.customer);
               context.go(AppRoutes.home);
             },
             style: ElevatedButton.styleFrom(
