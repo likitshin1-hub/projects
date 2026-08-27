@@ -306,7 +306,6 @@ class DriverDrawer extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(ctx);
               ref.read(driverShiftProvider.notifier).clockOut();
               ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.customer);
               context.go(AppRoutes.home);
