@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -804,6 +805,9 @@ class _DriverOrderMatchingModal extends StatefulWidget {
 class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
     with SingleTickerProviderStateMixin {
   late AnimationController _radarController;
+  Timer? _countdownTimer;
+  int _secondsLeft = 3;
+  bool _isMatched = false;
 
   @override
   void initState() {
@@ -812,11 +816,31 @@ class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
+
+    _startCountdown();
+  }
+
+  void _startCountdown() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_secondsLeft > 1) {
+        setState(() {
+          _secondsLeft--;
+        });
+      } else {
+        timer.cancel();
+        setState(() {
+          _secondsLeft = 0;
+          _isMatched = true;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _radarController.dispose();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
@@ -824,163 +848,280 @@ class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
+        color: Color(0xFFF8FAFF),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(32),
           topRight: Radius.circular(32),
         ),
       ),
-      padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Drag Handle
+          const SizedBox(height: 12),
           Container(
             width: 48,
             height: 5,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
 
-          // Animated Radar Pulse Icon
-          RotationTransition(
-            turns: _radarController,
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const RadialGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFF1E3A8A)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3B82F6).withOpacity(0.5),
-                    blurRadius: 20,
-                    spreadRadius: 4,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.radar_rounded,
-                color: Colors.white,
-                size: 36,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          Text(
-            '🎯 สแกนจับคู่งานจากผู้ใช้ใกล้คุณสำเร็จ!',
-            style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            'พบคำสั่งซื้อเรียลไทม์ห่างจากตำแหน่งคุณเพียง 1.2 กม.',
-            style: GoogleFonts.kanit(fontSize: 13, color: Colors.white70),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-
-          // Matched Order Details Box
+          // 1:1 TOP BLUE HEADER BAR (Matching screenshot)
           Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF3B82F6), width: 1.5),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'คำสั่งซื้อ #${widget.order.orderNo}',
-                        style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Text(
-                      '฿${widget.order.amount.toStringAsFixed(2)}',
-                      style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                Text(
+                  _isMatched ? 'พบคำสั่งซื้อของลูกค้าใกล้คุณ!' : 'กำลังค้นหาออร์เดอร์ลูกค้า...',
+                  style: GoogleFonts.kanit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                const Divider(height: 20, color: Colors.white12),
-                Text('👤 ลูกค้า: ${widget.order.customerName} (${widget.order.customerPhone})',
-                    style: GoogleFonts.kanit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-                Text('🚚 รถ: ${widget.order.vehicleType}', style: GoogleFonts.kanit(color: Colors.white70, fontSize: 12)),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, color: Colors.greenAccent, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text('จุดรับ: ${widget.order.pickupAddress}',
-                          style: GoogleFonts.kanit(color: Colors.white, fontSize: 13)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.flag, color: Colors.redAccent, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text('จุดส่ง: ${widget.order.dropoffAddress}',
-                          style: GoogleFonts.kanit(color: Colors.white, fontSize: 13)),
-                    ),
-                  ],
+                const SizedBox(height: 2),
+                Text(
+                  'หมายเลขคำสั่งซื้อ #${widget.order.orderNo}',
+                  style: GoogleFonts.kanit(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.85),
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
 
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: widget.onTakeBreak,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFF59E0B),
-                    side: const BorderSide(color: Color(0xFFF59E0B)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                // 1:1 CONCENTRIC RADAR PULSE RIPPLE ANIMATION (Matching screenshot)
+                SizedBox(
+                  width: 240,
+                  height: 240,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      RepaintBoundary(
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: List.generate(3, (index) {
+                            return AnimatedBuilder(
+                              animation: _radarController,
+                              builder: (context, child) {
+                                final progress = (_radarController.value + (index * 0.33)) % 1.0;
+                                return Container(
+                                  width: 110 + (progress * 120),
+                                  height: 110 + (progress * 120),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: (_isMatched
+                                            ? const Color(0xFF10B981)
+                                            : const Color(0xFF1C7FF6))
+                                        .withOpacity((1.0 - progress) * 0.25),
+                                  ),
+                                );
+                              },
+                            );
+                          }),
+                        ),
+                      ),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: _isMatched
+                                ? [const Color(0xFF10B981), const Color(0xFF059669)]
+                                : [const Color(0xFF1C7FF6), const Color(0xFF0056C6)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isMatched ? const Color(0xFF10B981) : const Color(0xFF1C7FF6)).withOpacity(0.4),
+                              blurRadius: 18,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.two_wheeler_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text('☕ พักงาน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    widget.onAccept(widget.order);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                const SizedBox(height: 16),
+
+                // 1:1 BOTTOM STATUS PILL BADGE (Matching screenshot)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
                   ),
-                  child: Text('✅ ตอบรับงานนี้', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 15)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!_isMatched) ...[
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF1C7FF6),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Text(
+                        _isMatched
+                            ? '🎯 จับคู่ออร์เดอร์เรียลไทม์สำเร็จ! (ห่าง 1.2 กม.)'
+                            : 'กำลังกระจายงานให้ไรเดอร์ในพื้นที่ ($_secondsLeft วินาที)...',
+                        style: GoogleFonts.kanit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: _isMatched ? const Color(0xFF059669) : const Color(0xFF1D4ED8),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+
+                // MATCHED CUSTOMER ORDER DETAILS CARD
+                AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 300),
+                  crossFadeState: _isMatched ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                  firstChild: const SizedBox(height: 10),
+                  secondChild: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF1C7FF6).withOpacity(0.3), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1C7FF6).withOpacity(0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E3A8A),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'คำสั่งซื้อ #${widget.order.orderNo}',
+                                style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Text(
+                              '฿${widget.order.amount.toStringAsFixed(2)}',
+                              style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 20),
+                        Text('👤 ลูกค้า: ${widget.order.customerName} (${widget.order.customerPhone})',
+                            style: GoogleFonts.kanit(color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.bold)),
+                        Text('🚚 รถ: ${widget.order.vehicleType}', style: GoogleFonts.kanit(color: Colors.grey.shade700, fontSize: 12)),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, color: Colors.green, size: 18),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text('จุดรับ: ${widget.order.pickupAddress}',
+                                  style: GoogleFonts.kanit(color: const Color(0xFF0F172A), fontSize: 13)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.flag, color: Colors.red, size: 18),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text('จุดส่ง: ${widget.order.dropoffAddress}',
+                                  style: GoogleFonts.kanit(color: const Color(0xFF0F172A), fontSize: 13)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ACTION BUTTONS
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          widget.onTakeBreak();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFD97706),
+                          side: const BorderSide(color: Color(0xFFF59E0B)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text('☕ พักงาน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: _isMatched
+                            ? () {
+                                Navigator.pop(context);
+                                widget.onAccept(widget.order);
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          disabledBackgroundColor: Colors.grey.shade300,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text('✅ ตอบรับงานนี้', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 15)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
         ],
       ),
     );
