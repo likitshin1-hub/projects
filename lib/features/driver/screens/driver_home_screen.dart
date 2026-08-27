@@ -470,17 +470,17 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Driver Info & Today's Earnings Summary Card
+        // Driver Profile & Today's Earnings Summary Card
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: bgBtnColor,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 4),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -488,7 +488,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             children: [
               const CircleAvatar(
                 radius: 28,
-                backgroundColor: Color(0xFF1C7FF6),
+                backgroundColor: Color(0xFF1E3A8A),
                 child: Icon(Icons.person, color: Colors.white, size: 32),
               ),
               const SizedBox(width: 14),
@@ -497,14 +497,14 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      (user != null && user.name.isNotEmpty) ? user.name : 'คุณสมชาย สายบิด (คนขับอนุมัติแล้ว)',
+                      (user != null && user.name.isNotEmpty) ? user.name : 'คุณสมชาย สายบิด (ไรเดอร์)',
                       style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: textColor),
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 16),
+                        const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
                         const SizedBox(width: 4),
-                        Text('4.95 (148 รีวิว) • ทะเบียน 1กข-9988', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
+                        Text('4.95 (148 รีวิว) • 1กข-9988', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey.shade600)),
                       ],
                     ),
                   ],
@@ -523,63 +523,55 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
 
         const SizedBox(height: 24),
 
-        // Break Time / Standby Banner (Default on clock-in)
+        // 1. STANDBY / BREAK TIME CARD (Default mode when on Standby)
         if (shiftStatus == DriverShiftStatus.breakTime && _activeJob == null) ...[
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.5), width: 1.5),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.4), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFF59E0B).withOpacity(0.15),
-                  blurRadius: 10,
+                  color: const Color(0xFFF59E0B).withOpacity(0.12),
+                  blurRadius: 14,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFEF3C7),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.pause_circle_filled_rounded, color: Color(0xFFD97706), size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('☕ คุณอยู่ในสถานะ "พักงาน" (Standby)',
-                              style: GoogleFonts.kanit(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFFD97706))),
-                          Text('พร้อมเริ่มงานเมื่อไหร่ ให้กดปุ่มเริ่มงานด้านล่างเพื่อสแกนจับคู่ออร์เดอร์',
-                              style: GoogleFonts.kanit(fontSize: 12, color: isDarkMode ? Colors.white70 : const Color(0xFF78350F))),
-                        ],
-                      ),
-                    ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFEF3C7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.pause_circle_filled_rounded, color: Color(0xFFD97706), size: 40),
                 ),
                 const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openOrderMatchingSheet(context),
-                    icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-                    label: Text('🛵 กดที่นี่เพื่อเริ่มงาน & สแกนจับคู่ออร์เดอร์', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3A8A),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                Text(
+                  '☕ คุณอยู่ในสถานะ "พักงาน" (Standby)',
+                  style: GoogleFonts.kanit(fontSize: 17, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'หากพร้อมเริ่มงาน ให้กดปุ่ม "เริ่มงาน" สีน้ำเงินตรงกลางแถบเมนูด้านล่าง เพื่อสแกนค้นหาคำสั่งซื้อจากผู้ใช้ใกล้คุณ',
+                  style: GoogleFonts.kanit(fontSize: 13, color: isDarkMode ? Colors.white70 : const Color(0xFF78350F)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 18),
+                ElevatedButton.icon(
+                  onPressed: () => _openOrderMatchingSheet(context),
+                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                  label: Text('🛵 กดเพื่อเริ่มงาน & จับคู่ออร์เดอร์', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                 ),
               ],
@@ -588,17 +580,17 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           const SizedBox(height: 24),
         ],
 
-        // Active Delivery Progress Bar (If Driver has accepted a job)
+        // 2. ACTIVE DELIVERY PROGRESS CARD (When job is accepted & in delivery)
         if (_activeJob != null) ...[
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: const Color(0xFF1E293B),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(color: const Color(0xFF1C7FF6), width: 2),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF1C7FF6).withOpacity(0.3), blurRadius: 12),
+                BoxShadow(color: const Color(0xFF1C7FF6).withOpacity(0.25), blurRadius: 16),
               ],
             ),
             child: Column(
@@ -608,21 +600,21 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(color: const Color(0xFF1C7FF6), borderRadius: BorderRadius.circular(8)),
                       child: Text('🚚 งานที่คุณกำลังจัดส่งอยู่ออนไลน์', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
-                    Text('฿${_activeJob!.amount.toStringAsFixed(2)}', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('฿${_activeJob!.amount.toStringAsFixed(2)}', style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text('คำสั่งซื้อ #${_activeJob!.orderNo}', style: GoogleFonts.kanit(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 14),
+                Text('คำสั่งซื้อ #${_activeJob!.orderNo}', style: GoogleFonts.kanit(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
                 Text('ลูกค้า: ${_activeJob!.customerName} (${_activeJob!.customerPhone})', style: GoogleFonts.kanit(color: Colors.white70, fontSize: 13)),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     const Icon(Icons.location_on, color: Colors.greenAccent, size: 18),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Expanded(child: Text('รับสินค้า: ${_activeJob!.pickupAddress}', style: GoogleFonts.kanit(color: Colors.white, fontSize: 13))),
                   ],
                 ),
@@ -630,11 +622,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 Row(
                   children: [
                     const Icon(Icons.flag_rounded, color: Colors.amberAccent, size: 18),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Expanded(child: Text('จุดส่งสินค้า: ${_activeJob!.dropoffAddress}', style: GoogleFonts.kanit(color: Colors.white, fontSize: 13))),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -654,7 +646,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1C7FF6),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                   ),
                 ),
