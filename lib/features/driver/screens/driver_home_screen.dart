@@ -12,6 +12,7 @@ import '../../admin/models/admin_models.dart';
 import '../providers/driver_shift_provider.dart';
 import '../../../shared/widgets/driver_drawer.dart';
 import '../../../shared/widgets/driver_header.dart';
+import '../../../shared/widgets/driver_bottom_navigation.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
@@ -22,7 +23,7 @@ class DriverHomeScreen extends ConsumerStatefulWidget {
 
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final String _activeTab = 'jobs'; // 'jobs', 'earnings', 'profile'
+  int _currentIndex = 2; // 2: เริ่มงาน / Main Rider Screen
   AdminOrderModel? _activeJob;
 
   void _acceptJob(AdminOrderModel order) {
@@ -618,6 +619,14 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: DriverBottomNavigation(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
       ),
     );
   }
