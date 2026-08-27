@@ -17,6 +17,48 @@ import 'core/providers/language_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F172A),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 48),
+                const SizedBox(height: 12),
+                const Text(
+                  '⚠️ Flutter Web Rendering Issue Detected:',
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                  ),
+                  child: Text(
+                    details.exceptionAsString(),
+                    style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontFamily: 'monospace'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  details.stack?.toString() ?? '',
+                  style: const TextStyle(color: Colors.white60, fontSize: 10, fontFamily: 'monospace'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

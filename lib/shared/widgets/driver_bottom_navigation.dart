@@ -26,38 +26,42 @@ class DriverBottomNavigation extends ConsumerWidget {
   ) {
     final isActive = currentIndex == index;
     return Expanded(
-      child: InkWell(
-        onTap: () => onTap(index),
-        child: Container(
-          decoration: BoxDecoration(
-            border: hasRightDivider ? Border(right: BorderSide(color: dividerColor, width: 0.8)) : null,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(isActive ? activeIcon : icon, color: isActive ? activeColor : inactiveColor, size: 24),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: GoogleFonts.kanit(
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                  color: isActive ? activeColor : inactiveColor,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onTap(index),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              border: hasRightDivider ? Border(right: BorderSide(color: dividerColor, width: 0.8)) : null,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(isActive ? activeIcon : icon, color: isActive ? activeColor : inactiveColor, size: 24),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  style: GoogleFonts.kanit(
+                    fontSize: 11,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                    color: isActive ? activeColor : inactiveColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: isActive ? 20 : 0,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: activeColor,
-                  borderRadius: BorderRadius.circular(2),
+                const SizedBox(height: 2),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: isActive ? 20 : 0,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: activeColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -73,40 +77,44 @@ class DriverBottomNavigation extends ConsumerWidget {
   ) {
     final isActive = currentIndex == index;
     return Expanded(
-      child: InkWell(
-        onTap: () => onTap(index),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border(right: BorderSide(color: dividerColor, width: 0.8)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF0F192C), Color(0xFF1E3A8A)],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onTap(index),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(right: BorderSide(color: dividerColor, width: 0.8)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF0F192C), Color(0xFF1E3A8A)],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: Color(0x4D1E3A8A), blurRadius: 6, offset: Offset(0, 2)),
+                    ],
                   ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Color(0x4D1E3A8A), blurRadius: 6, offset: Offset(0, 2)),
-                  ],
+                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
                 ),
-                child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: GoogleFonts.kanit(
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                  color: isActive ? activeColor : inactiveColor,
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: GoogleFonts.kanit(
+                    fontSize: 11,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                    color: isActive ? activeColor : inactiveColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
