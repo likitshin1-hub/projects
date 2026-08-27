@@ -445,18 +445,6 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () => _confirmClockOut(context),
-          icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white),
-          label: Text('🔴 ออกงาน (สลับเป็นผู้ใช้ทั่วไป)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEF4444),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 48),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-        ),
       ],
     );
   }
