@@ -455,9 +455,13 @@ class DriverDrawer extends ConsumerWidget {
                   iconColor: const Color(0xFF10B981),
                   iconBgColor: isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
                   textColor: textColor,
-                  onTap: () {
+                  onTap: () async {
+                    final scaffoldContext = Scaffold.of(context).context;
                     Navigator.pop(context);
-                    _showWalletModal(context, isDarkMode);
+                    await Future.delayed(const Duration(milliseconds: 200));
+                    if (scaffoldContext.mounted) {
+                      _showWalletModal(scaffoldContext, isDarkMode);
+                    }
                   },
                 ),
 
@@ -468,9 +472,13 @@ class DriverDrawer extends ConsumerWidget {
                   iconColor: const Color(0xFF3B82F6),
                   iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFDBEAFE),
                   textColor: textColor,
-                  onTap: () {
+                  onTap: () async {
+                    final scaffoldContext = Scaffold.of(context).context;
                     Navigator.pop(context);
-                    _showWithdrawModal(context, isDarkMode);
+                    await Future.delayed(const Duration(milliseconds: 200));
+                    if (scaffoldContext.mounted) {
+                      _showWithdrawModal(scaffoldContext, isDarkMode);
+                    }
                   },
                 ),
 
@@ -538,9 +546,13 @@ class DriverDrawer extends ConsumerWidget {
                   iconColor: const Color(0xFFEF4444),
                   iconBgColor: isDarkMode ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
                   textColor: const Color(0xFFEF4444),
-                  onTap: () {
+                  onTap: () async {
+                    final scaffoldContext = Scaffold.of(context).context;
                     Navigator.pop(context);
-                    _confirmClockOut(context, ref);
+                    await Future.delayed(const Duration(milliseconds: 200));
+                    if (scaffoldContext.mounted) {
+                      _confirmClockOut(scaffoldContext, ref);
+                    }
                   },
                 ),
               ],
