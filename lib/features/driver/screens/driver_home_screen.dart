@@ -558,11 +558,7 @@ class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: Color(0xFF0F192C),
             ),
             child: Column(
               children: [

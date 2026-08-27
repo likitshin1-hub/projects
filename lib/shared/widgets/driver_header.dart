@@ -30,13 +30,7 @@ class DriverHeader extends ConsumerWidget {
         32,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDarkMode
-              ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-              : [const Color(0xFF0F192C), const Color(0xFF1E3A8A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFF0F192C),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
