@@ -27,6 +27,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 2; // 2: เริ่มงาน / Main Rider Screen
   String _selectedLocation = 'ชลบุรี';
+  String _selectedWalletFilter = 'ทั้งหมด';
   AdminOrderModel? _activeJob;
 
   void _openOrderMatchingSheet(BuildContext context) {
@@ -264,95 +265,226 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   }
 
   Widget _buildWalletTab(bool isDarkMode, Color bgBtnColor, Color textColor) {
+    final mockTransactions = [
+      _WalletTxItem('เงินเข้า-งาน#3558', '18 พ.ค. 69', '10:06 น.', '+153', true),
+      _WalletTxItem('เงินเข้า-งาน#3558', '17 พ.ค. 69', '17:26 น.', '+232', true),
+      _WalletTxItem('เงินเข้า-งาน#3558', '17 พ.ค. 69', '16:48 น.', '+198', true),
+      _WalletTxItem('ถอนเงินเข้าบัญชีธนาคาร', '16 พ.ค. 69', '20:56 น.', '-15,000', false),
+      _WalletTxItem('เงินเข้า-งาน#3557', '16 พ.ค. 69', '14:15 น.', '+310', true),
+      _WalletTxItem('เงินเข้า-งาน#3556', '15 พ.ค. 69', '11:20 น.', '+245', true),
+    ];
+
+    final filteredList = mockTransactions.where((t) {
+      if (_selectedWalletFilter == 'เงินเข้า') return t.isIncome;
+      if (_selectedWalletFilter == 'เงินออก') return !t.isIncome;
+      return true;
+    }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ======================================================
+        // 1. TOP BLUE BALANCE CARD (1:1 with reference screenshot)
+        // ======================================================
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0F192C), Color(0xFF1E3A8A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [
-              BoxShadow(color: Color(0x4D1E3A8A), blurRadius: 16, offset: Offset(0, 6)),
+            color: const Color(0xFF1C7FF6),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1C7FF6).withOpacity(0.3),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('👛 กระเป๋าเงินคนขับ (Driver Wallet)', style: GoogleFonts.kanit(color: Colors.white70, fontSize: 14)),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8)),
-                    child: Text('พร้อมถอนเงิน', style: GoogleFonts.kanit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
-                ],
+              Text(
+                'ยอดเงินคงเหลือ',
+                style: GoogleFonts.kanit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
               ),
-              const SizedBox(height: 12),
-              Text('฿1,250.00', style: GoogleFonts.kanit(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(
+                '฿ 3,280',
+                style: GoogleFonts.kanit(
+                  fontSize: 38,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'สามารถถอนเงินได้',
+                style: GoogleFonts.kanit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white.withOpacity(0.85),
+                ),
+              ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('💸 ส่งคำขอถอนเงินเข้าบัญชีเรียบร้อยแล้ว (รอโอนภายใน 15 นาที)', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF10B981)),
-                        );
-                      },
-                      icon: const Icon(Icons.account_balance_wallet_rounded, size: 18),
-                      label: Text('ถอนเงินเข้าบัญชี', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('💸 ส่งคำขอถอนเงินเรียบร้อยแล้ว (เงินจะเข้าบัญชีภายใน 15 นาที)', style: GoogleFonts.kanit()),
                         backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF1C7FF6),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                ],
+                  child: Text(
+                    'ถอนเงิน',
+                    style: GoogleFonts.kanit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 24),
-        Text('📜 รายการธุรกรรมล่าสุด', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: bgBtnColor, borderRadius: BorderRadius.circular(16)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), shape: BoxShape.circle),
-                    child: const Icon(Icons.add_task_rounded, color: Color(0xFF10B981)),
+
+        const SizedBox(height: 18),
+
+        // ======================================================
+        // 2. CATEGORY FILTER CHIPS (ทั้งหมด / เงินเข้า / เงินออก)
+        // ======================================================
+        Row(
+          children: [
+            _buildWalletFilterChip('ทั้งหมด'),
+            const SizedBox(width: 10),
+            _buildWalletFilterChip('เงินเข้า'),
+            const SizedBox(width: 10),
+            _buildWalletFilterChip('เงินออก'),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // ======================================================
+        // 3. TRANSACTION HISTORY LIST (1:1 with reference screenshot)
+        // ======================================================
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: filteredList.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final item = filteredList[index];
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: bgBtnColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
-                  const SizedBox(width: 12),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Left Side: Title
+                  Text(
+                    item.title,
+                    style: GoogleFonts.kanit(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+
+                  // Right Side: Date/Time + Amount
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('ค่าบริการคำสั่งซื้อ #TB-99824', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, color: textColor)),
-                      Text('วันนี้ 11:30 น.', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
+                      Text(
+                        '${item.date}\n${item.time}',
+                        textAlign: TextAlign.end,
+                        style: GoogleFonts.kanit(
+                          fontSize: 11,
+                          color: Colors.grey,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.amount,
+                        style: GoogleFonts.kanit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: item.isIncome
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFEF4444),
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
-              Text('+฿450.00', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, color: const Color(0xFF10B981), fontSize: 16)),
-            ],
-          ),
+            );
+          },
         ),
       ],
+    );
+  }
+
+  Widget _buildWalletFilterChip(String label) {
+    final isSelected = _selectedWalletFilter == label;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedWalletFilter = label;
+        });
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1C7FF6) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFF1C7FF6),
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.kanit(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.white : const Color(0xFF1C7FF6),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1011,4 +1143,14 @@ class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
       ),
     );
   }
+}
+
+class _WalletTxItem {
+  final String title;
+  final String date;
+  final String time;
+  final String amount;
+  final bool isIncome;
+
+  const _WalletTxItem(this.title, this.date, this.time, this.amount, this.isIncome);
 }
