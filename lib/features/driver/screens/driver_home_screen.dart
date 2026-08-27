@@ -181,23 +181,27 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       key: _scaffoldKey,
       drawer: const DriverDrawer(),
       backgroundColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // Driver Top Header Bar (1:1 identical pattern to HomeHeader)
-            DriverHeader(
-              onMenuPressed: () {
-                _scaffoldKey.currentState?.openDrawer();
-              },
-              onClockOutPressed: () => _confirmClockOut(context),
-            ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Driver Top Header Bar (1:1 identical pattern to HomeHeader)
+              DriverHeader(
+                onMenuPressed: () {
+                  _scaffoldKey.currentState?.openDrawer();
+                },
+                onClockOutPressed: () => _confirmClockOut(context),
+              ),
 
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: _buildTabBody(_currentIndex, user, isDarkMode, bgBtnColor, textColor, ordersState, shiftStatus),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: _buildTabBody(_currentIndex, user, isDarkMode, bgBtnColor, textColor, ordersState, shiftStatus),
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: DriverBottomNavigation(
