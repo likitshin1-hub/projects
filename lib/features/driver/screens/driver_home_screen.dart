@@ -26,6 +26,56 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   int _currentIndex = 2; // 2: เริ่มงาน / Main Rider Screen
   AdminOrderModel? _activeJob;
 
+  void _openOrderMatchingSheet(BuildContext context) {
+    ref.read(driverShiftProvider.notifier).resumeWork();
+
+    final orders = ref.read(adminOrdersProvider).value ?? [];
+    final pendingOrders = orders.where((o) => o.status == AdminOrderStatus.pending).toList();
+
+    final matchedOrder = pendingOrders.isNotEmpty
+        ? pendingOrders.first
+        : AdminOrderModel(
+            orderNo: 'TB-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+            customerName: 'คุณณิชาภัทร (ผู้ใช้ใกล้คุณ)',
+            customerPhone: '081-998-7766',
+            driverName: 'ยังไม่มีคนขับ',
+            driverPhone: '-',
+            vehicleType: 'รถกระบะทึบ 4 ล้อ',
+            pickupAddress: 'อาคารสาทรซิตี้ทาวเวอร์ ถนนสาทรใต้ กรุงเทพฯ (1.2 กม.)',
+            dropoffAddress: 'คอนโดแอชตัน อโศก ถนนสุขุมวิท 21 กรุงเทพฯ',
+            amount: 450.00,
+            status: AdminOrderStatus.pending,
+            pickupLat: 13.722,
+            pickupLng: 100.530,
+            dropoffLat: 13.738,
+            dropoffLng: 100.560,
+            currentDriverLat: 13.725,
+            currentDriverLng: 100.533,
+            createdAt: DateTime.now(),
+          );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _DriverOrderMatchingModal(
+        order: matchedOrder,
+        onAccept: (order) {
+          _acceptJob(order);
+        },
+        onTakeBreak: () {
+          ref.read(driverShiftProvider.notifier).takeBreak();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('☕ สลับสถานะเป็น "พักงานชั่วคราว"', style: GoogleFonts.kanit()),
+              backgroundColor: const Color(0xFFF59E0B),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _acceptJob(AdminOrderModel order) {
     setState(() {
       _activeJob = order.copyWith(
@@ -201,6 +251,71 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   ),
 
                   const SizedBox(height: 24),
+
+                  // Break Time / Standby Banner (Default on clock-in)
+                  if (shiftStatus == DriverShiftStatus.breakTime && _activeJob == null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFEF3C7),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.pause_circle_filled_rounded, color: Color(0xFFD97706), size: 24),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('☕ คุณอยู่ในสถานะ "พักงาน" (Standby)',
+                                        style: GoogleFonts.kanit(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFFD97706))),
+                                    Text('พร้อมเริ่มงานเมื่อไหร่ ให้กดปุ่มเริ่มงานด้านล่างเพื่อสแกนจับคู่ออร์เดอร์',
+                                        style: GoogleFonts.kanit(fontSize: 12, color: isDarkMode ? Colors.white70 : const Color(0xFF78350F))),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _openOrderMatchingSheet(context),
+                              icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                              label: Text('🛵 กดที่นี่เพื่อเริ่มงาน & สแกนจับคู่ออร์เดอร์', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1E3A8A),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
                   // Active Delivery Progress Bar (If Driver has accepted a job)
                   if (_activeJob != null) ...[
@@ -437,7 +552,211 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           setState(() {
             _currentIndex = index;
           });
+          if (index == 2) {
+            _openOrderMatchingSheet(context);
+          }
         },
+      ),
+    );
+  }
+}
+
+class _DriverOrderMatchingModal extends StatefulWidget {
+  final AdminOrderModel order;
+  final ValueChanged<AdminOrderModel> onAccept;
+  final VoidCallback onTakeBreak;
+
+  const _DriverOrderMatchingModal({
+    required this.order,
+    required this.onAccept,
+    required this.onTakeBreak,
+  });
+
+  @override
+  State<_DriverOrderMatchingModal> createState() => _DriverOrderMatchingModalState();
+}
+
+class _DriverOrderMatchingModalState extends State<_DriverOrderMatchingModal>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _radarController;
+
+  @override
+  void initState() {
+    super.initState();
+    _radarController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _radarController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F172A),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
+        ),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Animated Radar Pulse Icon
+          RotationTransition(
+            turns: _radarController,
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const RadialGradient(
+                  colors: [Color(0xFF3B82F6), Color(0xFF1E3A8A)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.5),
+                    blurRadius: 20,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.radar_rounded,
+                color: Colors.white,
+                size: 36,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            '🎯 สแกนจับคู่งานจากผู้ใช้ใกล้คุณสำเร็จ!',
+            style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            'พบคำสั่งซื้อเรียลไทม์ห่างจากตำแหน่งคุณเพียง 1.2 กม.',
+            style: GoogleFonts.kanit(fontSize: 13, color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+
+          // Matched Order Details Box
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF3B82F6), width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E3A8A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'คำสั่งซื้อ #${widget.order.orderNo}',
+                        style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Text(
+                      '฿${widget.order.amount.toStringAsFixed(2)}',
+                      style: GoogleFonts.kanit(color: const Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const Divider(height: 20, color: Colors.white12),
+                Text('👤 ลูกค้า: ${widget.order.customerName} (${widget.order.customerPhone})',
+                    style: GoogleFonts.kanit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+                Text('🚚 รถ: ${widget.order.vehicleType}', style: GoogleFonts.kanit(color: Colors.white70, fontSize: 12)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.greenAccent, size: 18),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text('จุดรับ: ${widget.order.pickupAddress}',
+                          style: GoogleFonts.kanit(color: Colors.white, fontSize: 13)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.flag, color: Colors.redAccent, size: 18),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text('จุดส่ง: ${widget.order.dropoffAddress}',
+                          style: GoogleFonts.kanit(color: Colors.white, fontSize: 13)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onTakeBreak,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFF59E0B),
+                    side: const BorderSide(color: Color(0xFFF59E0B)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: Text('☕ พักงาน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    widget.onAccept(widget.order);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: Text('✅ ตอบรับงานนี้', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
       ),
     );
   }

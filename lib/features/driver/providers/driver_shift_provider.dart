@@ -10,11 +10,11 @@ enum DriverShiftStatus {
 class DriverShiftNotifier extends Notifier<DriverShiftStatus> {
   @override
   DriverShiftStatus build() {
-    return DriverShiftStatus.working;
+    return DriverShiftStatus.breakTime;
   }
 
   void clockIn() {
-    state = DriverShiftStatus.working;
+    state = DriverShiftStatus.breakTime;
     ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.driver);
   }
 
