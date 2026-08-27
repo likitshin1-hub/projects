@@ -6,11 +6,13 @@ import '../../core/providers/theme_provider.dart';
 
 class DriverHeader extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
+  final VoidCallback? onNotificationPressed;
   final VoidCallback? onClockOutPressed;
 
   const DriverHeader({
     super.key,
     this.onMenuPressed,
+    this.onNotificationPressed,
     this.onClockOutPressed,
   });
 
@@ -25,7 +27,7 @@ class DriverHeader extends ConsumerWidget {
         16,
         statusBarHeight + 8,
         16,
-        28,
+        32,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -36,20 +38,24 @@ class DriverHeader extends ConsumerWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x660F172A),
+            color: Color(0x4D0F192C),
             blurRadius: 16,
             offset: Offset(0, 8),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // =========================
+          // MENU & NOTIFICATION ROW (1:1 with HomeHeader)
+          // =========================
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -68,50 +74,95 @@ class DriverHeader extends ConsumerWidget {
               ),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.25)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.circle, color: Color(0xFF38BDF8), size: 10),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Rider Mode',
-                          style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: onNotificationPressed,
+                        child: const Icon(
+                          Icons.notifications_none_rounded,
+                          color: Colors.white,
+                          size: 26,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                   if (onClockOutPressed != null) ...[
-                    const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      onPressed: onClockOutPressed,
-                      icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 14),
-                      label: Text('ออกงาน', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEF4444),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.power_settings_new_rounded,
+                        color: Color(0xFFEF4444),
+                        size: 24,
                       ),
+                      onPressed: onClockOutPressed,
+                      tooltip: 'ออกงาน',
                     ),
                   ],
                 ],
               ),
             ],
           ),
+
           const SizedBox(height: 12),
+
+          // =========================
+          // GREETING (1:1 with HomeHeader)
+          // =========================
           Text(
-            'TBMoveHub Driver Panel',
-            style: GoogleFonts.kanit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+            'สวัสดีครับ พาร์ทเนอร์ไรเดอร์!',
+            style: GoogleFonts.kanit(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w400,
+            ),
           ),
+
+          const SizedBox(height: 3),
+
+          // =========================
+          // LOGO / APP NAME (1:1 with HomeHeader)
+          // =========================
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  'TB MOVE HUB RIDER',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.kanit(
+                    fontSize: 26,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    height: 1.1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.two_wheeler_rounded,
+                color: Color(0xFF38BDF8),
+                size: 28,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          // =========================
+          // SUBTITLE (1:1 with HomeHeader)
+          // =========================
           Text(
-            'ระบบงานคนขับ / ผู้ให้บริการขนส่งสินค้า',
-            style: GoogleFonts.kanit(fontSize: 13, color: Colors.white.withOpacity(0.85)),
+            'ระบบพาร์ทเนอร์คนขับ / ขนส่งสินค้าอย่างมืออาชีพ',
+            style: GoogleFonts.kanit(
+              fontSize: 13,
+              color: Colors.white.withOpacity(0.85),
+              fontWeight: FontWeight.w300,
+              height: 1.3,
+            ),
           ),
         ],
       ),
