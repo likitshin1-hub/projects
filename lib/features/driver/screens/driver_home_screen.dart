@@ -129,35 +129,64 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       key: _scaffoldKey,
       drawer: const DriverDrawer(),
       backgroundColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-      appBar: AppBar(
-        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFF047857),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white, size: 28),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('TBMoveHub Driver Panel', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-            Text('คนขับ/ผู้ให้บริการขนส่ง', style: GoogleFonts.kanit(fontSize: 11, color: Colors.white70)),
-          ],
-        ),
-        actions: [
-          ElevatedButton.icon(
-            onPressed: () => _confirmClockOut(context),
-            icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 16),
-            label: Text('ออกงาน', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Driver Top Header Bar (Matching HomeScreen pattern)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFF047857),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33047857),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
+                      onPressed: () {
+                        _scaffoldKey.currentState?.openDrawer();
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TBMoveHub Driver Panel',
+                            style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          Text(
+                            'คนขับ/ผู้ให้บริการขนส่ง',
+                            style: GoogleFonts.kanit(fontSize: 11, color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _confirmClockOut(context),
+                      icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 16),
+                      label: Text('ออกงาน', style: GoogleFonts.kanit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF4444),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // Driver Shift Status Manager Banner (🟢 เข้างาน | ☕ พักงาน | 🔴 ออกงาน)
             Container(
               width: double.infinity,
@@ -637,6 +666,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
