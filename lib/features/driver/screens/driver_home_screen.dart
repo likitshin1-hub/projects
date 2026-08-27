@@ -14,6 +14,7 @@ import '../providers/driver_shift_provider.dart';
 import '../../../shared/widgets/driver_drawer.dart';
 import '../../../shared/widgets/driver_header.dart';
 import '../../../shared/widgets/driver_bottom_navigation.dart';
+import '../../home/widgets/location_selector.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
@@ -25,6 +26,7 @@ class DriverHomeScreen extends ConsumerStatefulWidget {
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 2; // 2: เริ่มงาน / Main Rider Screen
+  String _selectedLocation = 'ชลบุรี';
   AdminOrderModel? _activeJob;
 
   void _openOrderMatchingSheet(BuildContext context) {
@@ -196,11 +198,27 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 onMenuPressed: () {
                   _scaffoldKey.currentState?.openDrawer();
                 },
-                onClockOutPressed: () => _confirmClockOut(context),
+              ),
+
+              // Service Location / Province Selector Bar (All 77 Provinces)
+              Transform.translate(
+                offset: const Offset(0, -28),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: LocationSelector(
+                    initialLocation: _selectedLocation,
+                    onLocationChanged: (value) {
+                      if (!mounted) return;
+                      setState(() {
+                        _selectedLocation = value;
+                      });
+                    },
+                  ),
+                ),
               ),
 
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: _buildTabBody(_currentIndex, user, isDarkMode, bgBtnColor, textColor, ordersState, shiftStatus),
               ),
             ],
