@@ -140,20 +140,22 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   void _confirmClockOut(BuildContext context) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      useRootNavigator: true,
+      builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('🔴 ยืนยันการออกงาน (Clock Out)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
         content: Text('คุณต้องการออกจากระบบงานคนขับและสลับกลับเป็นผู้ใช้ทั่วไปหรือไม่?', style: GoogleFonts.kanit()),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => Navigator.of(dialogCtx).pop(),
             child: Text('ยกเลิก', style: GoogleFonts.kanit(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () {
               ref.read(driverShiftProvider.notifier).clockOut();
               ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.customer);
-              context.go(AppRoutes.home);
+              Navigator.of(dialogCtx).pop();
+              GoRouter.of(dialogCtx).go(AppRoutes.home);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
@@ -212,12 +214,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             _currentIndex = index;
           });
           if (index == 2) {
-            if (shiftStatus == DriverShiftStatus.working) {
-              _confirmClockOut(context);
-            } else {
-              ref.read(driverShiftProvider.notifier).resumeWork();
-              _openOrderMatchingSheet(context);
-            }
+            _openOrderMatchingSheet(context);
           }
         },
       ),
