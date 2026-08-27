@@ -194,29 +194,32 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Driver Top Header Bar (1:1 identical pattern to HomeHeader)
-              DriverHeader(
-                onMenuPressed: () {
-                  _scaffoldKey.currentState?.openDrawer();
-                },
-              ),
-
-              // Service Location / Province Selector Bar (All 77 Provinces)
-              Transform.translate(
-                offset: const Offset(0, -28),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: LocationSelector(
-                    initialLocation: _selectedLocation,
-                    onLocationChanged: (value) {
-                      if (!mounted) return;
-                      setState(() {
-                        _selectedLocation = value;
-                      });
-                    },
+              // Top Header Bar: Full DriverHeader + LocationSelector for Main Tab (2), Compact SubHeader for Other Tabs
+              if (_currentIndex == 2) ...[
+                DriverHeader(
+                  onMenuPressed: () {
+                    _scaffoldKey.currentState?.openDrawer();
+                  },
+                ),
+                Transform.translate(
+                  offset: const Offset(0, -28),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: LocationSelector(
+                      initialLocation: _selectedLocation,
+                      onLocationChanged: (value) {
+                        if (!mounted) return;
+                        setState(() {
+                          _selectedLocation = value;
+                        });
+                      },
+                    ),
                   ),
                 ),
-              ),
+              ] else ...[
+                _buildSubHeader(context, _currentIndex),
+                const SizedBox(height: 20),
+              ],
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -236,6 +239,113 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             _openOrderMatchingSheet(context);
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildSubHeader(BuildContext context, int index) {
+    String title = '';
+    switch (index) {
+      case 0:
+        title = 'กระเป๋าเงิน';
+        break;
+      case 1:
+        title = 'ประวัติการจัดส่ง';
+        break;
+      case 3:
+        title = 'แชท';
+        break;
+      case 4:
+        title = 'โปรไฟล์';
+        break;
+      default:
+        title = 'พาร์ทเนอร์ไรเดอร์';
+    }
+
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: topPadding + 8,
+        left: 16,
+        right: 16,
+        bottom: 24,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1E3A8A),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: () {
+              _scaffoldKey.currentState?.openDrawer();
+            },
+            icon: const Icon(
+              Icons.menu_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+          Text(
+            title,
+            style: GoogleFonts.kanit(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('🔔 คุณมีการแจ้งเตือนใหม่ 3 รายการ', style: GoogleFonts.kanit()),
+                      backgroundColor: const Color(0xFF1E3A8A),
+                    ),
+                  );
+                },
+                icon: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFEF4444),
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Text(
+                    '3',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.kanit(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
