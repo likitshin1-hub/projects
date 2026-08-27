@@ -10,6 +10,7 @@ import '../../auth/providers/user_role_provider.dart';
 import '../../admin/providers/admin_provider.dart';
 import '../../admin/models/admin_models.dart';
 import '../providers/driver_shift_provider.dart';
+import '../../../shared/widgets/driver_drawer.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
@@ -19,6 +20,7 @@ class DriverHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final String _activeTab = 'jobs'; // 'jobs', 'earnings', 'profile'
   AdminOrderModel? _activeJob;
 
@@ -124,11 +126,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: const DriverDrawer(),
       backgroundColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
       appBar: AppBar(
-        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFF1C7FF6),
+        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFF047857),
         elevation: 0,
-        leading: const Icon(Icons.two_wheeler_rounded, color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
