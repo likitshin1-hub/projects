@@ -14,6 +14,7 @@ class DriverDrawer extends ConsumerWidget {
   void _showWalletModal(BuildContext context, bool isDarkMode) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
@@ -157,6 +158,7 @@ class DriverDrawer extends ConsumerWidget {
     final amountController = TextEditingController(text: '1250');
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Padding(
@@ -291,6 +293,7 @@ class DriverDrawer extends ConsumerWidget {
   void _confirmClockOut(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
+      useRootNavigator: true,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('🔴 ยืนยันการออกงาน (Clock Out)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
@@ -455,13 +458,9 @@ class DriverDrawer extends ConsumerWidget {
                   iconColor: const Color(0xFF10B981),
                   iconBgColor: isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
                   textColor: textColor,
-                  onTap: () async {
-                    final scaffoldContext = Scaffold.of(context).context;
+                  onTap: () {
                     Navigator.pop(context);
-                    await Future.delayed(const Duration(milliseconds: 200));
-                    if (scaffoldContext.mounted) {
-                      _showWalletModal(scaffoldContext, isDarkMode);
-                    }
+                    _showWalletModal(context, isDarkMode);
                   },
                 ),
 
@@ -472,13 +471,9 @@ class DriverDrawer extends ConsumerWidget {
                   iconColor: const Color(0xFF3B82F6),
                   iconBgColor: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFDBEAFE),
                   textColor: textColor,
-                  onTap: () async {
-                    final scaffoldContext = Scaffold.of(context).context;
+                  onTap: () {
                     Navigator.pop(context);
-                    await Future.delayed(const Duration(milliseconds: 200));
-                    if (scaffoldContext.mounted) {
-                      _showWithdrawModal(scaffoldContext, isDarkMode);
-                    }
+                    _showWithdrawModal(context, isDarkMode);
                   },
                 ),
 
@@ -546,13 +541,9 @@ class DriverDrawer extends ConsumerWidget {
                   iconColor: const Color(0xFFEF4444),
                   iconBgColor: isDarkMode ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
                   textColor: const Color(0xFFEF4444),
-                  onTap: () async {
-                    final scaffoldContext = Scaffold.of(context).context;
+                  onTap: () {
                     Navigator.pop(context);
-                    await Future.delayed(const Duration(milliseconds: 200));
-                    if (scaffoldContext.mounted) {
-                      _confirmClockOut(scaffoldContext, ref);
-                    }
+                    _confirmClockOut(context, ref);
                   },
                 ),
               ],
