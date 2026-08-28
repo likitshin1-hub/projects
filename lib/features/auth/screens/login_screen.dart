@@ -25,7 +25,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController(text: '12345678');
   bool _obscurePassword = true;
 
-  void _onDriverTestLogin() {
+  void _onDriverLogin() {
     ref.read(authProvider.notifier).login(
           email: 'driver.test@tbmovehub.com',
           password: 'password123',
@@ -387,26 +387,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              Center(
-                                child: TextButton(
-                                  onPressed: isLoading
-                                      ? null
-                                      : () {
-                                          _usernameController.text = 'test@example.com';
-                                          _passwordController.text = 'password123';
-                                          _onLogin();
-                                        },
-                                  child: Text(
-                                    'เข้าสู่ระบบด่วน (ทดสอบระบบ)',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF0284C7),
-                                    ),
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -481,7 +461,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Quick Driver System Test Button
+                    // Quick Driver Login Button
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -498,10 +478,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                       ),
                       child: ElevatedButton.icon(
-                        onPressed: isLoading ? null : _onDriverTestLogin,
+                        onPressed: isLoading ? null : _onDriverLogin,
                         icon: const Icon(Icons.two_wheeler_rounded, color: Colors.white, size: 22),
                         label: Text(
-                          '⚡ เข้าทดสอบระบบฝั่งคนขับ (Driver Test Mode)',
+                          '⚡ เข้าสู่ระบบสำหรับไรเดอร์',
                           style: GoogleFonts.kanit(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
