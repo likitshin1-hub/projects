@@ -96,11 +96,21 @@ class TrackingListScreen extends ConsumerWidget {
                 // Top bar Row
                 Row(
                   children: [
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
-                      onPressed: () => onMenuPressed?.call(),
+                    Builder(
+                      builder: (btnContext) => IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                        icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 28),
+                        onPressed: () {
+                          if (onMenuPressed != null) {
+                            onMenuPressed!.call();
+                          } else {
+                            try {
+                              Scaffold.of(btnContext).openDrawer();
+                            } catch (_) {}
+                          }
+                        },
+                      ),
                     ),
                     Expanded(
                       child: Text(

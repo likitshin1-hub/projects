@@ -8,6 +8,13 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../rewards/providers/rewards_provider.dart';
 
+enum CouponSortOption {
+  latest,
+  highestDiscount,
+  lowestMinSpend,
+  expiringSoon,
+}
+
 class ClaimCouponsScreen extends ConsumerStatefulWidget {
   const ClaimCouponsScreen({super.key});
 
@@ -17,7 +24,8 @@ class ClaimCouponsScreen extends ConsumerStatefulWidget {
 
 class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
   int _selectedCategoryIndex = 0; // 0: ทั้งหมด, 1: คูปองส่วนลด, 2: คูปองส่งฟรี, 3: คูปองพิเศษ
-  late final Set<int> _claimedIndices = <int>{}; // Start empty so coupons can be claimed
+  CouponSortOption _selectedSortOption = CouponSortOption.latest;
+  late final Set<int> _claimedCouponIds = <int>{}; // Start empty so coupons can be claimed
 
   final List<IconData> _categoryIcons = [
     Icons.local_activity_rounded,
@@ -267,21 +275,85 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                         color: textColor,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          isEn ? 'Sort by Latest' : 'เรียงตาม ล่าสุด',
-                          style: GoogleFonts.kanit(
-                            fontSize: 12,
-                            color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
-                          ),
+                    PopupMenuButton<CouponSortOption>(
+                      initialValue: _selectedSortOption,
+                      onSelected: (CouponSortOption option) {
+                        setState(() {
+                          _selectedSortOption = option;
+                        });
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                         ),
-                        Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          size: 16,
-                          color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
+                      ),
+                      color: cardBg,
+                      elevation: 8,
+                      offset: const Offset(0, 32),
+                      itemBuilder: (BuildContext context) => [
+                        _buildSortMenuItem(
+                          option: CouponSortOption.latest,
+                          title: isEn ? 'Latest' : 'ล่าสุด',
+                          icon: Icons.schedule_rounded,
+                          isSelected: _selectedSortOption == CouponSortOption.latest,
+                          textColor: textColor,
+                          isDarkMode: isDarkMode,
+                        ),
+                        _buildSortMenuItem(
+                          option: CouponSortOption.highestDiscount,
+                          title: isEn ? 'Highest Discount' : 'ส่วนลดสูงสุด',
+                          icon: Icons.trending_up_rounded,
+                          isSelected: _selectedSortOption == CouponSortOption.highestDiscount,
+                          textColor: textColor,
+                          isDarkMode: isDarkMode,
+                        ),
+                        _buildSortMenuItem(
+                          option: CouponSortOption.lowestMinSpend,
+                          title: isEn ? 'Lowest Min. Spend' : 'ขั้นต่ำน้อยสุด',
+                          icon: Icons.monetization_on_outlined,
+                          isSelected: _selectedSortOption == CouponSortOption.lowestMinSpend,
+                          textColor: textColor,
+                          isDarkMode: isDarkMode,
+                        ),
+                        _buildSortMenuItem(
+                          option: CouponSortOption.expiringSoon,
+                          title: isEn ? 'Expiring Soon' : 'ใกล้หมดอายุ',
+                          icon: Icons.alarm_rounded,
+                          isSelected: _selectedSortOption == CouponSortOption.expiringSoon,
+                          textColor: textColor,
+                          isDarkMode: isDarkMode,
                         ),
                       ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${isEn ? 'Sort by' : 'เรียงตาม'} ${_getSortOptionLabel(_selectedSortOption, isEn)}',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF1C7FF6),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 18,
+                              color: Color(0xFF1C7FF6),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -299,15 +371,71 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
     );
   }
 
+  String _getSortOptionLabel(CouponSortOption option, bool isEn) {
+    switch (option) {
+      case CouponSortOption.latest:
+        return isEn ? 'Latest' : 'ล่าสุด';
+      case CouponSortOption.highestDiscount:
+        return isEn ? 'Highest Discount' : 'ส่วนลดสูงสุด';
+      case CouponSortOption.lowestMinSpend:
+        return isEn ? 'Lowest Min. Spend' : 'ขั้นต่ำน้อยสุด';
+      case CouponSortOption.expiringSoon:
+        return isEn ? 'Expiring Soon' : 'ใกล้หมดอายุ';
+    }
+  }
+
+  PopupMenuItem<CouponSortOption> _buildSortMenuItem({
+    required CouponSortOption option,
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required Color textColor,
+    required bool isDarkMode,
+  }) {
+    return PopupMenuItem<CouponSortOption>(
+      value: option,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected ? const Color(0xFF1C7FF6) : (isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.kanit(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? const Color(0xFF1C7FF6) : textColor,
+              ),
+            ),
+          ),
+          if (isSelected)
+            const Icon(
+              Icons.check_rounded,
+              size: 16,
+              color: Color(0xFF1C7FF6),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCouponList(bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
-    // Generate filtered list
+    // Generate all coupons list with detailed attributes for sorting
     final allCoupons = [
       _ClaimCouponData(
+        id: 1,
         amount: isEn ? '50' : '50',
+        numericAmount: 50,
         minSpend: isEn ? 'Min. 300 THB' : 'ขั้นต่ำ 300 บาท',
+        minSpendAmount: 300,
         title: isEn ? '50 THB Discount' : 'ส่วนลด 50 บาท',
         desc: isEn ? 'Valid for all delivery types' : 'ใช้ได้กับบริการขนส่งทุกประเภท',
-        expiry: isEn ? 'Expires 31 Aug 2025' : 'หมดอายุ 31 ส.ค. 2568',
+        expiry: isEn ? 'Expires 31 Aug 2026' : 'หมดอายุ 31 ส.ค. 2569',
+        expiryDate: DateTime(2026, 8, 31),
         badge: isEn ? 'Discount' : 'คูปองส่วนลด',
         categoryIndex: 1, // คูปองส่วนลด
         leftColor: const Color(0xFF1C7FF6),
@@ -317,11 +445,15 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
         illustrationIcon: Icons.local_shipping_outlined,
       ),
       _ClaimCouponData(
+        id: 2,
         amount: isEn ? '20' : '20',
+        numericAmount: 20,
         minSpend: isEn ? 'Min. 150 THB' : 'ขั้นต่ำ 150 บาท',
+        minSpendAmount: 150,
         title: isEn ? '20 THB Discount' : 'ส่วนลด 20 บาท',
         desc: isEn ? 'Valid for all delivery types' : 'ใช้ได้กับบริการขนส่งทุกประเภท',
-        expiry: isEn ? 'Expires 15 Aug 2025' : 'หมดอายุ 15 ส.ค. 2568',
+        expiry: isEn ? 'Expires 15 Sep 2026' : 'หมดอายุ 15 ก.ย. 2569',
+        expiryDate: DateTime(2026, 9, 15),
         badge: isEn ? 'Discount' : 'คูปองส่วนลด',
         categoryIndex: 1, // คูปองส่วนลด
         leftColor: const Color(0xFF22C55E),
@@ -331,11 +463,15 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
         illustrationIcon: Icons.motorcycle_rounded,
       ),
       _ClaimCouponData(
+        id: 3,
         amount: isEn ? 'Free' : 'ฟรี',
+        numericAmount: 40,
         minSpend: isEn ? 'No minimum' : 'ไม่มีขั้นต่ำ',
+        minSpendAmount: 0,
         title: isEn ? 'Free Shipping Nationwide' : 'ส่งฟรีทั่วไทย',
         desc: isEn ? 'Max shipping discount 40 THB' : 'รับส่วนลดค่าส่งสูงสุด 40 บาท',
-        expiry: isEn ? 'Expires 10 Aug 2025' : 'หมดอายุ 10 ส.ค. 2568',
+        expiry: isEn ? 'Expires 10 Sep 2026' : 'หมดอายุ 10 ก.ย. 2569',
+        expiryDate: DateTime(2026, 9, 10),
         badge: isEn ? 'Free Shipping' : 'คูปองส่งฟรี',
         categoryIndex: 2, // คูปองส่งฟรี
         leftColor: const Color(0xFF8B5CF6),
@@ -346,11 +482,15 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
         isFreeShip: true,
       ),
       _ClaimCouponData(
+        id: 4,
         amount: isEn ? '30' : '30',
+        numericAmount: 30,
         minSpend: isEn ? 'Min. 250 THB' : 'ขั้นต่ำ 250 บาท',
+        minSpendAmount: 250,
         title: isEn ? '30 THB Discount' : 'ส่วนลด 30 บาท',
         desc: isEn ? 'New customers only' : 'สำหรับลูกค้าใหม่เท่านั้น',
-        expiry: isEn ? 'Expires 5 Aug 2025' : 'หมดอายุ 5 ส.ค. 2568',
+        expiry: isEn ? 'Expires 5 Sep 2026' : 'หมดอายุ 5 ก.ย. 2569',
+        expiryDate: DateTime(2026, 9, 5),
         badge: isEn ? 'Special Coupon' : 'คูปองพิเศษ',
         categoryIndex: 3, // คูปองพิเศษ
         leftColor: const Color(0xFFF97316),
@@ -360,11 +500,15 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
         illustrationIcon: Icons.card_giftcard_rounded,
       ),
       _ClaimCouponData(
+        id: 5,
         amount: isEn ? '15' : '15',
+        numericAmount: 15,
         minSpend: isEn ? 'Min. 100 THB' : 'ขั้นต่ำ 100 บาท',
+        minSpendAmount: 100,
         title: isEn ? '15 THB Discount' : 'ส่วนลด 15 บาท',
         desc: isEn ? 'Valid for all delivery types' : 'ใช้ได้กับบริการขนส่งทุกประเภท',
-        expiry: isEn ? 'Expired 1 Aug 2025' : 'หมดอายุ 1 ส.ค. 2568',
+        expiry: isEn ? 'Expired 1 Aug 2026' : 'หมดอายุ 1 ส.ค. 2569',
+        expiryDate: DateTime(2026, 8, 1),
         badge: isEn ? 'Discount' : 'คูปองส่วนลด',
         categoryIndex: 1, // คูปองส่วนลด
         leftColor: Colors.grey.shade400,
@@ -381,7 +525,24 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
         ? allCoupons
         : allCoupons.where((c) => c.categoryIndex == _selectedCategoryIndex).toList();
 
-    if (filtered.isEmpty) {
+    // Sort based on selected sort option
+    final List<_ClaimCouponData> sortedCoupons = List.from(filtered);
+    switch (_selectedSortOption) {
+      case CouponSortOption.latest:
+        sortedCoupons.sort((a, b) => a.id.compareTo(b.id));
+        break;
+      case CouponSortOption.highestDiscount:
+        sortedCoupons.sort((a, b) => b.numericAmount.compareTo(a.numericAmount));
+        break;
+      case CouponSortOption.lowestMinSpend:
+        sortedCoupons.sort((a, b) => a.minSpendAmount.compareTo(b.minSpendAmount));
+        break;
+      case CouponSortOption.expiringSoon:
+        sortedCoupons.sort((a, b) => a.expiryDate.compareTo(b.expiryDate));
+        break;
+    }
+
+    if (sortedCoupons.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 40),
@@ -409,19 +570,19 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: filtered.length,
+      itemCount: sortedCoupons.length,
       itemBuilder: (context, index) {
-        final coupon = filtered[index];
-        final isClaimed = _claimedIndices.contains(index);
+        final coupon = sortedCoupons[index];
+        final isClaimed = _claimedCouponIds.contains(coupon.id);
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: _buildClaimCard(coupon, index, isClaimed, isEn, isDarkMode, cardBg, textColor),
+          child: _buildClaimCard(coupon, coupon.id, isClaimed, isEn, isDarkMode, cardBg, textColor),
         );
       },
     );
   }
 
-  Widget _buildClaimCard(_ClaimCouponData coupon, int itemIndex, bool isClaimed, bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
+  Widget _buildClaimCard(_ClaimCouponData coupon, int couponId, bool isClaimed, bool isEn, bool isDarkMode, Color cardBg, Color textColor) {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
@@ -656,13 +817,13 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                             onPressed: () {
                               if (!isClaimed) {
                                 setState(() {
-                                  _claimedIndices.add(itemIndex);
+                                  _claimedCouponIds.add(couponId);
                                 });
 
                                 // Add to global state so it appears in CouponsScreen
                                 ref.read(rewardsProvider).addUserCoupon(
                                   UserCoupon(
-                                    id: 'claimed_${coupon.title}_$itemIndex',
+                                    id: 'claimed_${coupon.title}_$couponId',
                                     discountText: coupon.amount,
                                     unitText: coupon.isFreeShip ? (isEn ? 'Free' : 'ส่งฟรี') : (isEn ? 'THB' : 'บาท'),
                                     badgeText: coupon.badge,
@@ -697,8 +858,9 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
                                     ),
                                   ),
                                 );
+                              } else {
+                                context.push(AppRoutes.coupons);
                               }
-                              context.push(AppRoutes.coupons);
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isClaimed ? const Color(0xFF0284C7) : const Color(0xFF00B774),
@@ -732,11 +894,15 @@ class _ClaimCouponsScreenState extends ConsumerState<ClaimCouponsScreen> {
 }
 
 class _ClaimCouponData {
+  final int id;
   final String amount;
+  final double numericAmount;
   final String minSpend;
+  final double minSpendAmount;
   final String title;
   final String desc;
   final String expiry;
+  final DateTime expiryDate;
   final String badge;
   final int categoryIndex;
   final Color leftColor;
@@ -748,11 +914,15 @@ class _ClaimCouponData {
   final bool isExpired;
 
   _ClaimCouponData({
+    required this.id,
     required this.amount,
+    required this.numericAmount,
     required this.minSpend,
+    required this.minSpendAmount,
     required this.title,
     required this.desc,
     required this.expiry,
+    required this.expiryDate,
     required this.badge,
     required this.categoryIndex,
     required this.leftColor,

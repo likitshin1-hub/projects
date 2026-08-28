@@ -711,7 +711,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     switch (_currentIndex) {
       case 0:
-        activeBody = const TrackingListScreen();
+        activeBody = TrackingListScreen(
+          onMenuPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+        );
         break;
 
       case 1:
