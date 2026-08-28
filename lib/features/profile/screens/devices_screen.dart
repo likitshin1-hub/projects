@@ -58,134 +58,123 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // ==========================================
-            // APP STANDARD CURVED BLUE APPBAR
-            // ==========================================
-            ClipPath(
-              clipper: DevicesHeaderClipper(),
-              child: Container(
-                width: double.infinity,
-                height: 155 + statusBarHeight,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF1C7FF6),
-                      Color(0xFF0056C6),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 0),
-                child: Stack(
+      body: Column(
+        children: [
+          // ==========================================
+          // APP STANDARD BLUE HEADER (RESPONSIVE ALIGNED)
+          // ==========================================
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF1C7FF6),
+                  Color(0xFF0056C6),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+            ),
+            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 10, 16, 20),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Subtle background watermark icons
-                    Positioned(
-                      right: 40,
-                      bottom: 0,
-                      child: Opacity(
-                        opacity: 0.15,
-                        child: const Icon(
-                          Icons.shield_rounded,
-                          size: 95,
+                    // Back button with dark translucent circle
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.16),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
                           color: Colors.white,
+                          size: 17,
                         ),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go(AppRoutes.security);
+                          }
+                        },
                       ),
                     ),
 
-                    // Top Header Content Row
+                    // Center Title & Subtitle
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            isEn ? 'Security' : 'ความปลอดภัย',
+                            style: GoogleFonts.kanit(
+                              fontSize: 21,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            isEn ? 'Care & protect your account' : 'ดูแลและปกป้องบัญชีของคุณ',
+                            style: GoogleFonts.kanit(
+                              fontSize: 12.5,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Logo & Shield on Top Right
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Back button with dark translucent circle
                         Container(
+                          width: 38,
+                          height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.15),
+                            color: Colors.white.withValues(alpha: 0.18),
                             shape: BoxShape.circle,
                           ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                            onPressed: () {
-                              if (context.canPop()) {
-                                context.pop();
-                              } else {
-                                context.go(AppRoutes.security);
-                              }
-                            },
+                          child: const Icon(
+                            Icons.lock_outline_rounded,
+                            color: Colors.white,
+                            size: 20,
                           ),
                         ),
-
-                        // Center Title & Subtitle
+                        const SizedBox(width: 8),
                         Column(
                           mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isEn ? 'Security' : 'ความปลอดภัย',
+                              'TB',
                               style: GoogleFonts.kanit(
-                                fontSize: 20,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
                                 color: Colors.white,
+                                height: 0.9,
+                              ),
+                            ),
+                            Text(
+                              'MOVE HUB',
+                              style: GoogleFonts.kanit(
+                                fontSize: 7.5,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white70,
+                                letterSpacing: 0.8,
                               ),
-                            ),
-                            Text(
-                              isEn ? 'Care & protect your account' : 'ดูแลและปกป้องบัญชีของคุณ',
-                              style: GoogleFonts.kanit(
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // Logo & Shield on Top Right
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.18),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.lock_outline_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'TB',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    height: 0.9,
-                                  ),
-                                ),
-                                Text(
-                                  'MOVE HUB',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 7.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white70,
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),
@@ -195,29 +184,31 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                 ),
               ),
             ),
+          ),
 
-            // ==========================================
-            // CONTENT OVERLAPPING THE APPBAR (ROCK SOLID)
-            // ==========================================
-            Transform.translate(
-              offset: const Offset(0, -32),
+          // ==========================================
+          // SCROLLABLE CONTENT BODY (PROPORTIONALLY BALANCED)
+          // ==========================================
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 620),
+                  constraints: const BoxConstraints(maxWidth: 680),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(18, 20, 18, 40),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // 1. 2FA TOGGLE HERO BANNER CARD
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: isDarkMode
                                   ? [
-                                      const Color(0xFF1E3A8A).withValues(alpha: 0.6),
+                                      const Color(0xFF1E3A8A).withValues(alpha: 0.65),
                                       const Color(0xFF1E293B),
                                     ]
                                   : [
@@ -227,17 +218,17 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(22),
                             border: Border.all(
                               color: isDarkMode
-                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.35)
                                   : const Color(0xFFBFDBFE),
                               width: 1.2,
                             ),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFF1C7FF6).withValues(alpha: isDarkMode ? 0.2 : 0.08),
-                                blurRadius: 12,
+                                blurRadius: 14,
                                 offset: const Offset(0, 4),
                               ),
                             ],
@@ -245,23 +236,30 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                           child: Row(
                             children: [
                               Container(
-                                width: 44,
-                                height: 44,
+                                width: 48,
+                                height: 48,
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
                                     colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
-                                  borderRadius: BorderRadius.circular(13),
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF1C7FF6).withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
                                 ),
                                 child: const Icon(
                                   Icons.lock_rounded,
                                   color: Colors.white,
-                                  size: 22,
+                                  size: 24,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 16),
 
                               Expanded(
                                 child: Column(
@@ -270,18 +268,18 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                     Text(
                                       isEn ? '2-Step Verification (2FA)' : 'การยืนยันตัวตน 2 ขั้นตอน (2FA)',
                                       style: GoogleFonts.kanit(
-                                        fontSize: 15,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                    const SizedBox(height: 3),
                                     Text(
                                       isEn
                                           ? 'Enhanced protection with 2-step verification'
                                           : 'เพิ่มความปลอดภัยให้บัญชี ด้วยการยืนยันตัวตน 2 ชั้น',
                                       style: GoogleFonts.kanit(
-                                        fontSize: 11.5,
+                                        fontSize: 12,
                                         color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                                       ),
                                     ),
@@ -311,7 +309,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                     children: [
                                       Icon(
                                         _is2FAEnabled ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                                        size: 12,
+                                        size: 13,
                                         color: _is2FAEnabled ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
                                       ),
                                       const SizedBox(width: 4),
@@ -320,7 +318,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                             ? (isEn ? 'Active' : 'เปิดใช้งานอยู่')
                                             : (isEn ? 'Disabled' : 'ปิดใช้งาน'),
                                         style: GoogleFonts.kanit(
-                                          fontSize: 10.5,
+                                          fontSize: 11,
                                           fontWeight: FontWeight.bold,
                                           color: _is2FAEnabled ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
                                         ),
@@ -332,25 +330,25 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
 
                         // 2. SECTION TITLE & INFO BUTTON
                         Row(
                           children: [
                             Container(
-                              width: 40,
-                              height: 40,
+                              width: 42,
+                              height: 42,
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(13),
                               ),
                               child: const Icon(
                                 Icons.phone_android_rounded,
                                 color: Color(0xFF1C7FF6),
-                                size: 22,
+                                size: 23,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 14),
 
                             Expanded(
                               child: Column(
@@ -359,7 +357,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                   Text(
                                     isEn ? 'Logged-in Devices' : 'อุปกรณ์ที่เข้าสู่ระบบ',
                                     style: GoogleFonts.kanit(
-                                      fontSize: 16,
+                                      fontSize: 16.5,
                                       fontWeight: FontWeight.bold,
                                       color: textColor,
                                     ),
@@ -369,7 +367,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                         ? 'Check and manage devices accessing your account'
                                         : 'ตรวจสอบและจัดการอุปกรณ์ที่ใช้เข้าสู่ระบบบัญชีของคุณ',
                                     style: GoogleFonts.kanit(
-                                      fontSize: 11.5,
+                                      fontSize: 12,
                                       color: subTextColor,
                                     ),
                                   ),
@@ -393,7 +391,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(22),
                             border: Border.all(
                               color: const Color(0xFF1C7FF6),
                               width: 1.5,
@@ -401,8 +399,8 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFF1C7FF6).withValues(alpha: 0.12),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
@@ -411,12 +409,12 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                             children: [
                               // Top Active Badge Tab
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                                 decoration: const BoxDecoration(
                                   color: Color(0xFF1C7FF6),
                                   borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(18),
-                                    bottomRight: Radius.circular(14),
+                                    topLeft: Radius.circular(20),
+                                    bottomRight: Radius.circular(16),
                                   ),
                                 ),
                                 child: Row(
@@ -427,7 +425,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                     Text(
                                       isEn ? 'Currently Active Device' : 'อุปกรณ์ที่กำลังใช้งาน',
                                       style: GoogleFonts.kanit(
-                                        fontSize: 11,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
@@ -438,23 +436,23 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
                               // Device details row
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                                padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
                                 child: Row(
                                   children: [
                                     Container(
-                                      width: 44,
-                                      height: 44,
+                                      width: 46,
+                                      height: 46,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFE8F2FE),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(13),
                                       ),
                                       child: const Icon(
                                         Icons.phone_iphone_rounded,
                                         color: Color(0xFF1C7FF6),
-                                        size: 24,
+                                        size: 25,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: 14),
 
                                     Expanded(
                                       child: Column(
@@ -463,12 +461,12 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                           Text(
                                             isEn ? 'iPhone 14 Pro (This Device)' : 'iPhone 14 Pro',
                                             style: GoogleFonts.kanit(
-                                              fontSize: 15,
+                                              fontSize: 15.5,
                                               fontWeight: FontWeight.bold,
                                               color: textColor,
                                             ),
                                           ),
-                                          const SizedBox(height: 2),
+                                          const SizedBox(height: 3),
                                           Row(
                                             children: [
                                               Container(
@@ -494,7 +492,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                     ),
 
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFE0F2FE),
                                         borderRadius: BorderRadius.circular(10),
@@ -503,7 +501,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                       child: Text(
                                         isEn ? 'Online' : 'ออนไลน์',
                                         style: GoogleFonts.kanit(
-                                          fontSize: 11,
+                                          fontSize: 11.5,
                                           fontWeight: FontWeight.bold,
                                           color: const Color(0xFF0284C7),
                                         ),
@@ -515,7 +513,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
 
                         // 4. OTHER LOGGED-IN DEVICES SECTION
                         Row(
@@ -523,20 +521,20 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                             const Icon(
                               Icons.devices_other_rounded,
                               color: Color(0xFF1C7FF6),
-                              size: 20,
+                              size: 21,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               isEn ? 'Other Logged-in Devices' : 'อุปกรณ์อื่นที่เข้าสู่ระบบ',
                               style: GoogleFonts.kanit(
-                                fontSize: 15,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
                               ),
                             ),
                             const Spacer(),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE8F2FE),
                                 borderRadius: BorderRadius.circular(10),
@@ -544,7 +542,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                               child: Text(
                                 isEn ? '${_otherDevices.length} Devices' : '${_otherDevices.length} เครื่อง',
                                 style: GoogleFonts.kanit(
-                                  fontSize: 11,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFF1C7FF6),
                                 ),
@@ -552,15 +550,15 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
 
                         // OTHER DEVICES LIST
                         if (_otherDevices.isEmpty)
                           Container(
-                            padding: const EdgeInsets.all(20),
+                            padding: const EdgeInsets.all(22),
                             decoration: BoxDecoration(
                               color: cardBg,
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: borderColor),
                             ),
                             alignment: Alignment.center,
@@ -571,7 +569,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                           )
                         else
                           ..._otherDevices.map((device) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.only(bottom: 12),
                                 child: _buildOtherDeviceCard(
                                   device: device,
                                   isEn: isEn,
@@ -583,17 +581,17 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                 ),
                               )),
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
 
                         // 5. SIGN OUT ALL DEVICES BANNER (ออกจากระบบทุกอุปกรณ์)
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: isDarkMode
                                 ? const Color(0xFF7F1D1D).withValues(alpha: 0.25)
                                 : const Color(0xFFFEF2F2),
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: const Color(0xFFFCA5A5),
                               width: 1.2,
@@ -602,149 +600,150 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                           child: Row(
                             children: [
                               Container(
-                                width: 40,
-                                height: 40,
+                                width: 44,
+                                height: 44,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFEF4444).withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
-                              child: const Icon(
-                                Icons.delete_outline_rounded,
-                                color: Color(0xFFEF4444),
-                                size: 22,
+                                child: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Color(0xFFEF4444),
+                                  size: 23,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
+                              const SizedBox(width: 14),
 
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isEn ? 'Sign Out All Devices' : 'ออกจากระบบทุกอุปกรณ์',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFFEF4444),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      isEn
+                                          ? 'If you suspect unauthorized access, click to sign out all other devices.'
+                                          : 'หากคุณสงสัยว่า มีบุคคลอื่นเข้าถึงบัญชีของคุณ ให้กดปุ่มนี้เพื่อออกจากระบบจากอุปกรณ์ทั้งหมด ยกเว้นอุปกรณ์ที่ใช้งานอยู่',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 11.5,
+                                        color: isDarkMode ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D),
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFEF4444),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                onPressed: _otherDevices.isEmpty
+                                    ? null
+                                    : () => _confirmSignOutAll(context, isEn),
+                                icon: const Icon(Icons.logout_rounded, size: 15),
+                                label: Text(
+                                  isEn ? 'Sign Out All' : 'ออกจากระบบ\nทุกอุปกรณ์',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.15,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // 6. TIPS & RECOMMENDATIONS BOX (คำแนะนำ)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
+                                : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: isDarkMode
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                                  : const Color(0xFFDBEAFE),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  Text(
-                                    isEn ? 'Sign Out All Devices' : 'ออกจากระบบทุกอุปกรณ์',
-                                    style: GoogleFonts.kanit(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFFEF4444),
+                                  Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF1C7FF6),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.info_rounded,
+                                      color: Colors.white,
+                                      size: 17,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(width: 10),
                                   Text(
-                                    isEn
-                                        ? 'If you suspect unauthorized access, click to sign out all other devices.'
-                                        : 'หากคุณสงสัยว่า มีบุคคลอื่นเข้าถึงบัญชีของคุณ ให้กดปุ่มนี้เพื่อออกจากระบบจากอุปกรณ์ทั้งหมด ยกเว้นอุปกรณ์ที่ใช้งานอยู่',
+                                    isEn ? 'Security Recommendations' : 'คำแนะนำ',
                                     style: GoogleFonts.kanit(
-                                      fontSize: 11,
-                                      color: isDarkMode ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D),
-                                      height: 1.25,
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF1C7FF6),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(width: 8),
+                              const SizedBox(height: 12),
 
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFEF4444),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 0,
+                              _buildTipItem(
+                                isEn
+                                    ? 'If you notice an unfamiliar device, tap "Sign Out" immediately to protect your account.'
+                                    : 'หากคุณพบอุปกรณ์ที่ไม่รู้จัก ให้กด “ออกจากระบบ” เพื่อปกป้องบัญชีของคุณ',
+                                isDarkMode,
                               ),
-                              onPressed: _otherDevices.isEmpty
-                                  ? null
-                                  : () => _confirmSignOutAll(context, isEn),
-                              icon: const Icon(Icons.logout_rounded, size: 15),
-                              label: Text(
-                                isEn ? 'Sign Out All' : 'ออกจากระบบ\nทุกอุปกรณ์',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.kanit(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.1,
-                                ),
+                              const SizedBox(height: 8),
+                              _buildTipItem(
+                                isEn
+                                    ? 'Enable 2-Factor Authentication (2FA) for heightened security.'
+                                    : 'ควรเปิดใช้งานการยืนยันตัวตน 2 ขั้นตอน (2FA) เพื่อเพิ่มความปลอดภัย',
+                                isDarkMode,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // 6. TIPS & RECOMMENDATIONS BOX (คำแนะนำ)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isDarkMode
-                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
-                              : const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDarkMode
-                                ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
-                                : const Color(0xFFDBEAFE),
-                            width: 1.2,
+                              const SizedBox(height: 8),
+                              _buildTipItem(
+                                isEn
+                                    ? 'You will be notified immediately if any device change or new login is detected.'
+                                    : 'หากมีการเปลี่ยนแปลงอุปกรณ์หรือเข้าสู่ระบบจากที่อื่น คุณจะได้รับการแจ้งเตือนทันที',
+                                isDarkMode,
+                              ),
+                            ],
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF1C7FF6),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.info_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  isEn ? 'Security Recommendations' : 'คำแนะนำ',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF1C7FF6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-
-                            _buildTipItem(
-                              isEn
-                                  ? 'If you notice an unfamiliar device, tap "Sign Out" immediately to protect your account.'
-                                  : 'หากคุณพบอุปกรณ์ที่ไม่รู้จัก ให้กด “ออกจากระบบ” เพื่อปกป้องบัญชีของคุณ',
-                              isDarkMode,
-                            ),
-                            const SizedBox(height: 6),
-                            _buildTipItem(
-                              isEn
-                                  ? 'Enable 2-Factor Authentication (2FA) for heightened security.'
-                                  : 'ควรเปิดใช้งานการยืนยันตัวตน 2 ขั้นตอน (2FA) เพื่อเพิ่มความปลอดภัย',
-                              isDarkMode,
-                            ),
-                            const SizedBox(height: 6),
-                            _buildTipItem(
-                              isEn
-                                  ? 'You will be notified immediately if any device change or new login is detected.'
-                                  : 'หากมีการเปลี่ยนแปลงอุปกรณ์หรือเข้าสู่ระบบจากที่อื่น คุณจะได้รับการแจ้งเตือนทันที',
-                              isDarkMode,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -752,9 +751,8 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ==========================================
   // HELPER WIDGETS
@@ -770,10 +768,10 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     required Color subTextColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
@@ -786,19 +784,19 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
               color: const Color(0xFFE8F2FE),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(13),
             ),
             child: Icon(
               device.icon,
               color: const Color(0xFF1C7FF6),
-              size: 24,
+              size: 25,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
 
           Expanded(
             child: InkWell(
@@ -812,7 +810,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         child: Text(
                           device.title,
                           style: GoogleFonts.kanit(
-                            fontSize: 14.5,
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: textColor,
                           ),
@@ -828,15 +826,15 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Row(
                     children: [
-                      Icon(Icons.access_time_rounded, size: 12, color: subTextColor),
+                      Icon(Icons.access_time_rounded, size: 13, color: subTextColor),
                       const SizedBox(width: 4),
                       Text(
                         isEn ? '${device.locationEn} • ${device.timeAgoEn}' : '${device.location} • ${device.timeAgo}',
                         style: GoogleFonts.kanit(
-                          fontSize: 11.5,
+                          fontSize: 12,
                           color: subTextColor,
                         ),
                       ),
@@ -851,7 +849,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF1C7FF6),
               side: const BorderSide(color: Color(0xFF1C7FF6)),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -873,7 +871,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 4),
+          padding: const EdgeInsets.only(top: 5),
           child: Container(
             width: 5,
             height: 5,
@@ -888,7 +886,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
           child: Text(
             text,
             style: GoogleFonts.kanit(
-              fontSize: 12,
+              fontSize: 12.5,
               color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF475569),
               height: 1.35,
             ),
@@ -1135,24 +1133,4 @@ class _DeviceInfo {
     required this.ipAddress,
     required this.browser,
   });
-}
-
-class DevicesHeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 30);
-    path.quadraticBezierTo(
-      size.width * 0.5,
-      size.height + 15,
-      size.width,
-      size.height - 30,
-    );
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

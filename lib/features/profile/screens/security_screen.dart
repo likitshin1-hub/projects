@@ -37,504 +37,483 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // ==========================================
-            // APP STANDARD CURVED BLUE APPBAR
-            // ==========================================
-            ClipPath(
-              clipper: SecurityHeaderClipper(),
-              child: Container(
-                width: double.infinity,
-                height: 155 + statusBarHeight,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF1C7FF6),
-                      Color(0xFF0056C6),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                padding: EdgeInsets.fromLTRB(16, statusBarHeight + 8, 16, 0),
-                child: Stack(
-                  children: [
-                    // Subtle background watermark icons
-                    Positioned(
-                      right: -10,
-                      bottom: 0,
-                      child: Opacity(
-                        opacity: 0.15,
-                        child: const Icon(
-                          Icons.shield_rounded,
-                          size: 105,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 75,
-                      bottom: 35,
-                      child: Opacity(
-                        opacity: 0.1,
-                        child: const Icon(
-                          Icons.verified_user_rounded,
-                          size: 45,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-
-                    // Top Header Content Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Back button with dark translucent circle
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                            onPressed: () {
-                              if (context.canPop()) {
-                                context.pop();
-                              } else {
-                                context.go(AppRoutes.settings);
-                              }
-                            },
-                          ),
-                        ),
-
-                        // Center Title & Subtitle
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              isEn ? 'Security' : 'ความปลอดภัย',
-                              style: GoogleFonts.kanit(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              isEn ? 'Account & Protection' : 'การปกป้องบัญชีและข้อมูลของคุณ',
-                              style: GoogleFonts.kanit(
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // Notification Bell
-                        GestureDetector(
-                          onTap: () => context.push(AppRoutes.notification),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.notifications_none_rounded,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                                if (unreadNotifs > 0)
-                                  Positioned(
-                                    top: 8,
-                                    right: 9,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFFF3B30),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+      body: Column(
+        children: [
+          // ==========================================
+          // APP STANDARD BLUE HEADER (RESPONSIVE ALIGNED)
+          // ==========================================
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF1C7FF6),
+                  Color(0xFF0056C6),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
               ),
             ),
-
-            // ==========================================
-            // RESPONSIVE CENTERED SCROLLABLE CONTENT
-            // ==========================================
-            Transform.translate(
-              offset: const Offset(0, -32),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 620),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // 1. HERO BANNER CARD (ความปลอดภัย)
+            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 10, 16, 20),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Back button with dark translucent circle
                     Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(18),
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isDarkMode
-                              ? [
-                                  const Color(0xFF1E3A8A).withValues(alpha: 0.6),
-                                  const Color(0xFF1E293B),
-                                ]
-                              : [
-                                  const Color(0xFFE8F3FF),
-                                  const Color(0xFFD9ECFE),
-                                ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                          color: isDarkMode
-                              ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
-                              : const Color(0xFFBFDBFE),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1C7FF6).withValues(alpha: isDarkMode ? 0.2 : 0.08),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        color: Colors.black.withValues(alpha: 0.16),
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
-                        children: [
-                          // Lock Shield Icon Box
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF1C7FF6).withValues(alpha: 0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.lock_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-
-                          // Text Content
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isEn ? 'Security Protection' : 'ความปลอดภัย',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  isEn
-                                      ? 'Protect your account and personal data'
-                                      : 'ปกป้องบัญชีและข้อมูลของคุณให้ปลอดภัยยิ่งขึ้น',
-                                  style: GoogleFonts.kanit(
-                                    fontSize: 12,
-                                    color: isDarkMode
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF475569),
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Glowing Checkmark Shield Illustration
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF38BDF8), Color(0xFF0284C7)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF0284C7).withValues(alpha: 0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.check_rounded,
-                              color: Colors.white,
-                              size: 26,
-                            ),
-                          ),
-                        ],
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 17,
+                        ),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go(AppRoutes.settings);
+                          }
+                        },
                       ),
                     ),
-                    const SizedBox(height: 16),
 
-                    // 2. MAIN SECURITY SETTINGS GROUP CARD
-                    Container(
-                      decoration: BoxDecoration(
-                        color: cardBg,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                          color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: isDarkMode ? 0.25 : 0.04),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
+                    // Center Title & Subtitle
+                    Expanded(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Item 1: การยืนยันตัวตน
-                          _buildSettingRow(
-                            icon: Icons.phonelink_lock_rounded,
-                            iconBgColor: const Color(0xFFE8F2FE),
-                            iconColor: const Color(0xFF1C7FF6),
-                            title: isEn ? 'Identity Verification' : 'การยืนยันตัวตน',
-                            badgeText: isEn ? '✦ Recommended ✦' : '✦ แนะนำ ✦',
-                            subtitle: isEn
-                                ? 'Verify with OTP & enable 2-step verification'
-                                : 'ยืนยันตัวตนด้วย OTP และเปิดใช้งาน 2 ขั้นตอน',
-                            textColor: textColor,
-                            subTextColor: subTextColor,
-                            isDarkMode: isDarkMode,
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Switch.adaptive(
-                                  value: _is2FAEnabled,
-                                  activeThumbColor: const Color(0xFF1C7FF6),
-                                  onChanged: (val) {
-                                    setState(() {
-                                      _is2FAEnabled = val;
-                                    });
-                                    _showToast(
-                                      val
-                                          ? (isEn ? '2-Step Verification enabled' : 'เปิดใช้งานการยืนยันตัวตน 2 ขั้นตอนแล้ว')
-                                          : (isEn ? '2-Step Verification disabled' : 'ปิดใช้งานการยืนยันตัวตน 2 ขั้นตอนแล้ว'),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: Color(0xFF1C7FF6),
-                                  size: 22,
-                                ),
-                              ],
+                          Text(
+                            isEn ? 'Security' : 'ความปลอดภัย',
+                            style: GoogleFonts.kanit(
+                              fontSize: 21,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.2,
                             ),
-                            onTap: () => _show2FAModal(context, isEn, isDarkMode),
                           ),
-
-                          Divider(height: 1, indent: 68, endIndent: 16, color: dividerColor),
-
-                          // Item 2: อุปกรณ์ที่เข้าสู่ระบบ
-                          _buildSettingRow(
-                            icon: Icons.devices_rounded,
-                            iconBgColor: const Color(0xFFE8F2FE),
-                            iconColor: const Color(0xFF1C7FF6),
-                            title: isEn ? 'Logged-in Devices' : 'อุปกรณ์ที่เข้าสู่ระบบ',
-                            subtitle: isEn
-                                ? 'Manage devices you are currently using'
-                                : 'จัดการอุปกรณ์ที่คุณใช้งานอยู่',
-                            textColor: textColor,
-                            subTextColor: subTextColor,
-                            isDarkMode: isDarkMode,
-                            trailing: const Icon(
-                              Icons.chevron_right_rounded,
-                              color: Color(0xFF1C7FF6),
-                              size: 22,
+                          const SizedBox(height: 2),
+                          Text(
+                            isEn ? 'Account & Protection' : 'การปกป้องบัญชีและข้อมูลของคุณ',
+                            style: GoogleFonts.kanit(
+                              fontSize: 12.5,
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
-                            onTap: () => context.push(AppRoutes.devices),
-                          ),
-
-                          Divider(height: 1, indent: 68, endIndent: 16, color: dividerColor),
-
-                          // Item 3: ประวัติการเข้าสู่ระบบ
-                          _buildSettingRow(
-                            icon: Icons.access_time_rounded,
-                            iconBgColor: const Color(0xFFE8F2FE),
-                            iconColor: const Color(0xFF1C7FF6),
-                            title: isEn ? 'Login History' : 'ประวัติการเข้าสู่ระบบ',
-                            subtitle: isEn
-                                ? 'Check account login activity & sessions'
-                                : 'ตรวจสอบกิจกรรมการเข้าสู่ระบบบัญชี',
-                            textColor: textColor,
-                            subTextColor: subTextColor,
-                            isDarkMode: isDarkMode,
-                            trailing: const Icon(
-                              Icons.chevron_right_rounded,
-                              color: Color(0xFF1C7FF6),
-                              size: 22,
-                            ),
-                            onTap: () => _showLoginHistoryModal(context, isEn, isDarkMode),
-                          ),
-
-                          Divider(height: 1, indent: 68, endIndent: 16, color: dividerColor),
-
-                          // Item 4: ความเป็นส่วนตัว
-                          _buildSettingRow(
-                            icon: Icons.admin_panel_settings_rounded,
-                            iconBgColor: const Color(0xFFE8F2FE),
-                            iconColor: const Color(0xFF1C7FF6),
-                            title: isEn ? 'Privacy' : 'ความเป็นส่วนตัว',
-                            subtitle: isEn
-                                ? 'Manage personal data & permissions'
-                                : 'จัดการข้อมูลส่วนตัวและสิทธิ์การเข้าถึง',
-                            textColor: textColor,
-                            subTextColor: subTextColor,
-                            isDarkMode: isDarkMode,
-                            trailing: const Icon(
-                              Icons.chevron_right_rounded,
-                              color: Color(0xFF1C7FF6),
-                              size: 22,
-                            ),
-                            onTap: () {
-                              context.push(AppRoutes.legal, extra: {'isPrivacy': true});
-                            },
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
 
-                    // 3. BOTTOM TIP BANNER (ดูแลความปลอดภัยให้มากขึ้น)
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: isDarkMode
-                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                            : const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isDarkMode
-                              ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
-                              : const Color(0xFFDBEAFE),
-                          width: 1.2,
+                    // Notification Bell
+                    GestureDetector(
+                      onTap: () => context.push(AppRoutes.notification),
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.16),
+                          shape: BoxShape.circle,
                         ),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _show2FAModal(context, isEn, isDarkMode),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            const Icon(
+                              Icons.notifications_none_rounded,
+                              color: Colors.white,
+                              size: 23,
+                            ),
+                            if (unreadNotifs > 0)
+                              Positioned(
+                                top: 9,
+                                right: 10,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFF1C7FF6),
+                                    color: Color(0xFFFF3B30),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
-                                    Icons.info_rounded,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
                                 ),
-                                const SizedBox(width: 12),
-
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        isEn ? 'Enhance Your Security' : 'ดูแลความปลอดภัยให้มากขึ้น',
-                                        style: GoogleFonts.kanit(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF1C7FF6),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        isEn
-                                            ? 'Enable 2-Factor Authentication (2FA) for extra protection.'
-                                            : 'เปิดใช้งานการยืนยันตัวตน 2 ขั้นตอน (2FA) เพื่อเพิ่มความปลอดภัยให้กับบัญชีของคุณ',
-                                        style: GoogleFonts.kanit(
-                                          fontSize: 11.5,
-                                          color: isDarkMode
-                                              ? const Color(0xFF94A3B8)
-                                              : const Color(0xFF475569),
-                                          height: 1.3,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                const Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: Color(0xFF1C7FF6),
-                                  size: 22,
-                                ),
-                              ],
-                            ),
-                          ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  ),
-);
-}
+
+          // ==========================================
+          // SCROLLABLE CONTENT BODY (PROPORTIONALLY BALANCED)
+          // ==========================================
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 680),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 20, 18, 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 1. HERO BANNER CARD (ความปลอดภัย)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isDarkMode
+                                  ? [
+                                      const Color(0xFF1E3A8A).withValues(alpha: 0.65),
+                                      const Color(0xFF1E293B),
+                                    ]
+                                  : [
+                                      const Color(0xFFE6F2FF),
+                                      const Color(0xFFD6EAFC),
+                                    ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: isDarkMode
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.35)
+                                  : const Color(0xFFBFDBFE),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF1C7FF6).withValues(alpha: isDarkMode ? 0.2 : 0.08),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              // Lock Icon Box
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF1C7FF6), Color(0xFF0056C6)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF1C7FF6).withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.lock_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+
+                              // Text Content
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isEn ? 'Security Protection' : 'ความปลอดภัย',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      isEn
+                                          ? 'Protect your account and personal data'
+                                          : 'ปกป้องบัญชีและข้อมูลของคุณให้ปลอดภัยยิ่งขึ้น',
+                                      style: GoogleFonts.kanit(
+                                        fontSize: 12.5,
+                                        color: isDarkMode
+                                            ? const Color(0xFF94A3B8)
+                                            : const Color(0xFF475569),
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Checkmark Shield Box
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF38BDF8), Color(0xFF0284C7)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.check_rounded,
+                                  color: Colors.white,
+                                  size: 26,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // 2. MAIN SECURITY SETTINGS GROUP CARD
+                        Container(
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: isDarkMode ? 0.25 : 0.04),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              // Item 1: การยืนยันตัวตน
+                              _buildSettingRow(
+                                icon: Icons.phonelink_lock_rounded,
+                                iconBgColor: const Color(0xFFE8F2FE),
+                                iconColor: const Color(0xFF1C7FF6),
+                                title: isEn ? 'Identity Verification' : 'การยืนยันตัวตน',
+                                badgeText: isEn ? '✦ Recommended ✦' : '✦ แนะนำ ✦',
+                                subtitle: isEn
+                                    ? 'Verify with OTP & enable 2-step verification'
+                                    : 'ยืนยันตัวตนด้วย OTP และเปิดใช้งาน 2 ขั้นตอน',
+                                textColor: textColor,
+                                subTextColor: subTextColor,
+                                isDarkMode: isDarkMode,
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Switch.adaptive(
+                                      value: _is2FAEnabled,
+                                      activeThumbColor: const Color(0xFF1C7FF6),
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _is2FAEnabled = val;
+                                        });
+                                        _showToast(
+                                          val
+                                              ? (isEn ? '2-Step Verification enabled' : 'เปิดใช้งานการยืนยันตัวตน 2 ขั้นตอนแล้ว')
+                                              : (isEn ? '2-Step Verification disabled' : 'ปิดใช้งานการยืนยันตัวตน 2 ขั้นตอนแล้ว'),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: Color(0xFF1C7FF6),
+                                      size: 22,
+                                    ),
+                                  ],
+                                ),
+                                onTap: () => _show2FAModal(context, isEn, isDarkMode),
+                              ),
+
+                              Divider(height: 1, indent: 72, endIndent: 18, color: dividerColor),
+
+                              // Item 2: อุปกรณ์ที่เข้าสู่ระบบ
+                              _buildSettingRow(
+                                icon: Icons.devices_rounded,
+                                iconBgColor: const Color(0xFFE8F2FE),
+                                iconColor: const Color(0xFF1C7FF6),
+                                title: isEn ? 'Logged-in Devices' : 'อุปกรณ์ที่เข้าสู่ระบบ',
+                                subtitle: isEn
+                                    ? 'Manage devices you are currently using'
+                                    : 'จัดการอุปกรณ์ที่คุณใช้งานอยู่',
+                                textColor: textColor,
+                                subTextColor: subTextColor,
+                                isDarkMode: isDarkMode,
+                                trailing: const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: Color(0xFF1C7FF6),
+                                  size: 22,
+                                ),
+                                onTap: () => context.push(AppRoutes.devices),
+                              ),
+
+                              Divider(height: 1, indent: 72, endIndent: 18, color: dividerColor),
+
+                              // Item 3: ประวัติการเข้าสู่ระบบ
+                              _buildSettingRow(
+                                icon: Icons.access_time_rounded,
+                                iconBgColor: const Color(0xFFE8F2FE),
+                                iconColor: const Color(0xFF1C7FF6),
+                                title: isEn ? 'Login History' : 'ประวัติการเข้าสู่ระบบ',
+                                subtitle: isEn
+                                    ? 'Check account login activity & sessions'
+                                    : 'ตรวจสอบกิจกรรมการเข้าสู่ระบบบัญชี',
+                                textColor: textColor,
+                                subTextColor: subTextColor,
+                                isDarkMode: isDarkMode,
+                                trailing: const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: Color(0xFF1C7FF6),
+                                  size: 22,
+                                ),
+                                onTap: () => _showLoginHistoryModal(context, isEn, isDarkMode),
+                              ),
+
+                              Divider(height: 1, indent: 72, endIndent: 18, color: dividerColor),
+
+                              // Item 4: ความเป็นส่วนตัว
+                              _buildSettingRow(
+                                icon: Icons.admin_panel_settings_rounded,
+                                iconBgColor: const Color(0xFFE8F2FE),
+                                iconColor: const Color(0xFF1C7FF6),
+                                title: isEn ? 'Privacy' : 'ความเป็นส่วนตัว',
+                                subtitle: isEn
+                                    ? 'Manage personal data & permissions'
+                                    : 'จัดการข้อมูลส่วนตัวและสิทธิ์การเข้าถึง',
+                                textColor: textColor,
+                                subTextColor: subTextColor,
+                                isDarkMode: isDarkMode,
+                                trailing: const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: Color(0xFF1C7FF6),
+                                  size: 22,
+                                ),
+                                onTap: () {
+                                  context.push(AppRoutes.legal, extra: {'isPrivacy': true});
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // 3. BOTTOM TIP BANNER (ดูแลความปลอดภัยให้มากขึ้น)
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isDarkMode
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                                  : const Color(0xFFDBEAFE),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _show2FAModal(context, isEn, isDarkMode),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF1C7FF6),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.info_rounded,
+                                        color: Colors.white,
+                                        size: 22,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            isEn ? 'Enhance Your Security' : 'ดูแลความปลอดภัยให้มากขึ้น',
+                                            style: GoogleFonts.kanit(
+                                              fontSize: 14.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF1C7FF6),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            isEn
+                                                ? 'Enable 2-Factor Authentication (2FA) for extra protection.'
+                                                : 'เปิดใช้งานการยืนยันตัวตน 2 ขั้นตอน (2FA) เพื่อเพิ่มความปลอดภัยให้กับบัญชีของคุณ',
+                                            style: GoogleFonts.kanit(
+                                              fontSize: 12,
+                                              color: isDarkMode
+                                                  ? const Color(0xFF94A3B8)
+                                                  : const Color(0xFF475569),
+                                              height: 1.35,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    const Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: Color(0xFF1C7FF6),
+                                      size: 22,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // ==========================================
   // HELPER: SETTING ROW BUILDER
@@ -558,7 +537,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             children: [
               // Icon box
@@ -590,8 +569,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                           child: Text(
                             title,
                             style: GoogleFonts.kanit(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w600,
                               color: textColor,
                             ),
                             maxLines: 1,
@@ -620,11 +599,11 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       subtitle,
                       style: GoogleFonts.kanit(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         color: subTextColor,
                         height: 1.25,
                       ),
@@ -848,24 +827,4 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
       ),
     );
   }
-}
-
-class SecurityHeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 30);
-    path.quadraticBezierTo(
-      size.width * 0.5,
-      size.height + 15,
-      size.width,
-      size.height - 30,
-    );
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
