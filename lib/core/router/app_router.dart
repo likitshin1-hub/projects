@@ -38,6 +38,8 @@ import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/settings_screen.dart';
 import '../../features/profile/screens/change_password_screen.dart';
+import '../../features/profile/screens/security_screen.dart';
+import '../../features/profile/screens/devices_screen.dart';
 import '../../features/profile/screens/legal_content_screen.dart';
 
 // Coupons & Rewards
@@ -214,6 +216,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.changePassword,
       builder: (context, state) => const ChangePasswordScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.security,
+      builder: (context, state) => const SecurityScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.devices,
+      builder: (context, state) => const DevicesScreen(),
     ),
     GoRoute(
       path: AppRoutes.legal,

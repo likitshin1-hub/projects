@@ -285,6 +285,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           },
                         ),
                         Divider(height: 1, indent: 48, color: dividerColor),
+                        // Safety Center (ความปลอดภัย)
+                        _buildNavigationRow(
+                          icon: Icons.security_rounded,
+                          iconColor: const Color(0xFF10B981),
+                          title: t('safety_center'),
+                          primaryTextColor: primaryTextColor,
+                          onTap: () {
+                            context.push(AppRoutes.security);
+                          },
+                        ),
+                        Divider(height: 1, indent: 48, color: dividerColor),
                         // Privacy Policy
                         _buildNavigationRow(
                           icon: Icons.policy_rounded,
@@ -310,7 +321,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         // Help Center
                         _buildNavigationRow(
                           icon: Icons.help_outline_rounded,
-                          iconColor: const Color(0xFF10B981),
+                          iconColor: const Color(0xFF0284C7),
                           title: t('help_center'),
                           primaryTextColor: primaryTextColor,
                           onTap: () {
