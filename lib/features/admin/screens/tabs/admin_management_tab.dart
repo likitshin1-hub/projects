@@ -112,13 +112,12 @@ class _AdminManagementTabState extends ConsumerState<AdminManagementTab> {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณากรอกข้อมูลให้ครบถ้วน', style: GoogleFonts.kanit()), backgroundColor: Colors.orange));
                               return;
                             }
+                            final messenger = ScaffoldMessenger.of(context);
                             await ref.read(adminUsersProvider.notifier).addAdmin(nameCtrl.text.trim(), emailCtrl.text.trim(), selectedRole);
                             if (ctx.mounted) Navigator.pop(ctx);
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('✅ เพิ่มผู้ดูแลระบบใหม่เรียบร้อยแล้ว', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF10B981)),
-                              );
-                            }
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('✅ เพิ่มผู้ดูแลระบบใหม่เรียบร้อยแล้ว', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF10B981)),
+                            );
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1C7FF6), foregroundColor: Colors.white),
                           child: Text('เพิ่ม Admin', style: GoogleFonts.kanit()),
@@ -218,13 +217,12 @@ class _AdminManagementTabState extends ConsumerState<AdminManagementTab> {
                         const SizedBox(width: 12),
                         ElevatedButton(
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
                             await ref.read(adminUsersProvider.notifier).updateAdmin(admin.id, nameCtrl.text.trim(), emailCtrl.text.trim(), selectedRole);
                             if (ctx.mounted) Navigator.pop(ctx);
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('✅ อัปเดตข้อมูลและสิทธิ์เรียบร้อยแล้ว', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF10B981)),
-                              );
-                            }
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('✅ อัปเดตข้อมูลและสิทธิ์เรียบร้อยแล้ว', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF10B981)),
+                            );
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1C7FF6), foregroundColor: Colors.white),
                           child: Text('บันทึกการแก้ไข', style: GoogleFonts.kanit()),

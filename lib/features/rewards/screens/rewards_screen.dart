@@ -2,14 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_routes.dart';
-import '../../../core/constants/app_translations.dart';
-import '../../../core/providers/language_provider.dart';
 import '../../../core/providers/theme_provider.dart';
-import '../providers/rewards_provider.dart';
-
-enum _RewardLevelStatus { claimed, canClaim, inProgress }
 
 class RewardsScreen extends ConsumerStatefulWidget {
   const RewardsScreen({super.key});
@@ -19,44 +13,77 @@ class RewardsScreen extends ConsumerStatefulWidget {
 }
 
 class _RewardsScreenState extends ConsumerState<RewardsScreen> {
-  void _claimRewardMilestone(int times, int discount) {
-    ref.read(rewardsProvider).claimReward(1); // mark milestone claimed in provider if applicable
-
-    // Add corresponding coupon into global User Coupons store
-    ref.read(rewardsProvider).addUserCoupon(
-      UserCoupon(
-        id: 'reward_milestone_${times}_$discount',
-        discountText: '$discount',
-        unitText: 'บาท',
-        badgeText: 'คูปองรางวัล',
-        title: 'ส่วนลด $discount บาท',
-        subtitle: 'ใช้บริการครบ $times ครั้ง',
-        expiryText: 'หมดอายุ 31 ธ.ค. 2569',
-        badgeBgColor: const Color(0xFFE8F8EE),
-        badgeTextColor: const Color(0xFF16A34A),
-        cardColor: const Color(0xFF16A34A),
-        illustrationIcon: Icons.emoji_events_rounded,
+  void _showHowToPlayModal(BuildContext context, bool isDarkMode) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.help_outline_rounded, color: Color(0xFF2563EB)),
+            const SizedBox(width: 8),
+            Text(
+              'วิธีการเล่นและรับรางวัล',
+              style: GoogleFonts.kanit(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHowToStep('1', 'กดรับงานและส่งพัสดุให้สำเร็จในแต่ละวัน'),
+            const SizedBox(height: 10),
+            _buildHowToStep('2', 'เมื่อสะสมจำนวนงานครบตามเป้าหมาย (10, 30, 60 ครั้ง) ระบบจะปลดล็อกโบนัสทันที'),
+            const SizedBox(height: 10),
+            _buildHowToStep('3', 'เงินโบนัสพิเศษจะถูกโอนเข้ากระเป๋าเงินไรเดอร์โดยอัตโนมัติ'),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('เข้าใจแล้ว', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, color: Colors.white)),
+          ),
+        ],
       ),
     );
+  }
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'กดรับสิทธิ์คูปองส่วนลด $discount บาทเรียบร้อยแล้ว! คูปองอยู่ใน คูปองของฉัน',
-          style: GoogleFonts.kanit(),
+  Widget _buildHowToStep(String num, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: const BoxDecoration(
+            color: Color(0xFF2563EB),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              num,
+              style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ),
         ),
-        backgroundColor: const Color(0xFF16A34A),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'ดูคูปอง',
-          textColor: Colors.white,
-          onPressed: () {
-            context.push(AppRoutes.coupons);
-          },
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey.shade700),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -64,741 +91,663 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final isDarkMode = ref.watch(themeProvider);
-    final currentLang = ref.watch(languageProvider);
-
-    String t(String key) => AppTranslations.getText(currentLang, key);
-
-    final pageBg = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFFAFAFA);
-    final textColor = isDarkMode ? Colors.white : const Color(0xFF1F2937);
+    final pageBg = isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
 
     return Scaffold(
       backgroundColor: pageBg,
       body: Column(
         children: [
-          // BLUE GRADIENT HEADER (Original Rewards Screen Header)
+          // 1. TOP APP BAR (RIDER THEME ROYAL NAVY BLUE)
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF0052D4),
-                  Color(0xFF1C7FF6),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: Color(0xFF1E3A8A), // Royal Navy Blue Rider Theme
             ),
-            padding: EdgeInsets.fromLTRB(12, statusBarHeight + 8, 12, 28),
-            child: Column(
+            padding: EdgeInsets.fromLTRB(12, statusBarHeight + 8, 16, 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        if (context.canPop()) {
-                          context.pop();
-                        }
-                      },
-                    ),
-                    Expanded(
-                      child: Text(
-                        t('privileges_rewards'),
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.kanit(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.card_giftcard_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                      onPressed: () {
-                        context.push(AppRoutes.coupons);
-                      },
-                    ),
-                  ],
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go(AppRoutes.driver);
+                    }
+                  },
                 ),
-                const SizedBox(height: 4),
                 Text(
-                  t('privileges_subtitle'),
+                  'รางวัลของฉัน',
                   style: GoogleFonts.kanit(
-                    fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // SCROLLABLE CONTENT (Curved Container)
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: pageBg,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // MY USAGE CARD
-                      _buildMyUsageCard(currentLang, t, isDarkMode),
-                      const SizedBox(height: 24),
-
-                      // REWARDS SECTION TITLE
-                      Text(
-                        t('my_rewards_title'),
-                        style: GoogleFonts.kanit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // TIMELINE OF REWARDS
-                      _buildRewardsTimeline(currentLang, t, isDarkMode),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
-  // MY USAGE CARD WIDGET
-  // ==========================================
-  Widget _buildMyUsageCard(AppLanguage currentLang, String Function(String) t, bool isDarkMode) {
-    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Circular Progress on the Left
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 110,
-                    height: 110,
-                    child: CircularProgressIndicator(
-                      value: 0.7,
-                      strokeWidth: 8,
-                      backgroundColor: Colors.grey.shade100,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF1C7FF6),
-                      ),
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Little Truck image in center
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          AppAssets.pickup,
-                          width: 45,
-                          height: 35,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Icons.local_shipping_rounded,
-                            color: Color(0xFF1C7FF6),
-                            size: 32,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        currentLang == AppLanguage.en ? '7 Trips' : '7 ครั้ง',
-                        style: GoogleFonts.kanit(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1C7FF6),
-                        ),
-                      ),
-                      Text(
-                        currentLang == AppLanguage.en ? 'of 10 trips' : 'จาก 10 ครั้ง',
-                        style: GoogleFonts.kanit(
-                          fontSize: 8,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(width: 18),
-
-              // Info on the Right
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      t('my_usage'),
-                      style: GoogleFonts.kanit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1F2937),
-                      ),
-                    ),
-                    Text(
-                      t('total_deliveries'),
-                      style: GoogleFonts.kanit(
-                        fontSize: 12,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      currentLang == AppLanguage.en ? '7 Trips' : '7 ครั้ง',
-                      style: GoogleFonts.kanit(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1C7FF6),
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Next goal pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F2FE),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.gps_fixed_rounded,
-                            size: 12,
-                            color: Color(0xFF1C7FF6),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            currentLang == AppLanguage.en ? 'Next Goal: 10 Trips' : 'เป้าหมายต่อไป 10 ครั้ง',
-                            style: GoogleFonts.kanit(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1C7FF6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Progress bar & text
-                    Row(
+                InkWell(
+                  onTap: () => _showHowToPlayModal(context, isDarkMode),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
                       children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: const LinearProgressIndicator(
-                              value: 0.7,
-                              minHeight: 6,
-                              backgroundColor: Color(0xFFF1F5F9),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFF1C7FF6),
-                              ),
-                            ),
-                          ),
+                        const Icon(
+                          Icons.help_outline_rounded,
+                          color: Colors.white,
+                          size: 18,
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 4),
                         Text(
-                          currentLang == AppLanguage.en ? '7 / 10 Trips' : '7 / 10 ครั้ง',
+                          'วิธีการเล่น',
                           style: GoogleFonts.kanit(
-                            fontSize: 11,
-                            color: Colors.grey.shade500,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Under card banner: อีก 3 ครั้ง รับส่วนลด 50 บาท
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.card_giftcard_rounded,
-                  color: Color(0xFF1C7FF6),
-                  size: 26,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        currentLang == AppLanguage.en ? '3 more trips' : 'อีก 3 ครั้ง',
-                        style: GoogleFonts.kanit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1D4ED8),
-                        ),
-                      ),
-                      Text(
-                        currentLang == AppLanguage.en ? 'Get 50 THB discount' : 'รับส่วนลด 50 บาท',
-                        style: GoogleFonts.kanit(
-                          fontSize: 12,
-                          color: const Color(0xFF1D4ED8),
-                        ),
-                      ),
-                    ],
                   ),
-                ),
-                // Confetti/Popper representation + Arrow
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '🎉',
-                      style: GoogleFonts.kanit(fontSize: 22),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: Color(0xFF1D4ED8),
-                    ),
-                  ],
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  // ==========================================
-  // REWARDS TIMELINE LIST WIDGET
-  // ==========================================
-  Widget _buildRewardsTimeline(AppLanguage currentLang, String Function(String) t, bool isDarkMode) {
-    final currentTrips = ref.watch(rewardsProvider).state.currentTrips;
-    final milestones = ref.watch(rewardsProvider).state.milestones;
-
-    final rewardLevels = milestones.map((m) {
-      _RewardLevelStatus st;
-      if (m.isClaimed) {
-        st = _RewardLevelStatus.claimed;
-      } else if (currentTrips >= m.times) {
-        st = _RewardLevelStatus.canClaim;
-      } else {
-        st = _RewardLevelStatus.inProgress;
-      }
-      return _RewardLevelData(
-        times: m.times,
-        discount: m.discount,
-        status: st,
-        progressText: currentLang == AppLanguage.en ? '$currentTrips / ${m.times} Trips' : '$currentTrips / ${m.times} ครั้ง',
-      );
-    }).toList();
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: rewardLevels.length,
-      itemBuilder: (context, index) {
-        final level = rewardLevels[index];
-        final isLast = index == rewardLevels.length - 1;
-
-        return IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Left Timeline indicator column
-              Column(
+          // 2. MAIN SCROLLABLE CONTENT
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTimelineNode(level, index + 1),
-                  if (!isLast)
-                    Expanded(
-                      child: Container(
-                        width: 2,
-                        color: isDarkMode ? const Color(0xFF334155) : Colors.grey.shade300,
+                  // MAIN TOP MISSION CARD ("ภารกิจส่งของ")
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                ],
-              ),
-              const SizedBox(width: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ภารกิจส่งของ',
+                          style: GoogleFonts.kanit(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'ยิ่งส่งมาก ยิ่งได้โบนัส!',
+                          style: GoogleFonts.kanit(
+                            fontSize: 13.5,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
 
-              // Right Ticket Card
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildTicketCard(level, currentLang, t, isDarkMode),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+                        // Chips Row (รอบปัจจุบัน & Date)
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'รอบปัจจุบัน',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF2563EB),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_month_outlined, size: 14, color: Colors.grey),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '1 พ.ค. 68 - 31 พ.ค. 68',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 12,
+                                      color: isDarkMode ? Colors.white70 : const Color(0xFF475569),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
 
-  Widget _buildTimelineNode(_RewardLevelData level, int milestoneNumber) {
-    final bool isCompletedOrCanClaim = level.status == _RewardLevelStatus.canClaim || level.status == _RewardLevelStatus.claimed;
+                        const SizedBox(height: 18),
 
-    if (isCompletedOrCanClaim) {
-      return Container(
-        width: 26,
-        height: 26,
-        decoration: const BoxDecoration(
-          color: Color(0xFF00B774),
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.star_rounded,
-          color: Colors.white,
-          size: 16,
-        ),
-      );
-    } else {
-      return Container(
-        width: 26,
-        height: 26,
-        decoration: const BoxDecoration(
-          color: Color(0xFF1C7FF6),
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          '$milestoneNumber',
-          style: GoogleFonts.kanit(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      );
-    }
-  }
+                        // Delivery Progress Row
+                        Text(
+                          'ส่งสำเร็จแล้ว',
+                          style: GoogleFonts.kanit(
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              '18',
+                              style: GoogleFonts.kanit(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1E3A8A),
+                                height: 1.0,
+                              ),
+                            ),
+                            Text(
+                              ' / 30 ครั้ง',
+                              style: GoogleFonts.kanit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white70 : const Color(0xFF475569),
+                              ),
+                            ),
+                          ],
+                        ),
 
-  // ==========================================
-  // TICKET CARD DESIGN WIDGET
-  // ==========================================
-  Widget _buildTicketCard(_RewardLevelData level, AppLanguage currentLang, String Function(String) t, bool isDarkMode) {
-    final bool isClaimed = level.status == _RewardLevelStatus.claimed;
-    final bool isCanClaim = level.status == _RewardLevelStatus.canClaim;
+                        const SizedBox(height: 10),
 
-    final cardBg = isDarkMode ? const Color(0xFF1E293B) : Colors.white;
-    final textColor = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+                        // Progress Bar
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: 18 / 30,
+                            minHeight: 10,
+                            backgroundColor: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
+                          ),
+                        ),
 
-    final bool isGreenTheme = isClaimed || isCanClaim;
-    final Color ribbonBg = isGreenTheme ? const Color(0xFF00B774) : const Color(0xFF1C7FF6);
-    final Color voucherRightBg = isGreenTheme
-        ? (isDarkMode ? const Color(0xFF064E3B) : const Color(0xFFE8F8EE))
-        : (isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFE8F2FE));
-    final Color voucherTextColor = isGreenTheme ? const Color(0xFF00B774) : const Color(0xFF1C7FF6);
+                        const SizedBox(height: 16),
 
-    final currentTrips = ref.watch(rewardsProvider).state.currentTrips;
-    final double progressRatio = (currentTrips / level.times).clamp(0.0, 1.0);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-            // Left Rotated Ribbon Panel (5 ครั้ง, 10 ครั้ง, 20 ครั้ง)
-            Container(
-              width: 66,
-              color: ribbonBg,
-              alignment: Alignment.center,
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '${level.times}',
-                      style: GoogleFonts.kanit(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      currentLang == AppLanguage.en ? 'Trips' : 'ครั้ง',
-                      style: GoogleFonts.kanit(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.95),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Middle Info Panel
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      currentLang == AppLanguage.en ? 'Complete ${level.times} deliveries' : 'ใช้บริการครบ ${level.times} ครั้ง',
-                      style: GoogleFonts.kanit(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      currentLang == AppLanguage.en ? 'Get ${level.discount} THB discount' : 'รับส่วนลด ${level.discount} บาท',
-                      style: GoogleFonts.kanit(
-                        fontSize: 12.5,
-                        color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    if (isCanClaim)
-                      InkWell(
-                        onTap: () => _claimRewardMilestone(level.times, level.discount),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        // BONUS REWARD HIGHLIGHT BOX
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00B774),
-                            borderRadius: BorderRadius.circular(8),
+                            color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDarkMode ? const Color(0xFF1E3A8A) : const Color(0xFFBFDBFE),
+                            ),
                           ),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 14),
-                              const SizedBox(width: 4),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.card_giftcard_rounded,
+                                    color: Color(0xFF2563EB),
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'อีก 12 ครั้ง รับโบนัส',
+                                    style: GoogleFonts.kanit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDarkMode ? Colors.white : const Color(0xFF1E3A8A),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               Text(
-                                currentLang == AppLanguage.en ? 'Claim Reward' : 'กดรับสิทธิ์',
+                                '฿50',
                                 style: GoogleFonts.kanit(
-                                  fontSize: 11.5,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: const Color(0xFF2563EB),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      )
-                    else if (isClaimed)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F8EE),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          t('claimed_status'),
-                          style: GoogleFonts.kanit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF00B774),
-                          ),
-                        ),
-                      )
-                    else ...[
-                      // In Progress status badge & bar
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '$currentTrips / ${level.times} ครั้ง',
-                          style: GoogleFonts.kanit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1C7FF6),
-                          ),
-                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 3. REWARD TIER ROADMAP SECTION ("ระดับรางวัล")
+                  Text(
+                    '🏆 ระดับรางวัล',
+                    style: GoogleFonts.kanit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ROADMAP LIST (Tier 1: 10, Tier 2: 30, Tier 3: 60)
+                  _buildRewardTierItem(
+                    tierNumber: '10',
+                    title: 'ส่งครบ 10 ครั้ง',
+                    bonusAmount: '฿20',
+                    statusText: 'สำเร็จแล้ว',
+                    statusType: _RewardTierStatus.completed,
+                    isFirst: true,
+                    isLast: false,
+                    isDarkMode: isDarkMode,
+                  ),
+                  _buildRewardTierItem(
+                    tierNumber: '30',
+                    title: 'ส่งครบ 30 ครั้ง',
+                    bonusAmount: '฿50',
+                    statusText: 'กำลังทำการกิจ',
+                    statusType: _RewardTierStatus.inProgress,
+                    progressText: '18 / 30 ครั้ง',
+                    remainingText: 'อีก 12 ครั้ง รับโบนัส!',
+                    progressRatio: 18 / 30,
+                    isFirst: false,
+                    isLast: false,
+                    isDarkMode: isDarkMode,
+                  ),
+                  _buildRewardTierItem(
+                    tierNumber: '60',
+                    title: 'ส่งครบ 60 ครั้ง',
+                    bonusAmount: '฿100',
+                    statusText: 'ยังไม่ปลดล็อก',
+                    statusType: _RewardTierStatus.locked,
+                    isFirst: false,
+                    isLast: true,
+                    isDarkMode: isDarkMode,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 4. TERMS & CONDITIONS CARD ("เงื่อนไขภารกิจ")
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFBFDBFE),
                       ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: progressRatio,
-                          minHeight: 5,
-                          backgroundColor: const Color(0xFFF1F5F9),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color(0xFF1C7FF6),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.info_outline_rounded, color: Color(0xFF2563EB), size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'เงื่อนไขภารกิจ',
+                              style: GoogleFonts.kanit(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : const Color(0xFF1E3A8A),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildConditionBullet('นับเฉพาะงานที่ส่งสำเร็จเท่านั้น', isDarkMode),
+                                  const SizedBox(height: 6),
+                                  _buildConditionBullet('ยกเลิกงานจะไม่นับในภารกิจ', isDarkMode),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildConditionBullet('รางวัลจะเข้ากระเป๋าเงินอัตโนมัติ', isDarkMode),
+                                  const SizedBox(height: 6),
+                                  _buildConditionBullet('1 ภารกิจ = ส่งงานครบตามจำนวนที่กำหนด', isDarkMode),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConditionBullet(String text, bool isDarkMode) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('• ', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.kanit(
+              fontSize: 12,
+              color: isDarkMode ? Colors.white70 : const Color(0xFF475569),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRewardTierItem({
+    required String tierNumber,
+    required String title,
+    required String bonusAmount,
+    required String statusText,
+    required _RewardTierStatus statusType,
+    String? progressText,
+    String? remainingText,
+    double? progressRatio,
+    required bool isFirst,
+    required bool isLast,
+    required bool isDarkMode,
+  }) {
+    Color borderColor;
+    Color cardBgColor;
+    Color buttonColor;
+    Widget timelineNode;
+
+    switch (statusType) {
+      case _RewardTierStatus.completed:
+        borderColor = const Color(0xFF10B981);
+        cardBgColor = isDarkMode ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFF0FDF4);
+        buttonColor = const Color(0xFF10B981);
+        timelineNode = Container(
+          width: 28,
+          height: 28,
+          decoration: const BoxDecoration(
+            color: Color(0xFF10B981),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 18),
+        );
+        break;
+      case _RewardTierStatus.inProgress:
+        borderColor = const Color(0xFF2563EB);
+        cardBgColor = isDarkMode ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF);
+        buttonColor = const Color(0xFF2563EB);
+        timelineNode = Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: const Color(0xFF2563EB),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.4),
+                blurRadius: 6,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.radio_button_checked_rounded, color: Colors.white, size: 16),
+        );
+        break;
+      case _RewardTierStatus.locked:
+        borderColor = isDarkMode ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+        cardBgColor = isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+        buttonColor = const Color(0xFF94A3B8);
+        timelineNode = Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.lock_rounded, color: isDarkMode ? Colors.white54 : const Color(0xFF64748B), size: 16),
+        );
+        break;
+    }
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Left Timeline Axis
+          SizedBox(
+            width: 32,
+            child: Column(
+              children: [
+                timelineNode,
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      color: statusType == _RewardTierStatus.completed
+                          ? const Color(0xFF10B981)
+                          : (isDarkMode ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Right Card Box
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBgColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: borderColor, width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Medal Badge
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: statusType == _RewardTierStatus.completed
+                                ? const Color(0xFFF59E0B)
+                                : statusType == _RewardTierStatus.inProgress
+                                    ? const Color(0xFF2563EB)
+                                    : const Color(0xFFD97706),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  tierNumber,
+                                  style: GoogleFonts.kanit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1.0,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 12),
+
+                        // Title & Bonus
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: GoogleFonts.kanit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              Text(
+                                'โบนัส',
+                                style: GoogleFonts.kanit(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Text(
+                                bonusAmount,
+                                style: GoogleFonts.kanit(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: statusType == _RewardTierStatus.completed
+                                      ? const Color(0xFF10B981)
+                                      : statusType == _RewardTierStatus.inProgress
+                                          ? const Color(0xFF2563EB)
+                                          : (isDarkMode ? Colors.white : const Color(0xFF0F172A)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Status Pill Button
+                        ElevatedButton(
+                          onPressed: () {
+                            if (statusType == _RewardTierStatus.completed) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('🎉 รับโบนัส $bonusAmount เรียบร้อยแล้ว (เข้ากระเป๋าเงินอัตโนมัติ)', style: GoogleFonts.kanit()),
+                                  backgroundColor: const Color(0xFF10B981),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: buttonColor,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            minimumSize: const Size(0, 32),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: Text(
+                            statusText,
+                            style: GoogleFonts.kanit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // In-Progress details (if present)
+                    if (statusType == _RewardTierStatus.inProgress && progressRatio != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                value: progressRatio,
+                                minHeight: 8,
+                                backgroundColor: isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            progressText ?? '',
+                            style: GoogleFonts.kanit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF2563EB),
+                            ),
+                          ),
+                        ],
                       ),
+                      if (remainingText != null) ...[
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            remainingText,
+                            style: GoogleFonts.kanit(
+                              fontSize: 11,
+                              color: const Color(0xFF2563EB),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ],
                 ),
               ),
             ),
-
-            // Dashed Divider simulation
-            CustomPaint(
-              size: const Size(1, double.infinity),
-              painter: _DashedLinePainter(),
-            ),
-
-            // Right Panel (Voucher Discount Display)
-            Container(
-              width: 92,
-              color: voucherRightBg,
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    currentLang == AppLanguage.en ? 'Discount' : 'ส่วนลด',
-                    style: GoogleFonts.kanit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: voucherTextColor,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${level.discount}',
-                    style: GoogleFonts.kanit(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: voucherTextColor,
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    t('baht_unit'),
-                    style: GoogleFonts.kanit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: voucherTextColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    ),
-  );
-}
-}
-
-class _RewardLevelData {
-  final int times;
-  final int discount;
-  final _RewardLevelStatus status;
-  final String progressText;
-
-  _RewardLevelData({
-    required this.times,
-    required this.discount,
-    required this.status,
-    required this.progressText,
-  });
-}
-
-// Custom Painter to draw dashed line separating coupon panels
-class _DashedLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey.shade300
-      ..strokeWidth = 1.2
-      ..style = PaintingStyle.stroke;
-
-    const double dashHeight = 4;
-    const double dashSpace = 3;
-    double startY = 0;
-
-    while (startY < size.height) {
-      canvas.drawLine(
-        Offset(0, startY),
-        Offset(0, startY + dashHeight),
-        paint,
-      );
-      startY += dashHeight + dashSpace;
-    }
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+enum _RewardTierStatus { completed, inProgress, locked }

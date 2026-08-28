@@ -93,7 +93,7 @@ class DriverHeader extends ConsumerWidget {
             'สวัสดีครับ พาร์ทเนอร์ไรเดอร์!',
             style: GoogleFonts.kanit(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -137,7 +137,7 @@ class DriverHeader extends ConsumerWidget {
             'ระบบพาร์ทเนอร์คนขับ / ขนส่งสินค้าอย่างมืออาชีพ',
             style: GoogleFonts.kanit(
               fontSize: 13,
-              color: Colors.white.withOpacity(0.85),
+              color: Colors.white.withValues(alpha: 0.85),
               fontWeight: FontWeight.w300,
               height: 1.3,
             ),

@@ -147,33 +147,36 @@ class _AdminNotificationsTabState extends ConsumerState<AdminNotificationsTab> {
                         final title = titleCtrl.text.trim();
                         final body = bodyCtrl.text.isEmpty ? 'ประกาศสำคัญจากผู้ดูแลระบบ TBMoveHub' : bodyCtrl.text.trim();
 
+                        final navigator = Navigator.of(context);
+                        final messenger = ScaffoldMessenger.of(context);
+
                         await PushNotificationService().sendBroadcastNotification(
                           targetGroup: targetGroup,
                           title: title,
                           body: body,
                         );
 
-                        setState(() {
-                          _notifications.insert(0, {
-                            'id': 'NOTIF-${DateTime.now().millisecondsSinceEpoch}',
-                            'title': title,
-                            'message': body,
-                            'category': 'system',
-                            'timestamp': DateTime.now(),
-                            'isRead': true,
-                            'type': 'broadcast',
-                          });
-                        });
-
-                        if (context.mounted) Navigator.pop(context);
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('🚀 ยิงข้อความ FCM Push Notification ไปยังกลุ่ม [$targetGroup] สำเร็จแล้ว!', style: GoogleFonts.kanit()),
-                              backgroundColor: const Color(0xFF10B981),
-                            ),
-                          );
+                          setState(() {
+                            _notifications.insert(0, {
+                              'id': 'NOTIF-${DateTime.now().millisecondsSinceEpoch}',
+                              'title': title,
+                              'message': body,
+                              'category': 'system',
+                              'timestamp': DateTime.now(),
+                              'isRead': true,
+                              'type': 'broadcast',
+                            });
+                          });
                         }
+
+                        navigator.pop();
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('🚀 ยิงข้อความ FCM Push Notification ไปยังกลุ่ม [$targetGroup] สำเร็จแล้ว!', style: GoogleFonts.kanit()),
+                            backgroundColor: const Color(0xFF10B981),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.send_rounded, size: 18),
                       label: Text('ส่งข้อความ (Send FCM)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),

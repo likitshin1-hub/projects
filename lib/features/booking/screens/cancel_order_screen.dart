@@ -143,7 +143,7 @@ class _CancelOrderScreenState extends State<CancelOrderScreen> {
                       border: Border.all(color: Colors.grey[200]!),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
+                          color: Colors.black.withValues(alpha: 0.02),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         )
@@ -290,7 +290,7 @@ class _CancelOrderScreenState extends State<CancelOrderScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -4),
                 )
@@ -306,7 +306,7 @@ class _CancelOrderScreenState extends State<CancelOrderScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor:
-                          AppColors.primary.withOpacity(0.5),
+                          AppColors.primary.withValues(alpha: 0.5),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),

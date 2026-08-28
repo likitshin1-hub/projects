@@ -10,7 +10,14 @@ import '../../features/auth/providers/user_role_provider.dart';
 import '../../features/driver/providers/driver_shift_provider.dart';
 
 class DriverDrawer extends ConsumerWidget {
-  const DriverDrawer({super.key});
+  final ValueChanged<int>? onSelectTab;
+  final VoidCallback? onSelectWallet;
+
+  const DriverDrawer({
+    super.key,
+    this.onSelectTab,
+    this.onSelectWallet,
+  });
 
   void _showWalletModal(BuildContext context, bool isDarkMode) {
     showModalBottomSheet(
@@ -47,7 +54,7 @@ class DriverDrawer extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.15),
+                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF10B981), size: 28),
@@ -77,7 +84,7 @@ class DriverDrawer extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF10B981).withOpacity(0.3),
+                    color: const Color(0xFF10B981).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -193,7 +200,7 @@ class DriverDrawer extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6).withOpacity(0.15),
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.payments_rounded, color: Color(0xFF3B82F6), size: 28),
@@ -255,19 +262,20 @@ class DriverDrawer extends ConsumerWidget {
                   prefixStyle: GoogleFonts.kanit(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
                   filled: true,
                   fillColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF10B981))),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF10B981), width: 2)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
               const SizedBox(height: 24),
 
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 52,
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    final messenger = ScaffoldMessenger.of(context);
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('🎉 ยื่นคำขอถอนเงิน ฿${amountController.text} เรียบร้อยแล้ว! เงินจะเข้าบัญชีใน 15 นาที', style: GoogleFonts.kanit()),
                         backgroundColor: const Color(0xFF10B981),
@@ -275,11 +283,12 @@ class DriverDrawer extends ConsumerWidget {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
-                  label: Text('ยืนยันส่งคำขอถอนเงิน', style: GoogleFonts.kanit(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                  icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 22),
+                  label: Text('ยืนยันส่งคำขอถอนเงิน', style: GoogleFonts.kanit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
               ),
@@ -296,29 +305,105 @@ class DriverDrawer extends ConsumerWidget {
       context: context,
       useRootNavigator: true,
       builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('🔴 ยืนยันการออกงาน (Clock Out)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
-        content: Text('คุณต้องการออกจากระบบงานคนขับและสลับกลับเป็นผู้ใช้ทั่วไปหรือไม่?', style: GoogleFonts.kanit()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: Text('ยกเลิก', style: GoogleFonts.kanit(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(driverShiftProvider.notifier).clockOut();
-              ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.customer);
-              Navigator.of(dialogCtx).pop();
-              GoRouter.of(dialogCtx).go(AppRoutes.home);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFEF4444),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'ยืนยันการออกงาน',
+                    style: GoogleFonts.kanit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: Text('ยืนยันออกงาน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              '(Clock Out)',
+              style: GoogleFonts.kanit(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'คุณต้องการออกจากระบบงานคนขับและสลับกลับเป็นผู้ใช้ทั่วไปหรือไม่?',
+              style: GoogleFonts.kanit(
+                fontSize: 14,
+                color: const Color(0xFF475569),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(dialogCtx).pop(),
+                child: Text(
+                  'ยกเลิก',
+                  style: GoogleFonts.kanit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  ref.read(driverShiftProvider.notifier).clockOut();
+                  ref.read(userActiveModeProvider.notifier).setMode(UserActiveMode.customer);
+                  Navigator.of(dialogCtx).pop();
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                  context.go(AppRoutes.home);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF4444),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'ยืนยันออกงาน',
+                  style: GoogleFonts.kanit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -371,7 +456,7 @@ class DriverDrawer extends ConsumerWidget {
                         const CircleAvatar(
                           radius: 28,
                           backgroundColor: Colors.white24,
-                          child: Icon(Icons.person, size: 36, color: Colors.white),
+                          backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80'),
                         ),
                         Positioned(
                           bottom: 0,
@@ -398,7 +483,7 @@ class DriverDrawer extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            (user != null && user.name.isNotEmpty) ? user.name : 'คุณสมชาย สายบิด',
+                            (user != null && user.name.isNotEmpty) ? user.name : 'ชินจังสุดเฟี้ยว เลี้ยวลงบ่อ',
                             style: GoogleFonts.kanit(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -415,7 +500,7 @@ class DriverDrawer extends ConsumerWidget {
                                 '4.95 (148 รีวิว)',
                                 style: GoogleFonts.kanit(
                                   fontSize: 12,
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
                               ),
                             ],
@@ -429,7 +514,7 @@ class DriverDrawer extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -462,7 +547,13 @@ class DriverDrawer extends ConsumerWidget {
                   textColor: textColor,
                   onTap: () {
                     Navigator.pop(context);
-                    _showWalletModal(context, isDarkMode);
+                    if (onSelectWallet != null) {
+                      onSelectWallet!();
+                    } else if (onSelectTab != null) {
+                      onSelectTab!(5);
+                    } else {
+                      _showWalletModal(context, isDarkMode);
+                    }
                   },
                 ),
 
@@ -488,7 +579,11 @@ class DriverDrawer extends ConsumerWidget {
                   textColor: textColor,
                   onTap: () {
                     Navigator.pop(context);
-                    context.push(AppRoutes.history);
+                    if (onSelectTab != null) {
+                      onSelectTab!(1);
+                    } else {
+                      context.push(AppRoutes.history);
+                    }
                   },
                 ),
 
@@ -544,7 +639,6 @@ class DriverDrawer extends ConsumerWidget {
                   iconBgColor: isDarkMode ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
                   textColor: const Color(0xFFEF4444),
                   onTap: () {
-                    Navigator.pop(context);
                     _confirmClockOut(context, ref);
                   },
                 ),

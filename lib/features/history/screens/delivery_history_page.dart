@@ -37,7 +37,50 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
   String _vehicleFilter = 'all'; // all, 🛵, 🚗, 🚚, 🚛
 
   // History dataset
-  final List<_HistoryItemData> _defaultHistoryItems = [];
+  final List<_HistoryItemData> _defaultHistoryItems = [
+    _HistoryItemData(
+      orderNo: 'TB112044-8812',
+      pickupAddress: 'ฟิวเจอร์พาร์ครังสิต ธัญบุรี ปทุมธานี',
+      destinationAddress: 'แจ้งวัฒนะ ปากเกร็ด นนทบุรี',
+      route: 'ฟิวเจอร์พาร์ครังสิต > แจ้งวัฒนะ ปากเกร็ด',
+      dateTime: '28 ส.ค. 2026 • 10:30 น.',
+      price: '250.00',
+      status: _HistoryStatus.completed,
+      vehicle: '🚗',
+      vehicleName: 'รถเก๋ง 4 ประตู',
+      statusText: 'จัดส่งเสร็จสิ้น',
+      driverName: 'ชินจังสุดเฟี้ยว เลี้ยวลงบ่อ',
+      driverPhone: '085-368-1345',
+    ),
+    _HistoryItemData(
+      orderNo: 'TB-88410',
+      pickupAddress: 'พระราม 9 ซอย 7 กรุงเทพมหานคร',
+      destinationAddress: 'ห้วยขวาง รัชดาภิเษก กรุงเทพมหานคร',
+      route: 'พระราม 9 ซอย 7 > ห้วยขวาง รัชดาภิเษก',
+      dateTime: '26 ส.ค. 2026 • 15:40 น.',
+      price: '380.00',
+      status: _HistoryStatus.completed,
+      vehicle: '🚚',
+      vehicleName: 'รถกระบะตู้ทึบ 4 ล้อ',
+      statusText: 'จัดส่งเสร็จสิ้น',
+      driverName: 'ชินจังสุดเฟี้ยว เลี้ยวลงบ่อ',
+      driverPhone: '085-368-1345',
+    ),
+    _HistoryItemData(
+      orderNo: 'TB-77521',
+      pickupAddress: 'สยามพารากอน ปทุมวัน กรุงเทพมหานคร',
+      destinationAddress: 'บางนา ตราด กม.4 สมุทรปราการ',
+      route: 'สยามพารากอน > บางนา ตราด กม.4',
+      dateTime: '24 ส.ค. 2026 • 14:15 น.',
+      price: '450.00',
+      status: _HistoryStatus.completed,
+      vehicle: '🛵',
+      vehicleName: 'รถจักรยานยนต์',
+      statusText: 'จัดส่งเสร็จสิ้น',
+      driverName: 'ชินจังสุดเฟี้ยว เลี้ยวลงบ่อ',
+      driverPhone: '085-368-1345',
+    ),
+  ];
 
   late List<_HistoryItemData> _allHistoryItems;
 
@@ -752,7 +795,13 @@ class _DeliveryHistoryPageState extends ConsumerState<DeliveryHistoryPage>
           // ==========================================
           Expanded(
             child: filteredList.isEmpty
-                ? _buildEmptyState(isDarkMode, isEn, primaryTextColor)
+                ? SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: _buildEmptyState(isDarkMode, isEn, primaryTextColor),
+                    ),
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                     physics: const BouncingScrollPhysics(),

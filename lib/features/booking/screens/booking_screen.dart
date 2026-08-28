@@ -780,7 +780,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () async {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text(
                         currentLang == AppLanguage.en ? 'Requesting GPS Location from device...' : 'กำลังค้นหาตำแหน่ง GPS ของเครื่อง...',
@@ -800,20 +801,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     });
                     _syncToProvider();
 
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            currentLang == AppLanguage.en
-                                ? 'GPS location retrieved successfully!'
-                                : 'ดึงตำแหน่ง GPS ของเครื่องเรียบร้อยแล้ว!',
-                            style: GoogleFonts.kanit(),
-                          ),
-                          backgroundColor: const Color(0xFF10B981),
-                          behavior: SnackBarBehavior.floating,
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          currentLang == AppLanguage.en
+                              ? 'GPS location retrieved successfully!'
+                              : 'ดึงตำแหน่ง GPS ของเครื่องเรียบร้อยแล้ว!',
+                          style: GoogleFonts.kanit(),
                         ),
-                      );
-                    }
+                        backgroundColor: const Color(0xFF10B981),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
                   }
                 },
               ),

@@ -54,6 +54,8 @@ import '../../features/notifications/screens/notification_detail_screen.dart';
 
 // Partner / Driver
 import '../../features/driver/screens/driver_home_screen.dart';
+import '../../features/driver/screens/driver_job_navigation_screen.dart';
+import '../../features/admin/models/admin_models.dart';
 import '../../features/partner/screens/partner_screen.dart';
 import '../../features/partner/screens/driver_partner_landing_screen.dart';
 import '../../features/partner/screens/register_partner_screen.dart';
@@ -256,6 +258,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.driver,
       builder: (context, state) => const DriverHomeScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.jobDetail,
+      builder: (context, state) {
+        final order = state.extra as AdminOrderModel?;
+        return DriverJobNavigationScreen(order: order);
+      },
     ),
     GoRoute(
       path: AppRoutes.partner,

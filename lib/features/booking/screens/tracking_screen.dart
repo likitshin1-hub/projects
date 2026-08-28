@@ -154,101 +154,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
     }
   }
 
-  void _showDeliveryCompletedDialog(BuildContext context) {
-    final isDarkMode = ref.read(themeProvider);
-    final bookingState = ref.read(bookingProvider);
-    final displayOrderNo = bookingState.bookingId ?? widget.bookingId;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-          elevation: 12,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      color: Color(0xFF10B981),
-                      size: 58,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'จัดส่งพัสดุเสร็จสิ้นแล้ว! 🎉',
-                  style: GoogleFonts.kanit(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'พัสดุคำสั่งซื้อเลขที่ #$displayOrderNo จัดส่งถึงปลายทางเรียบร้อยแล้ว กดยืนยันเพื่อไปยังหน้าประวัติการขนส่ง',
-                  style: GoogleFonts.kanit(
-                    fontSize: 14,
-                    color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981),
-                      foregroundColor: Colors.white,
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop();
-                      context.push(AppRoutes.history);
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'ยืนยันดูประวัติการขนส่ง',
-                          style: GoogleFonts.kanit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_rounded, size: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   void _recenterMap() {
     final bookingState = ref.read(bookingProvider);
@@ -542,10 +448,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> with SingleTick
       if (next.isCompleted && (previous == null || !previous.isCompleted)) {
         if (!_hasShownCompletionDialog) {
           _hasShownCompletionDialog = true;
+          final router = GoRouter.of(context);
           Future.delayed(const Duration(milliseconds: 1500), () {
-            if (mounted) {
-              context.push(AppRoutes.deliverySuccess);
-            }
+            router.push(AppRoutes.deliverySuccess);
           });
         }
       }

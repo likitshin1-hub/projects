@@ -106,13 +106,12 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาระบุเหตุผลในการปฏิเสธ', style: GoogleFonts.kanit()), backgroundColor: Colors.orange));
                               return;
                             }
+                            final messenger = ScaffoldMessenger.of(context);
                             await ref.read(adminDriversProvider.notifier).rejectDriver(driver.id, reason);
                             if (ctx.mounted) Navigator.pop(ctx);
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('📲 ปฏิเสธเอกสารและส่ง FCM แจ้งเตือนคนขับ ${driver.fullName} เรียบร้อย', style: GoogleFonts.kanit()), backgroundColor: Colors.redAccent),
-                              );
-                            }
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('📲 ปฏิเสธเอกสารและส่ง FCM แจ้งเตือนคนขับ ${driver.fullName} เรียบร้อย', style: GoogleFonts.kanit()), backgroundColor: Colors.redAccent),
+                            );
                           },
                           icon: const Icon(Icons.send_rounded, size: 16),
                           label: Text('ยืนยันส่งการแจ้งเตือน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
@@ -278,13 +277,12 @@ class _AdminDriversTabState extends ConsumerState<AdminDriversTab> {
                           const SizedBox(width: 12),
                           ElevatedButton.icon(
                             onPressed: () async {
+                              final messenger = ScaffoldMessenger.of(context);
                               await ref.read(adminDriversProvider.notifier).approveDriver(driver.id);
                               if (context.mounted) Navigator.pop(context);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('✅ อนุมัติเอกสารคนขับ ${driver.fullName} เรียบร้อยแล้ว', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF10B981)),
-                                );
-                              }
+                              messenger.showSnackBar(
+                                SnackBar(content: Text('✅ อนุมัติเอกสารคนขับ ${driver.fullName} เรียบร้อยแล้ว', style: GoogleFonts.kanit()), backgroundColor: const Color(0xFF10B981)),
+                              );
                             },
                             icon: const Icon(Icons.check_circle_outline, size: 18),
                             label: Text('Approve (อนุมัติเอกสาร)', style: GoogleFonts.kanit()),

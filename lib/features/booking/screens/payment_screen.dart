@@ -362,7 +362,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       'ยอดชำระเงินทั้งหมด',
                       style: GoogleFonts.kanit(
                         fontSize: 13,
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -395,7 +395,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 16,
                               offset: const Offset(0, 8),
                             ),
@@ -519,7 +519,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 16,
                               offset: const Offset(0, 8),
                             ),
@@ -559,7 +559,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                         : Colors.grey.shade50,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: const Color(0xFF1C7FF6).withOpacity(0.4),
+                                      color: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
                                       width: 1.5,
                                     ),
                                   ),
@@ -608,7 +608,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                     top: 10,
                                     right: 10,
                                     child: CircleAvatar(
-                                      backgroundColor: Colors.black.withOpacity(0.6),
+                                      backgroundColor: Colors.black.withValues(alpha: 0.6),
                                       radius: 18,
                                       child: IconButton(
                                         icon: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
@@ -642,7 +642,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                               borderRadius: BorderRadius.circular(28),
                             ),
                             elevation: _slipImageBytes != null ? 4 : 0,
-                            shadowColor: const Color(0xFF1C7FF6).withOpacity(0.4),
+                            shadowColor: const Color(0xFF1C7FF6).withValues(alpha: 0.4),
                           ),
                           onPressed: _slipImageBytes != null ? _confirmPayment : null,
                           child: Text(

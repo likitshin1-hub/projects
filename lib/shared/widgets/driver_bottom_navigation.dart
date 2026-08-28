@@ -140,7 +140,7 @@ class DriverBottomNavigation extends ConsumerWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E3A8A).withOpacity(isDarkMode ? 0.25 : 0.15),
+              color: const Color(0xFF1E3A8A).withValues(alpha: isDarkMode ? 0.25 : 0.15),
               blurRadius: 20,
               spreadRadius: 1,
               offset: const Offset(0, 6),
@@ -149,7 +149,7 @@ class DriverBottomNavigation extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            _buildNavItem(0, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'กระเป๋าเงิน', activeColor, inactiveColor, dividerColor, true),
+            _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, 'หน้าหลัก', activeColor, inactiveColor, dividerColor, true),
             _buildNavItem(1, Icons.calendar_month_outlined, Icons.calendar_month_rounded, 'ประวัติการขนส่ง', activeColor, inactiveColor, dividerColor, true),
             _buildCenterNavItem(2, 'เริ่มงาน', activeColor, inactiveColor, dividerColor),
             _buildNavItem(3, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'แชต', activeColor, inactiveColor, dividerColor, true),

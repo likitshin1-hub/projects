@@ -171,8 +171,8 @@ class _DeliverySuccessScreenState extends ConsumerState<DeliverySuccessScreen> w
     final driver = ref.watch(driverProvider);
 
     final displayBookingId = (bookingState.bookingId != null && bookingState.bookingId!.isNotEmpty) ? bookingState.bookingId! : 'TB668511';
-    final pickupName = _cleanPlaceName(bookingState.pickupName, bookingState.pickup ?? '', 'ตำแหน่งปัจจุบันของคุณ (สยามพารากอน)');
-    final dropoffName = _cleanPlaceName(bookingState.dropoffName, bookingState.dropoff ?? '', 'วิทยาลัยอาชีวศึกษาชลบุรี');
+    final pickupName = _cleanPlaceName(bookingState.pickupName, bookingState.pickup, 'ตำแหน่งปัจจุบันของคุณ (สยามพารากอน)');
+    final dropoffName = _cleanPlaceName(bookingState.dropoffName, bookingState.dropoff, 'วิทยาลัยอาชีวศึกษาชลบุรี');
     final recipientName = _cleanPlaceName(bookingState.dropoffName, '', 'คุณอนันต์ (ผู้รับปลายทาง ชลบุรี)');
 
     final bgColor = isDarkMode ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFF);

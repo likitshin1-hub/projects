@@ -57,6 +57,7 @@ class _AdminReportsTabState extends ConsumerState<AdminReportsTab> {
   String _orderStatusFilter = 'All';
   String _revenuePeriod = 'This Month'; // Today, This Week, This Month, Custom Range
   bool _isGenerated = true;
+  bool get isGenerated => _isGenerated;
 
   void _exportCSV() {
     final orders = ref.read(adminOrdersProvider).value ?? [];

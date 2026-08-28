@@ -40,6 +40,7 @@ class AdminFinanceTab extends ConsumerStatefulWidget {
 class _AdminFinanceTabState extends ConsumerState<AdminFinanceTab> {
   final TextEditingController _searchController = TextEditingController();
   String _activeSection = 'transactions'; // transactions, wallets
+  String get activeSection => _activeSection;
   String _datePeriodFilter = 'Today'; // Today, Yesterday, ThisWeek, ThisMonth
   String _paymentStatusFilter = 'All'; // All, PAID, PENDING_PAYOUT, REFUNDED
 
