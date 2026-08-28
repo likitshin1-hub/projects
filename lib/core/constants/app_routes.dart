@@ -132,6 +132,8 @@ class AppRoutes {
   static const String changePassword = '/profile/change-password';
   static const String security = '/profile/security';
   static const String devices = '/profile/devices';
+  static const String twoFactor = '/profile/two-factor';
+  static const String loginHistory = '/profile/login-history';
   static const String legal = '/legal';
 
   // =========================

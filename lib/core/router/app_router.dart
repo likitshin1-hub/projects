@@ -40,6 +40,8 @@ import '../../features/profile/screens/settings_screen.dart';
 import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/profile/screens/security_screen.dart';
 import '../../features/profile/screens/devices_screen.dart';
+import '../../features/profile/screens/two_factor_screen.dart';
+import '../../features/profile/screens/login_history_screen.dart';
 import '../../features/profile/screens/legal_content_screen.dart';
 
 // Coupons & Rewards
@@ -224,6 +226,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.devices,
       builder: (context, state) => const DevicesScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.twoFactor,
+      builder: (context, state) => const TwoFactorScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.loginHistory,
+      builder: (context, state) => const LoginHistoryScreen(),
     ),
     GoRoute(
       path: AppRoutes.legal,
