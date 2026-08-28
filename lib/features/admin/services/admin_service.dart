@@ -388,6 +388,50 @@ class AdminService {
     return false;
   }
 
+  Future<DriverAdminModel> registerDriverApplication({
+    required String fullName,
+    required String phone,
+    required String email,
+    required String vehicleType,
+    required String brand,
+    required String model,
+    required String color,
+    required String plate,
+    required DateTime submittedAt,
+  }) async {
+    final newDriver = DriverAdminModel(
+      id: 'DRV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+      fullName: fullName.isNotEmpty ? fullName : 'ผู้สมัครไรเดอร์ท่านใหม่',
+      phone: phone.isNotEmpty ? phone : '085-368-1345',
+      email: email.isNotEmpty ? email : 'newdriver@tbmovehub.com',
+      vehicleType: vehicleType.isNotEmpty ? vehicleType : 'รถจักรยานยนต์',
+      brand: brand.isNotEmpty ? brand : 'Honda',
+      model: model.isNotEmpty ? model : 'Wave 125i',
+      plate: plate.isNotEmpty ? plate : '1กข 9999',
+      color: color.isNotEmpty ? color : 'สีดำ',
+      status: DriverVerificationStatus.pending,
+      isOnline: false,
+      idCardUrl: 'https://picsum.photos/400/250?img=1',
+      driverLicenseUrl: 'https://picsum.photos/400/250?img=2',
+      vehicleDocUrl: 'https://picsum.photos/400/250?img=3',
+      bankBookUrl: 'https://picsum.photos/400/250?img=4',
+      vehiclePhotoUrl: 'https://picsum.photos/400/250?img=5',
+      rating: 5.0,
+      walletBalance: 0.0,
+      totalEarnings: 0.0,
+      submittedAt: submittedAt,
+    );
+
+    _drivers.insert(0, newDriver);
+    _notifyDriversChanged();
+
+    try {
+      await _dioClient.post('/admin/drivers/register', data: newDriver.toJson());
+    } catch (_) {}
+
+    return newDriver;
+  }
+
   Future<bool> approveDriver(String id) async {
     try {
       await _dioClient.post('/admin/drivers/$id/approve');

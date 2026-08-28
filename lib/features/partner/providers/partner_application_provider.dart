@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../admin/providers/admin_provider.dart';
 import '../repositories/partner_repository.dart';
 
 enum ApplicationStatus {
@@ -138,6 +139,19 @@ class PartnerApplicationNotifier extends Notifier<PartnerApplicationModel?> {
       bankBookFile: bankBookFile,
       vehiclePhotos: vehiclePhotos,
     );
+
+    // Push new driver application to Admin Drivers Provider so Admin can inspect & approve!
+    ref.read(adminDriversProvider.notifier).addDriverApplication(
+          fullName: app.fullName,
+          phone: app.phone,
+          email: app.email,
+          vehicleType: app.vehicleType,
+          brand: app.brand,
+          model: app.model,
+          color: app.color,
+          plate: app.plate,
+          submittedAt: app.submittedAt,
+        );
 
     // Cancel existing timer if any
     _statusTimer?.cancel();

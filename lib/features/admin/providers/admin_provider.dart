@@ -109,6 +109,31 @@ class AdminDriversNotifier extends Notifier<AsyncValue<List<DriverAdminModel>>> 
     await ref.read(adminServiceProvider).toggleDriverSuspend(id);
     await loadDrivers();
   }
+
+  Future<void> addDriverApplication({
+    required String fullName,
+    required String phone,
+    required String email,
+    required String vehicleType,
+    required String brand,
+    required String model,
+    required String color,
+    required String plate,
+    required DateTime submittedAt,
+  }) async {
+    await ref.read(adminServiceProvider).registerDriverApplication(
+          fullName: fullName,
+          phone: phone,
+          email: email,
+          vehicleType: vehicleType,
+          brand: brand,
+          model: model,
+          color: color,
+          plate: plate,
+          submittedAt: submittedAt,
+        );
+    await loadDrivers();
+  }
 }
 
 final adminDriversProvider = NotifierProvider<AdminDriversNotifier, AsyncValue<List<DriverAdminModel>>>(AdminDriversNotifier.new);
