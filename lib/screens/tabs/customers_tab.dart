@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -1101,50 +1103,16 @@ class _CustomersTabState extends State<CustomersTab> {
   void _showContactPartiesDialog(ComplaintTicket ticket) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.phone_in_talk_rounded, color: AdminTheme.primaryBlue),
-            const SizedBox(width: 8),
-            Text('ติดต่อเพื่อไต่สวนข้อเท็จจริง', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.two_wheeler_rounded, color: AdminTheme.accentOrange),
-              title: Text('โทรหาผู้ร้องเรียน: ${ticket.reporterName}', style: GoogleFonts.kanit(fontSize: 13, fontWeight: FontWeight.bold)),
-              subtitle: Text('เบอร์: ${ticket.reporterPhone}', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('กำลังโทรออกไปยังผู้ร้องเรียน ${ticket.reporterName}...')),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.person_rounded, color: AdminTheme.accentRed),
-              title: Text('โทรหาลูกค้าผู้ถูกร้องเรียน: ${ticket.accusedCustomerName}', style: GoogleFonts.kanit(fontSize: 13, fontWeight: FontWeight.bold)),
-              subtitle: Text('เบอร์: ${ticket.accusedCustomerPhone}', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('กำลังโทรออกไปยังลูกค้า ${ticket.accusedCustomerName}...')),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('ปิด', style: GoogleFonts.kanit())),
-        ],
+      barrierDismissible: false,
+      builder: (ctx) => _VoIPInvestigationCallDialog(
+        ticket: ticket,
+        dataService: widget.dataService,
+        onAdjudicateRequested: () {
+          _showTakeActionOnDisputeModal(ticket);
+        },
       ),
     );
   }
-
   void _showCustomerDetails(BuildContext context, CustomerModel customer) {
     showDialog(
       context: context,
@@ -1261,3 +1229,468 @@ class _CustomersTabState extends State<CustomersTab> {
     );
   }
 }
+
+
+// -------------------------------------------------------------
+// VOIP INVESTIGATION PHONE CALL DIALOG
+// -------------------------------------------------------------
+class _VoIPInvestigationCallDialog extends StatefulWidget {
+  final ComplaintTicket ticket;
+  final AdminDataService dataService;
+  final VoidCallback onAdjudicateRequested;
+
+  const _VoIPInvestigationCallDialog({
+    required this.ticket,
+    required this.dataService,
+    required this.onAdjudicateRequested,
+  });
+
+  @override
+  State<_VoIPInvestigationCallDialog> createState() => _VoIPInvestigationCallDialogState();
+}
+
+class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDialog> with TickerProviderStateMixin {
+  late AnimationController _waveController;
+  late AnimationController _pulseController;
+  Timer? _callTimer;
+  int _callSeconds = 0;
+  bool _isConnected = false;
+  bool _isMuted = false;
+  bool _isSpeaker = true;
+  bool _isRecording = true;
+  String _activeParty = 'accused'; // 'accused' or 'reporter'
+  final TextEditingController _callNotesCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+
+    // Simulate connecting within 1.5 seconds
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+        });
+        _startTimer();
+      }
+    });
+  }
+
+  void _startTimer() {
+    _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _callSeconds++;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _callTimer?.cancel();
+    _waveController.dispose();
+    _pulseController.dispose();
+    _callNotesCtrl.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(int seconds) {
+    final mins = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (seconds % 60).toString().padLeft(2, '0');
+    return '$mins:$secs';
+  }
+
+  void _switchParty(String party) {
+    if (_activeParty == party) return;
+    setState(() {
+      _activeParty = party;
+      _isConnected = false;
+      _callSeconds = 0;
+      _callTimer?.cancel();
+    });
+
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+        });
+        _startTimer();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAccused = _activeParty == 'accused';
+    final targetName = isAccused ? widget.ticket.accusedCustomerName : widget.ticket.reporterName;
+    final targetPhone = isAccused ? widget.ticket.accusedCustomerPhone : widget.ticket.reporterPhone;
+    final targetRole = isAccused ? 'ลูกค้าผู้ถูกร้องเรียน (Accused)' : 'ผู้ร้องเรียน (${widget.ticket.reporterType})';
+    final targetColor = isAccused ? AdminTheme.accentRed : AdminTheme.primaryBlue;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      child: Container(
+        width: 680,
+        height: 640,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            // Top Bar: Call Status & Switch Party Tabs
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _isConnected ? AdminTheme.accentGreen.withValues(alpha: 0.15) : AdminTheme.accentOrange.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: _isConnected ? AdminTheme.accentGreen : AdminTheme.accentOrange),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _isConnected ? AdminTheme.accentGreen : AdminTheme.accentOrange,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _isConnected ? 'สนทนาสด (${_formatDuration(_callSeconds)})' : 'กำลังโทรออก...',
+                              style: GoogleFonts.kanit(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _isConnected ? AdminTheme.accentGreen : AdminTheme.accentOrange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (_isRecording)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AdminTheme.accentRed.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.fiber_manual_record_rounded, size: 10, color: AdminTheme.accentRed),
+                              const SizedBox(width: 4),
+                              Text('REC บันทึกเสียง', style: GoogleFonts.kanit(fontSize: 10, color: AdminTheme.accentRed, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  // Party Switcher Buttons
+                  Row(
+                    children: [
+                      Text('สลับสายสนทนา:', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: Text('👤 ลูกค้า (ผู้ถูกร้องเรียน)', style: GoogleFonts.kanit(fontSize: 11)),
+                        selected: _activeParty == 'accused',
+                        selectedColor: AdminTheme.accentRed,
+                        onSelected: (_) => _switchParty('accused'),
+                      ),
+                      const SizedBox(width: 4),
+                      ChoiceChip(
+                        label: Text('🛵 ไรเดอร์ (ผู้ร้องเรียน)', style: GoogleFonts.kanit(fontSize: 11)),
+                        selected: _activeParty == 'reporter',
+                        selectedColor: AdminTheme.primaryBlue,
+                        onSelected: (_) => _switchParty('reporter'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Main Caller Visual & Voice Waveform
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    // Avatar with Ripple Radar
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (_isConnected)
+                          AnimatedBuilder(
+                            animation: _pulseController,
+                            builder: (context, child) {
+                              return Container(
+                                width: 96 + (_pulseController.value * 28),
+                                height: 96 + (_pulseController.value * 28),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: targetColor.withValues(alpha: (1.0 - _pulseController.value) * 0.3),
+                                ),
+                              );
+                            },
+                          ),
+                        CircleAvatar(
+                          radius: 44,
+                          backgroundColor: targetColor,
+                          child: Text(
+                            targetName.isNotEmpty ? targetName.substring(0, targetName.length > 2 ? 2 : 1) : 'ID',
+                            style: GoogleFonts.kanit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Caller Details
+                    Text(
+                      targetName,
+                      style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$targetPhone • $targetRole',
+                      style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: targetColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'คดีร้องเรียน: ${widget.ticket.id} (${widget.ticket.category}) • ออเดอร์ ${widget.ticket.orderNo}',
+                        style: GoogleFonts.kanit(fontSize: 11, color: targetColor, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Sound Wave Visualizer Bars
+                    if (_isConnected)
+                      AnimatedBuilder(
+                        animation: _waveController,
+                        builder: (context, child) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(16, (index) {
+                              final waveOffset = (math.sin((_waveController.value * 2 * math.pi) + (index * 0.4)) + 1) / 2;
+                              final barHeight = 8.0 + (waveOffset * 24.0);
+                              return Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                width: 4,
+                                height: barHeight,
+                                decoration: BoxDecoration(
+                                  color: targetColor.withValues(alpha: 0.6 + (waveOffset * 0.4)),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              );
+                            }),
+                          );
+                        },
+                      )
+                    else
+                      Text('กำลังเชื่อมสัญญาณ RTK VoIP...', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
+
+                    const SizedBox(height: 16),
+
+                    // Live Investigation Statement Notes Box
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.edit_note_rounded, size: 18, color: AdminTheme.primaryBlue),
+                                  const SizedBox(width: 6),
+                                  Text('บันทึกคำให้การและการไต่สวนสด (Live Case Notes):', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              Text('ระบบบันทึกอัตโนมัติ', style: GoogleFonts.kanit(fontSize: 10, color: Colors.grey)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _callNotesCtrl,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: 'พิมพ์สรุปปากคำของคู่กรณี หรือคลิกข้อความลัดด้านล่าง...',
+                              hintStyle: GoogleFonts.kanit(fontSize: 11, color: Colors.grey),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              contentPadding: const EdgeInsets.all(10),
+                              isDense: true,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              _buildQuickTag('🗣️ คู่กรณียอมรับข้อกล่าวหา'),
+                              _buildQuickTag('📦 ยืนยันพัสดุเสียหายจริง'),
+                              _buildQuickTag('🤝 ยินยอมชดใช้ค่าเสียหาย'),
+                              _buildQuickTag('🚫 ปฏิเสธและไม่ให้ความร่วมมือ'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // In-Call Controls Bottom Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Mute Button
+                  _buildCallControlButton(
+                    icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                    label: _isMuted ? 'เปิดไมค์' : 'ปิดไมค์',
+                    color: _isMuted ? AdminTheme.accentRed : Colors.grey,
+                    onTap: () => setState(() => _isMuted = !_isMuted),
+                  ),
+
+                  // Speaker Button
+                  _buildCallControlButton(
+                    icon: _isSpeaker ? Icons.volume_up_rounded : Icons.volume_down_rounded,
+                    label: _isSpeaker ? 'ลำโพง HD' : 'หูฟัง',
+                    color: _isSpeaker ? AdminTheme.primaryBlue : Colors.grey,
+                    onTap: () => setState(() => _isSpeaker = !_isSpeaker),
+                  ),
+
+                  // Record Toggle
+                  _buildCallControlButton(
+                    icon: _isRecording ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                    label: _isRecording ? 'กำลังอัดเสียง' : 'เริ่มอัดเสียง',
+                    color: _isRecording ? AdminTheme.accentRed : Colors.grey,
+                    onTap: () => setState(() => _isRecording = !_isRecording),
+                  ),
+
+                  // Keypad
+                  _buildCallControlButton(
+                    icon: Icons.dialpad_rounded,
+                    label: 'แป้นตัวเลข',
+                    color: Colors.grey,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('ส่งสัญญาณเสียง DTMF พร้อมใช้งาน'), duration: Duration(seconds: 1)),
+                      );
+                    },
+                  ),
+
+                  // End Call & Adjudicate
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AdminTheme.accentRed,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('📞 วางสายเรียบร้อย (${_formatDuration(_callSeconds)}) • บันทึกคำให้การพร้อมส่งต่อคำตัดสิน')),
+                      );
+                      widget.onAdjudicateRequested();
+                    },
+                    icon: const Icon(Icons.call_end_rounded, size: 18),
+                    label: Text('วางสายและไปหน้าตัดสิน', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCallControlButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 4),
+            Text(label, style: GoogleFonts.kanit(fontSize: 10, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickTag(String label) {
+    return ActionChip(
+      label: Text(label, style: GoogleFonts.kanit(fontSize: 10)),
+      padding: EdgeInsets.zero,
+      onPressed: () {
+        final current = _callNotesCtrl.text;
+        _callNotesCtrl.text = current.isEmpty ? label : '$current\n• $label';
+      },
+    );
+  }
+}
+
+
