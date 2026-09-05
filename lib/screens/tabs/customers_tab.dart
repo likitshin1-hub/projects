@@ -1258,6 +1258,8 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
   bool _isMuted = false;
   bool _isSpeaker = true;
   bool _isRecording = true;
+  bool _showKeypad = false;
+  String _dialedDigits = '';
   String _activeParty = 'accused'; // 'accused' or 'reporter'
   final TextEditingController _callNotesCtrl = TextEditingController();
 
@@ -1274,8 +1276,7 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    // Simulate connecting within 1.5 seconds
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
         setState(() {
           _isConnected = true;
@@ -1316,6 +1317,7 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
       _activeParty = party;
       _isConnected = false;
       _callSeconds = 0;
+      _dialedDigits = '';
       _callTimer?.cancel();
     });
 
@@ -1327,6 +1329,20 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
         _startTimer();
       }
     });
+  }
+
+  void _onKeyPress(String val) {
+    setState(() {
+      _dialedDigits += val;
+    });
+  }
+
+  void _onKeyBackspace() {
+    if (_dialedDigits.isNotEmpty) {
+      setState(() {
+        _dialedDigits = _dialedDigits.substring(0, _dialedDigits.length - 1);
+      });
+    }
   }
 
   @override
@@ -1342,8 +1358,8 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       child: Container(
-        width: 680,
-        height: 640,
+        width: 700,
+        height: 680,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -1435,147 +1451,11 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
               ),
             ),
 
-            // Main Caller Visual & Voice Waveform
+            // Main Body: Either Normal In-Call UI or Keypad View
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // Avatar with Ripple Radar
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        if (_isConnected)
-                          AnimatedBuilder(
-                            animation: _pulseController,
-                            builder: (context, child) {
-                              return Container(
-                                width: 96 + (_pulseController.value * 28),
-                                height: 96 + (_pulseController.value * 28),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: targetColor.withValues(alpha: (1.0 - _pulseController.value) * 0.3),
-                                ),
-                              );
-                            },
-                          ),
-                        CircleAvatar(
-                          radius: 44,
-                          backgroundColor: targetColor,
-                          child: Text(
-                            targetName.isNotEmpty ? targetName.substring(0, targetName.length > 2 ? 2 : 1) : 'ID',
-                            style: GoogleFonts.kanit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Caller Details
-                    Text(
-                      targetName,
-                      style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$targetPhone • $targetRole',
-                      style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: targetColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'คดีร้องเรียน: ${widget.ticket.id} (${widget.ticket.category}) • ออเดอร์ ${widget.ticket.orderNo}',
-                        style: GoogleFonts.kanit(fontSize: 11, color: targetColor, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Sound Wave Visualizer Bars
-                    if (_isConnected)
-                      AnimatedBuilder(
-                        animation: _waveController,
-                        builder: (context, child) {
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(16, (index) {
-                              final waveOffset = (math.sin((_waveController.value * 2 * math.pi) + (index * 0.4)) + 1) / 2;
-                              final barHeight = 8.0 + (waveOffset * 24.0);
-                              return Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 2),
-                                width: 4,
-                                height: barHeight,
-                                decoration: BoxDecoration(
-                                  color: targetColor.withValues(alpha: 0.6 + (waveOffset * 0.4)),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              );
-                            }),
-                          );
-                        },
-                      )
-                    else
-                      Text('กำลังเชื่อมสัญญาณ RTK VoIP...', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
-
-                    const SizedBox(height: 16),
-
-                    // Live Investigation Statement Notes Box
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.edit_note_rounded, size: 18, color: AdminTheme.primaryBlue),
-                                  const SizedBox(width: 6),
-                                  Text('บันทึกคำให้การและการไต่สวนสด (Live Case Notes):', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              Text('ระบบบันทึกอัตโนมัติ', style: GoogleFonts.kanit(fontSize: 10, color: Colors.grey)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _callNotesCtrl,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              hintText: 'พิมพ์สรุปปากคำของคู่กรณี หรือคลิกข้อความลัดด้านล่าง...',
-                              hintStyle: GoogleFonts.kanit(fontSize: 11, color: Colors.grey),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              contentPadding: const EdgeInsets.all(10),
-                              isDense: true,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            children: [
-                              _buildQuickTag('🗣️ คู่กรณียอมรับข้อกล่าวหา'),
-                              _buildQuickTag('📦 ยืนยันพัสดุเสียหายจริง'),
-                              _buildQuickTag('🤝 ยินยอมชดใช้ค่าเสียหาย'),
-                              _buildQuickTag('🚫 ปฏิเสธและไม่ให้ความร่วมมือ'),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              child: _showKeypad
+                  ? _buildKeypadView(isDark, targetColor)
+                  : _buildNormalCallView(isDark, targetName, targetPhone, targetRole, targetColor),
             ),
 
             // In-Call Controls Bottom Bar
@@ -1612,15 +1492,16 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
                     onTap: () => setState(() => _isRecording = !_isRecording),
                   ),
 
-                  // Keypad
+                  // Keypad (Active Toggle)
                   _buildCallControlButton(
                     icon: Icons.dialpad_rounded,
-                    label: 'แป้นตัวเลข',
-                    color: Colors.grey,
+                    label: _showKeypad ? 'ซ่อนแป้น' : 'แป้นตัวเลข',
+                    color: _showKeypad ? AdminTheme.primaryBlue : Colors.grey,
+                    isActive: _showKeypad,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('ส่งสัญญาณเสียง DTMF พร้อมใช้งาน'), duration: Duration(seconds: 1)),
-                      );
+                      setState(() {
+                        _showKeypad = !_showKeypad;
+                      });
                     },
                   ),
 
@@ -1651,11 +1532,283 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
     );
   }
 
+  Widget _buildNormalCallView(bool isDark, String targetName, String targetPhone, String targetRole, Color targetColor) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          // Avatar with Ripple Radar
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              if (_isConnected)
+                AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, child) {
+                    return Container(
+                      width: 96 + (_pulseController.value * 28),
+                      height: 96 + (_pulseController.value * 28),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: targetColor.withValues(alpha: (1.0 - _pulseController.value) * 0.3),
+                      ),
+                    );
+                  },
+                ),
+              CircleAvatar(
+                radius: 44,
+                backgroundColor: targetColor,
+                child: Text(
+                  targetName.isNotEmpty ? targetName.substring(0, targetName.length > 2 ? 2 : 1) : 'ID',
+                  style: GoogleFonts.kanit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Caller Details
+          Text(
+            targetName,
+            style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '$targetPhone • $targetRole',
+            style: GoogleFonts.kanit(fontSize: 13, color: Colors.grey),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: targetColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'คดีร้องเรียน: ${widget.ticket.id} (${widget.ticket.category}) • ออเดอร์ ${widget.ticket.orderNo}',
+              style: GoogleFonts.kanit(fontSize: 11, color: targetColor, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Sound Wave Visualizer Bars
+          if (_isConnected)
+            AnimatedBuilder(
+              animation: _waveController,
+              builder: (context, child) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(16, (index) {
+                    final waveOffset = (math.sin((_waveController.value * 2 * math.pi) + (index * 0.4)) + 1) / 2;
+                    final barHeight = 8.0 + (waveOffset * 24.0);
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      width: 4,
+                      height: barHeight,
+                      decoration: BoxDecoration(
+                        color: targetColor.withValues(alpha: 0.6 + (waveOffset * 0.4)),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    );
+                  }),
+                );
+              },
+            )
+          else
+            Text('กำลังเชื่อมสัญญาณ RTK VoIP...', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
+
+          const SizedBox(height: 16),
+
+          // Live Investigation Statement Notes Box
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.edit_note_rounded, size: 18, color: AdminTheme.primaryBlue),
+                        const SizedBox(width: 6),
+                        Text('บันทึกคำให้การและการไต่สวนสด (Live Case Notes):', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    Text('ระบบบันทึกอัตโนมัติ', style: GoogleFonts.kanit(fontSize: 10, color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _callNotesCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'พิมพ์สรุปปากคำของคู่กรณี หรือคลิกข้อความลัดด้านล่าง...',
+                    hintStyle: GoogleFonts.kanit(fontSize: 11, color: Colors.grey),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.all(10),
+                    isDense: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    _buildQuickTag('🗣️ คู่กรณียอมรับข้อกล่าวหา'),
+                    _buildQuickTag('📦 ยืนยันพัสดุเสียหายจริง'),
+                    _buildQuickTag('🤝 ยินยอมชดใช้ค่าเสียหาย'),
+                    _buildQuickTag('🚫 ปฏิเสธและไม่ให้ความร่วมมือ'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeypadView(bool isDark, Color targetColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+      child: Column(
+        children: [
+          // Screen Display with Dialed Digits & Clear Button
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _dialedDigits.isEmpty ? 'กดหมายเลขโทรศัพท์ / ต่อสายภายใน...' : _dialedDigits,
+                    style: GoogleFonts.kanit(
+                      fontSize: _dialedDigits.isEmpty ? 14 : 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                      color: _dialedDigits.isEmpty ? Colors.grey : AdminTheme.primaryBlue,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (_dialedDigits.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.backspace_rounded, size: 20, color: AdminTheme.accentRed),
+                    onPressed: _onKeyBackspace,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // 3x4 Phone Keypad Grid
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildKeypadButton('1', '', isDark),
+                    _buildKeypadButton('2', 'ABC', isDark),
+                    _buildKeypadButton('3', 'DEF', isDark),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildKeypadButton('4', 'GHI', isDark),
+                    _buildKeypadButton('5', 'JKL', isDark),
+                    _buildKeypadButton('6', 'MNO', isDark),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildKeypadButton('7', 'PQRS', isDark),
+                    _buildKeypadButton('8', 'TUV', isDark),
+                    _buildKeypadButton('9', 'WXYZ', isDark),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildKeypadButton('*', '', isDark),
+                    _buildKeypadButton('0', '+', isDark),
+                    _buildKeypadButton('#', '', isDark),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Back to call screen button
+          TextButton.icon(
+            onPressed: () => setState(() => _showKeypad = false),
+            icon: const Icon(Icons.arrow_back_rounded, size: 16),
+            label: Text('กลับไปหน้าสนทนาและบันทึกปากคำ', style: GoogleFonts.kanit(fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeypadButton(String digit, String subtext, bool isDark) {
+    return InkWell(
+      onTap: () => _onKeyPress(digit),
+      borderRadius: BorderRadius.circular(36),
+      child: Container(
+        width: 68,
+        height: 54,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              digit,
+              style: GoogleFonts.kanit(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            if (subtext.isNotEmpty)
+              Text(
+                subtext,
+                style: GoogleFonts.kanit(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCallControlButton({
     required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
+    bool isActive = false,
   }) {
     return InkWell(
       onTap: onTap,
@@ -1668,13 +1821,14 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: isActive ? color.withValues(alpha: 0.25) : color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
+                border: isActive ? Border.all(color: color, width: 1.5) : null,
               ),
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 4),
-            Text(label, style: GoogleFonts.kanit(fontSize: 10, color: Colors.grey)),
+            Text(label, style: GoogleFonts.kanit(fontSize: 10, color: isActive ? color : Colors.grey, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),
@@ -1692,5 +1846,3 @@ class _VoIPInvestigationCallDialogState extends State<_VoIPInvestigationCallDial
     );
   }
 }
-
-
