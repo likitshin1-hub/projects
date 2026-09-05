@@ -108,8 +108,28 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
       _centerLat = driver.lat;
       _centerLng = driver.lng;
       _showInfoWindow = true;
-      if (_zoom < 14.0) _zoom = 14.5;
+      _zoom = 16.0;
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.gps_fixed_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '🎯 โฟกัสพิกัดไรเดอร์บนแมพ: ${driver.driverName} (${driver.vehiclePlate}) • ${driver.currentRoad}',
+                style: GoogleFonts.kanit(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AdminTheme.primaryBlue,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _resetToBangkokCenter() {
@@ -1915,51 +1935,10 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
   void _showCallDialog(DriverTrackingInfo driver) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.phone_in_talk_rounded, color: AdminTheme.accentGreen),
-            const SizedBox(width: 8),
-            Text('โทรติดต่อไรเดอร์: ${driver.driverName}', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('• เบอร์โทรศัพท์: ${driver.driverPhone}', style: GoogleFonts.kanit(fontSize: 13)),
-            const SizedBox(height: 6),
-            Text('• ทะเบียนรถ: ${driver.vehiclePlate}', style: GoogleFonts.kanit(fontSize: 13)),
-            const SizedBox(height: 6),
-            Text('• พิกัดปัจจุบัน: ${driver.currentRoad}', style: GoogleFonts.kanit(fontSize: 13)),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AdminTheme.accentGreen.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-              child: Row(
-                children: [
-                  const Icon(Icons.mic_rounded, color: AdminTheme.accentGreen, size: 20),
-                  const SizedBox(width: 8),
-                  Text('ระบบ VoIP Web Dispatcher พร้อมเชื่อมต่อสาย', style: GoogleFonts.kanit(fontSize: 12, color: AdminTheme.accentGreen)),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('ยกเลิก', style: GoogleFonts.kanit())),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: AdminTheme.accentGreen, foregroundColor: Colors.white),
-            onPressed: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('กำลังโทรออกไปยัง ${driver.driverName} (${driver.driverPhone})...')),
-              );
-            },
-            icon: const Icon(Icons.call_rounded, size: 16),
-            label: Text('เริ่มการโทรออก', style: GoogleFonts.kanit()),
-          ),
-        ],
+      barrierDismissible: false,
+      builder: (ctx) => _RiderVoIPCallDialog(
+        driver: driver,
+        dataService: widget.dataService,
       ),
     );
   }
@@ -2202,53 +2181,13 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
   void _showDispatchHelpDialog(DriverTrackingInfo driver) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.emergency_rounded, color: AdminTheme.accentRed),
-            const SizedBox(width: 8),
-            Text('ส่งหน่วยช่วยเหลือ / โอนย้ายพัสดุ', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('พิกัดเหตุฉุกเฉิน: ${driver.currentRoad}', style: GoogleFonts.kanit(fontSize: 13, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            Text('เหตุการณ์: ${driver.sosReason ?? "ไม่ระบุ"}', style: GoogleFonts.kanit(fontSize: 12, color: AdminTheme.accentRed)),
-            const Divider(height: 16),
-            Text('ตัวเลือกการจัดการ:', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.local_shipping_rounded, color: AdminTheme.primaryBlue),
-              title: Text('ส่งรถยก / ช่างซ่อมฉุกเฉินไปยังพิกัด', style: GoogleFonts.kanit(fontSize: 13)),
-              subtitle: Text('ประสานศูนย์ซ่อมพาร์ตเนอร์ TB MoveHub ช่วยเหลือภายใน 15 นาที', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('🚀 ส่งคำสั่งเรียกรถยกและทีมช่างฉุกเฉินเรียบร้อย')),
-                );
-              },
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.two_wheeler_rounded, color: AdminTheme.accentGreen),
-              title: Text('จัดสรรไรเดอร์สำรองมารับพัสดุต่อ', style: GoogleFonts.kanit(fontSize: 13)),
-              subtitle: Text('โอนออเดอร์ ${driver.activeOrderNo ?? ""} ให้ไรเดอร์ใกล้เคียงนำส่งต่อทันที', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('📦 จัดสรรไรเดอร์สำรองรับงานต่อเรียบร้อย')),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('ปิด', style: GoogleFonts.kanit())),
-        ],
+      barrierDismissible: false,
+      builder: (ctx) => _EmergencyDispatchDialog(
+        driver: driver,
+        dataService: widget.dataService,
+        onPanRequested: () {
+          _panToDriver(driver);
+        },
       ),
     );
   }
@@ -2437,5 +2376,1079 @@ class _GoogleRoutePolylinePainter extends CustomPainter {
         oldDelegate.centerLng != centerLng ||
         oldDelegate.zoom != zoom ||
         oldDelegate.pulseValue != pulseValue;
+  }
+}
+
+
+// =============================================================
+// INTERACTIVE RIDER VOIP CALL DIALOG WITH DTMF DIALPAD KEYPAD
+// =============================================================
+class _RiderVoIPCallDialog extends StatefulWidget {
+  final DriverTrackingInfo driver;
+  final AdminDataService dataService;
+
+  const _RiderVoIPCallDialog({
+    required this.driver,
+    required this.dataService,
+  });
+
+  @override
+  State<_RiderVoIPCallDialog> createState() => _RiderVoIPCallDialogState();
+}
+
+class _RiderVoIPCallDialogState extends State<_RiderVoIPCallDialog> with TickerProviderStateMixin {
+  late AnimationController _waveController;
+  late AnimationController _pulseController;
+  Timer? _callTimer;
+  int _callSeconds = 0;
+  bool _isConnected = false;
+  bool _isMuted = false;
+  bool _isSpeaker = true;
+  bool _isRecording = true;
+  bool _showKeypad = false;
+  String _dialedDigits = '';
+  final TextEditingController _callNotesCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+        });
+        _startTimer();
+      }
+    });
+  }
+
+  void _startTimer() {
+    _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _callSeconds++;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _callTimer?.cancel();
+    _waveController.dispose();
+    _pulseController.dispose();
+    _callNotesCtrl.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(int seconds) {
+    final mins = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (seconds % 60).toString().padLeft(2, '0');
+    return '$mins:$secs';
+  }
+
+  void _onKeyPress(String val) {
+    setState(() {
+      _dialedDigits += val;
+    });
+  }
+
+  void _onKeyBackspace() {
+    if (_dialedDigits.isNotEmpty) {
+      setState(() {
+        _dialedDigits = _dialedDigits.substring(0, _dialedDigits.length - 1);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final driver = widget.driver;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      child: Container(
+        width: 720,
+        height: 690,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            // Top Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AdminTheme.accentGreen.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.phone_in_talk_rounded, color: AdminTheme.accentGreen, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ระบบโทรสื่อสารไรเดอร์ภาคสนาม (TB MoveHub Web VoIP Dispatcher)',
+                          style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _isConnected ? AdminTheme.accentGreen : AdminTheme.accentOrange,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _isConnected
+                                  ? 'เชื่อมต่อสายสำเร็จ • กำลังสนทนา ${_formatDuration(_callSeconds)}'
+                                  : 'กำลังต่อสายสัญญาณไปยังอุปกรณ์ไรเดอร์...',
+                              style: GoogleFonts.kanit(
+                                fontSize: 12,
+                                color: _isConnected ? AdminTheme.accentGreen : AdminTheme.accentOrange,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content Body
+            Expanded(
+              child: Row(
+                children: [
+                  // Left: Call Profile & Interactive Dialpad or Waveform
+                  Expanded(
+                    flex: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                        border: Border(right: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Driver Avatar
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              if (_isConnected)
+                                AnimatedBuilder(
+                                  animation: _pulseController,
+                                  builder: (context, child) {
+                                    return Container(
+                                      width: 80 + (_pulseController.value * 20),
+                                      height: 80 + (_pulseController.value * 20),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AdminTheme.accentGreen.withValues(alpha: 0.25 * (1.0 - _pulseController.value)),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              CircleAvatar(
+                                radius: 36,
+                                backgroundColor: AdminTheme.accentGreen.withValues(alpha: 0.2),
+                                child: Text(
+                                  driver.driverName.isNotEmpty ? driver.driverName.substring(0, 1) : 'D',
+                                  style: GoogleFonts.kanit(fontSize: 26, fontWeight: FontWeight.bold, color: AdminTheme.accentGreen),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            driver.driverName,
+                            style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            '${driver.driverPhone} • ${driver.vehiclePlate} (${driver.vehicleType})',
+                            style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: driver.isSosAlert ? AdminTheme.accentRed.withValues(alpha: 0.15) : AdminTheme.primaryBlue.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              driver.isSosAlert ? '🚨 สถานะแจ้งเหตุฉุกเฉิน (SOS)' : '🛵 สถานะ: กำลังปฏิบัติหน้าที่',
+                              style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold, color: driver.isSosAlert ? AdminTheme.accentRed : AdminTheme.primaryBlue),
+                            ),
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // Either Dialpad Keypad or Audio Waveform
+                          if (_showKeypad) ...[
+                            _VoIPKeypadWidget(
+                              dialedDigits: _dialedDigits,
+                              onKeyPressed: _onKeyPress,
+                              onBackspace: _onKeyBackspace,
+                            ),
+                          ] else ...[
+                            // Audio Waveform
+                            Container(
+                              height: 60,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(18, (index) {
+                                  return AnimatedBuilder(
+                                    animation: _waveController,
+                                    builder: (context, child) {
+                                      final baseHeight = _isConnected ? (12.0 + (math.sin((index * 0.45) + (_waveController.value * 6.28)) * 18.0).abs()) : 4.0;
+                                      return Container(
+                                        width: 4,
+                                        height: baseHeight,
+                                        margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                                        decoration: BoxDecoration(
+                                          color: _isConnected ? AdminTheme.accentGreen : Colors.grey,
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: _isRecording ? Colors.red : Colors.grey,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'บันทึกเสียงสนทนาเพื่อความโปร่งใส (Cloud VoIP Encrypted)',
+                                  style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ],
+
+                          const Spacer(),
+
+                          // Quick In-Call Action Grid
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildCircleControl(
+                                icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                                label: _isMuted ? 'เปิดไมค์' : 'ปิดไมค์',
+                                isActive: _isMuted,
+                                activeColor: AdminTheme.accentRed,
+                                onTap: () => setState(() => _isMuted = !_isMuted),
+                              ),
+                              const SizedBox(width: 16),
+                              _buildCircleControl(
+                                icon: _isSpeaker ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                                label: 'ลำโพง',
+                                isActive: _isSpeaker,
+                                activeColor: AdminTheme.primaryBlue,
+                                onTap: () => setState(() => _isSpeaker = !_isSpeaker),
+                              ),
+                              const SizedBox(width: 16),
+                              _buildCircleControl(
+                                icon: Icons.dialpad_rounded,
+                                label: _showKeypad ? 'ซ่อนแป้น' : 'แป้นตัวเลข',
+                                isActive: _showKeypad,
+                                activeColor: AdminTheme.accentOrange,
+                                onTap: () => setState(() => _showKeypad = !_showKeypad),
+                              ),
+                              const SizedBox(width: 16),
+                              _buildCircleControl(
+                                icon: Icons.radio_rounded,
+                                label: 'ส่งสัญญาณวิทยุ',
+                                isActive: false,
+                                activeColor: AdminTheme.primaryBlue,
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('📻 ส่งเสียงเตือน Push-to-Talk ปลุกหน้าจอไรเดอร์ ${driver.driverName} สำเร็จ'),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Right: Live Dispatch Notes & Information
+                  Expanded(
+                    flex: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'บันทึกข้อความสรุปการสนทนา',
+                            style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: _callNotesCtrl,
+                              maxLines: null,
+                              expands: true,
+                              textAlignVertical: TextAlignVertical.top,
+                              decoration: InputDecoration(
+                                hintText: 'พิมพ์บันทึกรายละเอียดการสอบถาม เช่น สภาพร่างกาย, สาเหตุรถดับ, สถานะพัสดุ...',
+                                hintStyle: GoogleFonts.kanit(fontSize: 12, color: Colors.grey),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                filled: true,
+                                fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text('แท็กข้อความด่วน:', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              _buildQuickTag('✅ ปลอดภัยดี/ไร้บาดเจ็บ'),
+                              _buildQuickTag('⚙️ รถสตาร์ทไม่ติด/ยางรั่ว'),
+                              _buildQuickTag('🌧️ หลบฝนตกหนัก'),
+                              _buildQuickTag('📦 พัสดุปลอดภัย'),
+                              _buildQuickTag('🚑 ต้องการหน่วยกู้ภัย'),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Live Telemetry Mini Info
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('พิกัดถนน:', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                                    Text(driver.currentRoad, style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('ออเดอร์ที่ถืออยู่:', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                                    Text(driver.activeOrderNo ?? "ไม่มี", style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold, color: AdminTheme.primaryBlue)),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('ระดับแบตเตอรี่:', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                                    Text('${driver.batteryPercent}% • ความเร็ว ${driver.speedKmH.toInt()} กม./ชม.', style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Bottom Actions
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AdminTheme.accentRed,
+                      side: const BorderSide(color: AdminTheme.accentRed),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('🛑 วางสายการโทรเรียบร้อย')),
+                      );
+                    },
+                    icon: const Icon(Icons.call_end_rounded, size: 18),
+                    label: Text('วางสาย (End Call)', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AdminTheme.accentGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('✅ บันทึกประวัติการโทรคุยกับไรเดอร์ ${driver.driverName} และอัปเดตลงระบบเรียบร้อย'),
+                          backgroundColor: AdminTheme.accentGreen,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.save_rounded, size: 18),
+                    label: Text('บันทึกและจบการโทร', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCircleControl({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isActive ? activeColor : Colors.grey.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: isActive ? Colors.white : Colors.grey.shade700, size: 20),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: GoogleFonts.kanit(fontSize: 10, color: Colors.grey)),
+      ],
+    );
+  }
+
+  Widget _buildQuickTag(String text) {
+    return InkWell(
+      onTap: () {
+        if (_callNotesCtrl.text.isEmpty) {
+          _callNotesCtrl.text = text;
+        } else {
+          _callNotesCtrl.text += ' • $text';
+        }
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AdminTheme.primaryBlue.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AdminTheme.primaryBlue.withValues(alpha: 0.3)),
+        ),
+        child: Text(text, style: GoogleFonts.kanit(fontSize: 11, color: AdminTheme.primaryBlue)),
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------------
+// PHONE KEYPAD / DIALPAD WIDGET
+// -------------------------------------------------------------
+class _VoIPKeypadWidget extends StatelessWidget {
+  final String dialedDigits;
+  final Function(String) onKeyPressed;
+  final VoidCallback onBackspace;
+
+  const _VoIPKeypadWidget({
+    required this.dialedDigits,
+    required this.onKeyPressed,
+    required this.onBackspace,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final keys = [
+      {'num': '1', 'sub': ''},
+      {'num': '2', 'sub': 'ABC'},
+      {'num': '3', 'sub': 'DEF'},
+      {'num': '4', 'sub': 'GHI'},
+      {'num': '5', 'sub': 'JKL'},
+      {'num': '6', 'sub': 'MNO'},
+      {'num': '7', 'sub': 'PQRS'},
+      {'num': '8', 'sub': 'TUV'},
+      {'num': '9', 'sub': 'WXYZ'},
+      {'num': '*', 'sub': ''},
+      {'num': '0', 'sub': '+'},
+      {'num': '#', 'sub': ''},
+    ];
+
+    return Container(
+      width: 250,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Screen LCD
+          Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    dialedDigits.isEmpty ? 'กดหมายเลข DTMF...' : dialedDigits,
+                    style: GoogleFonts.kanit(
+                      fontSize: dialedDigits.isEmpty ? 12 : 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                      color: dialedDigits.isEmpty ? Colors.grey : AdminTheme.primaryBlue,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (dialedDigits.isNotEmpty)
+                  InkWell(
+                    onTap: onBackspace,
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(Icons.backspace_outlined, size: 16, color: Colors.grey),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Keypad Matrix
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: keys.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 1.5,
+            ),
+            itemBuilder: (context, idx) {
+              final k = keys[idx];
+              return InkWell(
+                onTap: () => onKeyPressed(k['num']!),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        k['num']!,
+                        style: GoogleFonts.kanit(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      if (k['sub']!.isNotEmpty)
+                        Text(
+                          k['sub']!,
+                          style: GoogleFonts.kanit(fontSize: 8, color: Colors.grey, height: 0.9),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================
+// INTERACTIVE EMERGENCY DISPATCH COMMAND CENTER DIALOG
+// =============================================================
+class _EmergencyDispatchDialog extends StatefulWidget {
+  final DriverTrackingInfo driver;
+  final AdminDataService dataService;
+  final VoidCallback onPanRequested;
+
+  const _EmergencyDispatchDialog({
+    required this.driver,
+    required this.dataService,
+    required this.onPanRequested,
+  });
+
+  @override
+  State<_EmergencyDispatchDialog> createState() => _EmergencyDispatchDialogState();
+}
+
+class _EmergencyDispatchDialogState extends State<_EmergencyDispatchDialog> {
+  int _selectedTowServiceIndex = 0;
+  int _selectedBackupRiderIndex = 0;
+  bool _isDispatchingTow = false;
+  bool _isHandingOver = false;
+
+  final List<Map<String, String>> _towServices = [
+    {
+      'name': 'TB Express Rescue Hub 1 (สาขาลาดพร้าว)',
+      'eta': '10-12 นาที',
+      'distance': '2.4 กม.',
+      'type': 'ทีมช่างซ่อมมอเตอร์ไซค์เคลื่อนที่เร็ว',
+      'phone': '02-888-1111',
+    },
+    {
+      'name': 'สยามรถยก 24 ชม. (รัชดา-พระราม 9)',
+      'eta': '18-20 นาที',
+      'distance': '4.1 กม.',
+      'type': 'รถยกสไลด์ออน & ซ่อมฉุกเฉิน',
+      'phone': '02-888-2222',
+    },
+    {
+      'name': 'ศูนย์บริการพาร์ตเนอร์สุขุมวิท',
+      'eta': '25 นาที',
+      'distance': '6.8 กม.',
+      'type': 'ศูนย์บริการเปลี่ยนถ่ายยาง/แบตเตอรี่',
+      'phone': '02-888-3333',
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final driver = widget.driver;
+
+    final availableDrivers = widget.dataService.trackingDrivers
+        .where((d) => d.driverId != driver.driverId && d.status == TrackingStatus.available)
+        .toList();
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      child: Container(
+        width: 760,
+        height: 720,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: AdminTheme.accentRed.withValues(alpha: 0.15),
+                border: Border(bottom: BorderSide(color: AdminTheme.accentRed.withValues(alpha: 0.3))),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AdminTheme.accentRed,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.emergency_rounded, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ศูนย์สั่งการกู้ภัยและช่วยเหลือฉุกเฉิน (Emergency Command & Rescue Dispatch)',
+                          style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16, color: AdminTheme.accentRed),
+                        ),
+                        Text(
+                          'ไรเดอร์: ${driver.driverName} (${driver.vehiclePlate}) • เหตุฉุกเฉิน: ${driver.sosReason ?? "แจ้งขอความช่วยเหลือด่วน"}',
+                          style: GoogleFonts.kanit(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Location & Incident Summary Banner
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on_rounded, color: AdminTheme.accentRed, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('พิกัดที่เกิดเหตุ:', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                                Text('${driver.currentRoad} (GPS: ${driver.lat.toStringAsFixed(4)}, ${driver.lng.toStringAsFixed(4)})', style: GoogleFonts.kanit(fontSize: 13, fontWeight: FontWeight.bold)),
+                                Text('ออเดอร์ในความรับผิดชอบ: ${driver.activeOrderNo ?? "ไม่มีออเดอร์ค้างส่ง"}', style: GoogleFonts.kanit(fontSize: 12, color: AdminTheme.primaryBlue)),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AdminTheme.primaryBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              widget.onPanRequested();
+                            },
+                            icon: const Icon(Icons.my_location_rounded, size: 16),
+                            label: Text('ส่องพิกัดบนแมพ', style: GoogleFonts.kanit(fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Option 1: Roadside Assistance / Towing
+                    Text('1. สั่งการรถยก / ทีมช่างซ่อมฉุกเฉิน (Roadside Tow & Repair Service)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 10),
+                    ...List.generate(_towServices.length, (idx) {
+                      final item = _towServices[idx];
+                      final isSelected = _selectedTowServiceIndex == idx;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AdminTheme.primaryBlue.withValues(alpha: 0.08) : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isSelected ? AdminTheme.primaryBlue : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                            width: isSelected ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: RadioListTile<int>(
+                          value: idx,
+                          groupValue: _selectedTowServiceIndex,
+                          onChanged: (val) => setState(() => _selectedTowServiceIndex = val!),
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(item['name']!, style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13)),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AdminTheme.accentGreen.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text('ETA: ${item['eta']}', style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold, color: AdminTheme.accentGreen)),
+                              ),
+                            ],
+                          ),
+                          subtitle: Text('${item['type']} • ระยะทาง ${item['distance']} • สายด่วน ${item['phone']}', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                        ),
+                      );
+                    }),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AdminTheme.accentRed,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: _isDispatchingTow
+                            ? null
+                            : () {
+                                setState(() => _isDispatchingTow = true);
+                                Future.delayed(const Duration(milliseconds: 900), () {
+                                  if (mounted) {
+                                    setState(() => _isDispatchingTow = false);
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('🚀 สั่งการ ${_towServices[_selectedTowServiceIndex]['name']} เดินทางไปช่วยเหลือไรเดอร์ ${driver.driverName} เรียบร้อยแล้ว (ETA ${_towServices[_selectedTowServiceIndex]['eta']})'),
+                                        backgroundColor: AdminTheme.accentRed,
+                                      ),
+                                    );
+                                  }
+                                });
+                              },
+                        icon: const Icon(Icons.send_rounded, size: 16),
+                        label: Text(_isDispatchingTow ? 'กำลังส่งคำสั่ง...' : '🚀 สั่งการรถยก/ช่างฉุกเฉินทันที', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+
+                    const Divider(height: 32),
+
+                    // Option 2: Handover to backup driver
+                    Text('2. จัดสรรไรเดอร์สำรองโอนงานพัสดุ (Backup Courier Handover)', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 6),
+                    Text('เลือกไรเดอร์ที่สแตนด์บายอยู่ใกล้เคียงเพื่อวิ่งไปรับพัสดุต่อจากจุดเกิดเหตุ:', style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 10),
+
+                    if (availableDrivers.isEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Center(
+                          child: Text('ไม่มีไรเดอร์สแตนด์บายว่างในขณะนี้ ระบบจะบรอดแคสต์งานให้อัตโนมัติ', style: GoogleFonts.kanit(color: Colors.grey)),
+                        ),
+                      ),
+                    ] else ...[
+                      ...List.generate(availableDrivers.length > 2 ? 2 : availableDrivers.length, (idx) {
+                        final bDriver = availableDrivers[idx];
+                        final isSelected = _selectedBackupRiderIndex == idx;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AdminTheme.accentGreen.withValues(alpha: 0.08) : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSelected ? AdminTheme.accentGreen : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                              width: isSelected ? 1.5 : 1.0,
+                            ),
+                          ),
+                          child: RadioListTile<int>(
+                            value: idx,
+                            groupValue: _selectedBackupRiderIndex,
+                            onChanged: (val) => setState(() => _selectedBackupRiderIndex = val!),
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('${bDriver.driverName} (${bDriver.vehiclePlate})', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13)),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AdminTheme.accentGreen.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text('สแตนด์บายพร้อม', style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold, color: AdminTheme.accentGreen)),
+                                ),
+                              ],
+                            ),
+                            subtitle: Text('พิกัด: ${bDriver.currentRoad} • ${bDriver.vehicleType} • โทร: ${bDriver.driverPhone}', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey)),
+                          ),
+                        );
+                      }),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AdminTheme.accentGreen,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: _isHandingOver
+                              ? null
+                              : () {
+                                  setState(() => _isHandingOver = true);
+                                  Future.delayed(const Duration(milliseconds: 900), () {
+                                    if (mounted) {
+                                      final targetBackup = availableDrivers[_selectedBackupRiderIndex];
+                                      setState(() => _isHandingOver = false);
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('📦 โอนถ่ายออเดอร์ ${driver.activeOrderNo ?? ""} ให้ไรเดอร์สำรอง ${targetBackup.driverName} เรียบร้อยแล้ว'),
+                                          backgroundColor: AdminTheme.accentGreen,
+                                        ),
+                                      );
+                                    }
+                                  });
+                                },
+                          icon: const Icon(Icons.swap_horiz_rounded, size: 16),
+                          label: Text(_isHandingOver ? 'กำลังโอนงาน...' : '📦 ยืนยันโอนพัสดุให้ไรเดอร์สำรอง', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+
+                    const Divider(height: 32),
+
+                    // Option 3: Emergency Hotlines
+                    Text('3. ประสานงานสายด่วนฉุกเฉินระดับชาติ', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AdminTheme.accentRed,
+                              side: const BorderSide(color: AdminTheme.accentRed),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('🚑 ส่งข้อมูลพิกัด GPS ไปยังศูนย์สั่งการแพทย์ฉุกเฉิน 1669 เรียบร้อย')),
+                              );
+                            },
+                            icon: const Icon(Icons.local_hospital_rounded, size: 18),
+                            label: Text('กู้ชีพ 1669', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AdminTheme.primaryBlue,
+                              side: const BorderSide(color: AdminTheme.primaryBlue),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('🚓 ประสานงานเจ้าหน้าที่ตำรวจจราจร 191 เรียบร้อย')),
+                              );
+                            },
+                            icon: const Icon(Icons.local_police_rounded, size: 18),
+                            label: Text('ตำรวจ 191', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AdminTheme.accentOrange,
+                              side: const BorderSide(color: AdminTheme.accentOrange),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('📻 ส่งข้อมูลการจราจรเข้าศูนย์วิทยุ จส.100 เรียบร้อย')),
+                              );
+                            },
+                            icon: const Icon(Icons.radio_rounded, size: 18),
+                            label: Text('วิทยุ จส.100', style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Footer
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('ปิดหน้าต่าง', style: GoogleFonts.kanit()),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
