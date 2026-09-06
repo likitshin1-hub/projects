@@ -30,7 +30,19 @@ class AdminDataService extends ChangeNotifier {
   bool notifyNewOrder = true;
   bool notifyNewDriver = true;
   bool notifyWithdraw = true;
+  bool soundAlertsEnabled = true;
+  bool aiAutoDispatchEnabled = true;
+  int dispatchRadiusKm = 10;
+  int driverAcceptTimeoutSeconds = 45;
+  bool helmetVerificationRequired = true;
+  bool require2FAForAdmins = true;
+  int sessionTimeoutMinutes = 30;
+  bool emergencyLockdown = false;
   String apiBaseUrl = 'http://127.0.0.1:8000/api';
+  String apiSecretKey = 'tb_live_sec_994821a8f940b12';
+  String googleMapsApiKey = 'AIzaSyA8892_TBMoveHub_LiveKey';
+  String lineNotifyToken = 'LINE_NOTIFY_TB_ADMIN_WAR_ROOM';
+  String fcmServerKey = 'AAAA_fcm_tbmovehub_key_8849';
 
   List<VehiclePricingConfig> pricingConfigs = [];
   List<CustomerModel> customers = [];
@@ -692,6 +704,12 @@ class AdminDataService extends ChangeNotifier {
       ),
     );
     assignOrderToDriver(candidate.driverId, orderNo);
+  }
+
+  void toggleEmergencyLockdown() {
+    emergencyLockdown = !emergencyLockdown;
+    addAuditLog('ระบบล็อกดาวน์ฉุกเฉิน (Emergency Lockdown)', emergencyLockdown ? 'เปิดใช้งานล็อกดาวน์' : 'ยกเลิกการล็อกดาวน์');
+    notifyListeners();
   }
 
   void simulateGpsMovement() {
