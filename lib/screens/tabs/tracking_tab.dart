@@ -507,7 +507,7 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
           // Main Map Viewport & Right Dispatch Panel
           Expanded(
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // 1. Google Maps Viewport (Left Area)
                 Expanded(
@@ -606,14 +606,14 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
                               Positioned(
                                 top: 16,
                                 left: 16,
-                                child: _buildGoogleMapsSearchBar(isDark),
+                                child: _buildGoogleMapsSearchBar(isDark, mapWidth),
                               ),
 
                               // 1.6 Google Maps Quick Filter Chips (Below Search Bar)
                               Positioned(
                                 top: 76,
                                 left: 16,
-                                child: _buildGoogleQuickFilterChips(),
+                                child: _buildGoogleQuickFilterChips(mapWidth),
                               ),
 
                               // 1.7 Google Maps Satellite / Layer Switcher (Bottom Left Thumbnail)
@@ -743,14 +743,17 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
   // GOOGLE MAPS TILE ENGINE & CANVAS
   // -------------------------------------------------------------
   Widget _buildGoogleMapsCanvas(double width, double height, bool isDark) {
-    final int zoomInt = _zoom.floor();
+    if (width <= 0 || height <= 0 || width.isInfinite || height.isInfinite || width.isNaN || height.isNaN) {
+      return Container(color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF2EFE9));
+    }
+    final int zoomInt = _zoom.floor().clamp(1, 19);
     final double scale = math.pow(2.0, _zoom - zoomInt).toDouble();
     final centerTileX = _lngToTileX(_centerLng, zoomInt);
     final centerTileY = _latToTileY(_centerLat, zoomInt);
 
     final double tilePixelSize = 256.0 * scale;
-    final int tilesAcross = (width / 256).ceil() + 2;
-    final int tilesDown = (height / 256).ceil() + 2;
+    final int tilesAcross = ((width / 256).ceil() + 2).clamp(1, 20);
+    final int tilesDown = ((height / 256).ceil() + 2).clamp(1, 20);
 
     final int startTileX = centerTileX.floor() - (tilesAcross ~/ 2);
     final int startTileY = centerTileY.floor() - (tilesDown ~/ 2);
@@ -840,9 +843,9 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
   // -------------------------------------------------------------
   // GOOGLE MAPS UI CONTROLS & WIDGETS
   // -------------------------------------------------------------
-  Widget _buildGoogleMapsSearchBar(bool isDark) {
+  Widget _buildGoogleMapsSearchBar(bool isDark, double mapWidth) {
     return Container(
-      width: 380,
+      width: math.min(380.0, math.max(100.0, mapWidth - 32)),
       height: 48,
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -913,25 +916,27 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildGoogleQuickFilterChips() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+  Widget _buildGoogleQuickFilterChips(double mapWidth) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: math.max(100.0, mapWidth - 32)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.75),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             // Status filters
             _buildQuickChip('📍 ทั้งหมด', _statusFilter == 'all', () => setState(() => _statusFilter = 'all')),
             _buildQuickChip('🟢 ว่าง', _statusFilter == 'available', () => setState(() => _statusFilter = 'available')),
@@ -992,6 +997,7 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -1777,7 +1783,7 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
   }
 
   double _latToTileY(double lat, int zoom) {
-    final latRad = lat * math.pi / 180.0;
+    final latRad = (lat * math.pi / 180.0).clamp(-1.4844222, 1.4844222);
     return (1.0 - (math.log(math.tan(latRad) + 1.0 / math.cos(latRad)) / math.pi)) / 2.0 * (1 << zoom);
   }
 
@@ -1793,11 +1799,11 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
     final scale = math.pow(2.0, zoom) * 256.0;
 
     final double xCenter = (centerLng + 180.0) / 360.0 * scale;
-    final double latRadCenter = centerLat * math.pi / 180.0;
+    final double latRadCenter = (centerLat * math.pi / 180.0).clamp(-1.4844222, 1.4844222);
     final double yCenter = (1.0 - (math.log(math.tan(latRadCenter) + 1.0 / math.cos(latRadCenter)) / math.pi)) / 2.0 * scale;
 
     final double xPoint = (lng + 180.0) / 360.0 * scale;
-    final double latRadPoint = lat * math.pi / 180.0;
+    final double latRadPoint = (lat * math.pi / 180.0).clamp(-1.4844222, 1.4844222);
     final double yPoint = (1.0 - (math.log(math.tan(latRadPoint) + 1.0 / math.cos(latRadPoint)) / math.pi)) / 2.0 * scale;
 
     final double screenX = (screenWidth / 2.0) + (xPoint - xCenter);
@@ -2586,6 +2592,8 @@ class _GoogleMapsVectorOverlayPainter extends CustomPainter {
   }
 
   void _drawHubGeofence(Canvas canvas, Offset center, String label, Color color) {
+    if (center.dx.isNaN || center.dy.isNaN || center.dx.isInfinite || center.dy.isInfinite) return;
+    if (center.dx < -300 || center.dx > 4000 || center.dy < -300 || center.dy > 4000) return;
     final circlePaint = Paint()
       ..color = color.withValues(alpha: 0.12)
       ..style = PaintingStyle.fill;
