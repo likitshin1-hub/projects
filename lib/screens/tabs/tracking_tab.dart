@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/admin_models.dart';
 import '../../services/admin_data_service.dart';
+import '../../services/location_helper.dart';
 import '../../theme/admin_theme.dart';
 
 enum MapLayerType {
@@ -34,12 +35,20 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
   bool _showInfoWindow = true;
   MapLayerType _currentLayer = MapLayerType.roadmap;
 
-  // Google Maps Viewport Coordinates (Bangkok Center)
-  double _centerLat = 13.7563;
-  double _centerLng = 100.5018;
-  double _zoom = 13.0;
-  final double _minZoom = 10.0;
-  final double _maxZoom = 18.0;
+  // Real-time Viewport & Active Zone (Bangkok & Chonburi Zone)
+  double _centerLat = 13.3611;
+  double _centerLng = 100.9847;
+  double _zoom = 12.0;
+  final double _minZoom = 8.0;
+  final double _maxZoom = 18.5;
+  String _selectedZone = 'all';
+
+  // Real Device Geolocation Telemetry (HTML5 GPS)
+  double? _myDeviceLat;
+  double? _myDeviceLng;
+  double? _myDeviceAccuracy;
+  String _myDeviceAddress = 'กำลังตรวจจับพิกัดเครื่อง...';
+  bool _isLocatingDevice = false;
 
   late AnimationController _pulseController;
 
@@ -56,6 +65,11 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
+
+    // Auto-detect real user device GPS location on load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _detectMyCurrentLocation(autoPan: false);
+    });
   }
 
   @override
@@ -132,13 +146,133 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
     );
   }
 
-  void _resetToBangkokCenter() {
+  Future<void> _detectMyCurrentLocation({bool autoPan = true}) async {
     setState(() {
-      _centerLat = 13.7563;
-      _centerLng = 100.5018;
-      _zoom = 12.5;
-      _selectedDriver = null;
+      _isLocatingDevice = true;
     });
+
+    try {
+      final loc = await LocationService.getCurrentDeviceLocation();
+      if (!mounted) return;
+
+      setState(() {
+        _isLocatingDevice = false;
+        _myDeviceLat = loc.latitude;
+        _myDeviceLng = loc.longitude;
+        _myDeviceAccuracy = loc.accuracy;
+        _myDeviceAddress = loc.addressName;
+
+        if (autoPan) {
+          _centerLat = loc.latitude;
+          _centerLng = loc.longitude;
+          _zoom = 15.0;
+          _selectedZone = 'device';
+          _selectedDriver = null;
+        }
+      });
+
+      if (autoPan) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.my_location_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '📍 พิกัดเครื่องของคุณ: ${loc.addressName} (${loc.latitude.toStringAsFixed(4)}, ${loc.longitude.toStringAsFixed(4)})',
+                    style: GoogleFonts.kanit(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AdminTheme.accentGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLocatingDevice = false;
+        _myDeviceAddress = 'ไม่สามารถระบุพิกัดเครื่องได้';
+      });
+    }
+  }
+
+  void _panToZone(String zone) {
+    setState(() {
+      _selectedZone = zone;
+      _selectedDriver = null;
+
+      switch (zone) {
+        case 'bkk':
+          _centerLat = 13.7563;
+          _centerLng = 100.5018;
+          _zoom = 12.5;
+          break;
+        case 'chonburi':
+          _centerLat = 13.3611;
+          _centerLng = 100.9847;
+          _zoom = 13.0;
+          break;
+        case 'pattaya':
+          _centerLat = 12.9276;
+          _centerLng = 100.8771;
+          _zoom = 13.5;
+          break;
+        case 'sriracha':
+          _centerLat = 13.1737;
+          _centerLng = 100.9311;
+          _zoom = 13.5;
+          break;
+        case 'bangsaen':
+          _centerLat = 13.2833;
+          _centerLng = 100.9167;
+          _zoom = 14.0;
+          break;
+        case 'amata':
+          _centerLat = 13.4215;
+          _centerLng = 101.0310;
+          _zoom = 13.5;
+          break;
+        case 'device':
+          _detectMyCurrentLocation(autoPan: true);
+          return;
+        case 'all':
+        default:
+          _centerLat = 13.4500;
+          _centerLng = 100.7500;
+          _zoom = 10.0;
+          break;
+      }
+    });
+
+    final zoneLabels = {
+      'bkk': '🏢 โซนกรุงเทพฯ และปริมณฑล (Bangkok Hub)',
+      'chonburi': '🏖️ โซนชลบุรี (Chonburi Central Hub)',
+      'pattaya': '🌴 โซนพัทยา - บางละมุง (Pattaya Hub)',
+      'sriracha': '⚓ โซนศรีราชา - แหลมฉบัง (Sriracha Hub)',
+      'bangsaen': '🌊 โซนหาดบางแสน - ม.บูรพา (Bangsaen Hub)',
+      'amata': '🏭 โซนนิคมอมตะซิตี้ ชลบุรี (Amata City Hub)',
+      'all': '🌐 ภาพรวมทุกโซน (กรุงเทพฯ & ชลบุรี)',
+    };
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(zoneLabels[zone] ?? 'เลื่อนไปยังโซน $zone', style: GoogleFonts.kanit(fontSize: 13)),
+        backgroundColor: AdminTheme.primaryBlue,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _resetToBangkokCenter() {
+    _panToZone('bkk');
   }
 
   void _zoomIn() {
@@ -435,6 +569,10 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
                                   ),
                                 ),
 
+                              // 1.25 User Device Live GPS Beacon (HTML5 Geolocation Marker)
+                              if (_myDeviceLat != null && _myDeviceLng != null)
+                                _buildMyDeviceLocationMarker(mapWidth, mapHeight),
+
                               // 1.3 Driver Pins & Markers
                               ...filteredDrivers.map((driver) {
                                 final point = _latLngToScreen(
@@ -673,16 +811,20 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
     String url;
     switch (_currentLayer) {
       case MapLayerType.roadmap:
-        url = 'https://basemaps.cartocdn.com/rastertiles/voyager/$zoom/$tileX/$tileY.png';
+        // Free, high performance OSM tile server (Zero watermarks)
+        url = 'https://tile.openstreetmap.org/$zoom/$tileX/$tileY.png';
         break;
       case MapLayerType.satellite:
+        // High resolution Esri World Imagery (Zero watermarks)
         url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/$zoom/$tileY/$tileX';
         break;
       case MapLayerType.dark:
-        url = 'https://basemaps.cartocdn.com/dark_all/$zoom/$tileX/$tileY.png';
+        // Esri World Dark Canvas (Crisp night view, zero watermarks)
+        url = 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/$zoom/$tileY/$tileX';
         break;
       case MapLayerType.terrain:
-        url = 'https://tile.openstreetmap.org/$zoom/$tileX/$tileY.png';
+        // Esri Topographic / Terrain Map
+        url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/$zoom/$tileY/$tileX';
         break;
     }
 
@@ -773,20 +915,82 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
 
   Widget _buildGoogleQuickFilterChips() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildQuickChip('📍 ทั้งหมด', _statusFilter == 'all', () => setState(() => _statusFilter = 'all')),
-          _buildQuickChip('🟢 ว่าง', _statusFilter == 'available', () => setState(() => _statusFilter = 'available')),
-          _buildQuickChip('🚚 กำลังส่ง', _statusFilter == 'inTransit', () => setState(() => _statusFilter = 'inTransit')),
-          _buildQuickChip('🚨 SOS', _statusFilter == 'sos', () => setState(() => _statusFilter = 'sos'), isAlert: true),
-          _buildQuickChip('🌐 กรุงเทพฯ HQ', false, _resetToBangkokCenter),
+        color: Colors.black.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
         ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Status filters
+            _buildQuickChip('📍 ทั้งหมด', _statusFilter == 'all', () => setState(() => _statusFilter = 'all')),
+            _buildQuickChip('🟢 ว่าง', _statusFilter == 'available', () => setState(() => _statusFilter = 'available')),
+            _buildQuickChip('🚚 กำลังส่ง', _statusFilter == 'inTransit', () => setState(() => _statusFilter = 'inTransit')),
+            _buildQuickChip('🚨 SOS', _statusFilter == 'sos', () => setState(() => _statusFilter = 'sos'), isAlert: true),
+            
+            Container(height: 18, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+            
+            // Zone selector pills
+            _buildQuickChip('🏢 กรุงเทพฯ', _selectedZone == 'bkk', () => _panToZone('bkk')),
+            _buildQuickChip('🏖️ ชลบุรี', _selectedZone == 'chonburi', () => _panToZone('chonburi')),
+            _buildQuickChip('🌴 พัทยา', _selectedZone == 'pattaya', () => _panToZone('pattaya')),
+            _buildQuickChip('⚓ ศรีราชา', _selectedZone == 'sriracha', () => _panToZone('sriracha')),
+            _buildQuickChip('🌊 บางแสน', _selectedZone == 'bangsaen', () => _panToZone('bangsaen')),
+            _buildQuickChip('🏭 อมตะซิตี้', _selectedZone == 'amata', () => _panToZone('amata')),
+            _buildQuickChip('🌐 ทุกโซน', _selectedZone == 'all', () => _panToZone('all')),
+            
+            Container(height: 18, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+            
+            // Real User Device Geolocation Button
+            InkWell(
+              onTap: () => _detectMyCurrentLocation(autoPan: true),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0284C7), Color(0xFF0EA5E9)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0284C7).withValues(alpha: 0.4),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isLocatingDevice)
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    else
+                      const Icon(Icons.my_location_rounded, color: Colors.white, size: 14),
+                    const SizedBox(width: 5),
+                    Text(
+                      _selectedZone == 'device' ? '🎯 พิกัดเครื่องของฉัน' : '📱 ตำแหน่งเครื่องของฉัน',
+                      style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -861,7 +1065,7 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
                       image: DecorationImage(
                         image: NetworkImage(
                           isSatellite
-                              ? 'https://basemaps.cartocdn.com/rastertiles/voyager/13/6382/3592.png'
+                              ? 'https://tile.openstreetmap.org/13/6382/3592.png'
                               : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3592/6382',
                         ),
                         fit: BoxFit.cover,
@@ -1041,6 +1245,116 @@ class _TrackingTabState extends State<TrackingTab> with SingleTickerProviderStat
   // -------------------------------------------------------------
   // GOOGLE MAPS MARKER PIN & INFOWINDOW
   // -------------------------------------------------------------
+  Widget _buildMyDeviceLocationMarker(double mapWidth, double mapHeight) {
+    final point = _latLngToScreen(
+      _myDeviceLat!,
+      _myDeviceLng!,
+      _centerLat,
+      _centerLng,
+      _zoom,
+      mapWidth,
+      mapHeight,
+    );
+
+    if (point.dx < -100 || point.dx > mapWidth + 100 || point.dy < -100 || point.dy > mapHeight + 100) {
+      return const SizedBox.shrink();
+    }
+
+
+    return Positioned(
+      left: point.dx - 40,
+      top: point.dy - 60,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedZone = 'device';
+            _centerLat = _myDeviceLat!;
+            _centerLng = _myDeviceLng!;
+            _zoom = 16.0;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '📱 พิกัดอุปกรณ์ของคุณ: $_myDeviceAddress (${_myDeviceLat!.toStringAsFixed(4)}, ${_myDeviceLng!.toStringAsFixed(4)})',
+                style: GoogleFonts.kanit(),
+              ),
+              backgroundColor: const Color(0xFF0284C7),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Floating Location Label
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0284C7),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person_pin_circle_rounded, color: Colors.white, size: 13),
+                  const SizedBox(width: 4),
+                  Text(
+                    'ตำแหน่งของฉัน (Device GPS)',
+                    style: GoogleFonts.kanit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Glowing Pulsing Beacon
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, child) {
+                    return Container(
+                      width: 50 + (_pulseController.value * 24),
+                      height: 50 + (_pulseController.value * 24),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF0EA5E9).withValues(alpha: (1.0 - _pulseController.value) * 0.45),
+                      ),
+                    );
+                  },
+                ),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0284C7),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.6),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.my_location_rounded, color: Colors.white, size: 18),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildGoogleMapsMarker(DriverTrackingInfo driver, bool isSelected) {
     Color pinColor;
     IconData icon;
@@ -2242,10 +2556,32 @@ class _GoogleMapsVectorOverlayPainter extends CustomPainter {
     }
 
     if (showHubs) {
-      _drawHubGeofence(canvas, Offset(size.width * 0.45, size.height * 0.4), 'HUB 01: สุขุมวิท-อโศก (HQ)', const Color(0xFF3B82F6));
-      _drawHubGeofence(canvas, Offset(size.width * 0.7, size.height * 0.25), 'HUB 02: ลาดพร้าว-รัชดา', const Color(0xFF10B981));
-      _drawHubGeofence(canvas, Offset(size.width * 0.8, size.height * 0.75), 'HUB 03: บางนา-สุวรรณภูมิ', const Color(0xFFF59E0B));
-      _drawHubGeofence(canvas, Offset(size.width * 0.3, size.height * 0.7), 'HUB 04: สีลม-สาทร', const Color(0xFF8B5CF6));
+      final scale = math.pow(2.0, zoom) * 256.0;
+
+      Offset latLngToScreen(double lat, double lng) {
+        final double xCenter = (centerLng + 180.0) / 360.0 * scale;
+        final double latRadCenter = centerLat * math.pi / 180.0;
+        final double yCenter = (1.0 - (math.log(math.tan(latRadCenter) + 1.0 / math.cos(latRadCenter)) / math.pi)) / 2.0 * scale;
+
+        final double xPoint = (lng + 180.0) / 360.0 * scale;
+        final double latRadPoint = lat * math.pi / 180.0;
+        final double yPoint = (1.0 - (math.log(math.tan(latRadPoint) + 1.0 / math.cos(latRadPoint)) / math.pi)) / 2.0 * scale;
+
+        return Offset((size.width / 2.0) + (xPoint - xCenter), (size.height / 2.0) + (yPoint - yCenter));
+      }
+
+      // Bangkok Hubs
+      _drawHubGeofence(canvas, latLngToScreen(13.7367, 100.5600), 'HUB 01: สุขุมวิท-อโศก (HQ BKK)', const Color(0xFF3B82F6));
+      _drawHubGeofence(canvas, latLngToScreen(13.8050, 100.5740), 'HUB 02: ลาดพร้าว-รัชดา', const Color(0xFF10B981));
+      _drawHubGeofence(canvas, latLngToScreen(13.6680, 100.6340), 'HUB 03: บางนา-สุวรรณภูมิ', const Color(0xFFF59E0B));
+      _drawHubGeofence(canvas, latLngToScreen(13.7220, 100.5280), 'HUB 04: สีลม-สาทร', const Color(0xFF8B5CF6));
+
+      // Chonburi & Eastern Hubs
+      _drawHubGeofence(canvas, latLngToScreen(13.3611, 100.9847), 'HUB 05: เซ็นทรัลชลบุรี (HQ ตะวันออก)', const Color(0xFF0284C7));
+      _drawHubGeofence(canvas, latLngToScreen(13.2833, 100.9167), 'HUB 06: หาดบางแสน-ม.บูรพา', const Color(0xFF06B6D4));
+      _drawHubGeofence(canvas, latLngToScreen(13.1737, 100.9311), 'HUB 07: ศรีราชา-แหลมฉบัง', const Color(0xFF6366F1));
+      _drawHubGeofence(canvas, latLngToScreen(12.9276, 100.8771), 'HUB 08: พัทยากลาง-บาลีฮาย', const Color(0xFFEC4899));
+      _drawHubGeofence(canvas, latLngToScreen(13.4215, 101.0310), 'HUB 09: นิคมอมตะซิตี้ ชลบุรี', const Color(0xFF14B8A6));
     }
   }
 
