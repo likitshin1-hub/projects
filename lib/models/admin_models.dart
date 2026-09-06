@@ -156,8 +156,8 @@ class AdminOrderModel {
   final String orderNo;
   final String customerName;
   final String customerPhone;
-  final String driverName;
-  final String driverPhone;
+  String driverName;
+  String driverPhone;
   final String vehicleType;
   final String parcelType;
   final String paymentMethod;

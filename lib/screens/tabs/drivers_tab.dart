@@ -180,6 +180,13 @@ class _DriversTabState extends State<DriversTab> {
                                 tooltip: 'ตรวจสอบเอกสาร & รถ',
                                 onPressed: () => _showDriverDetailsModal(context, driver),
                               ),
+                              if (driver.status == DriverVerificationStatus.approved) ...[
+                                IconButton(
+                                  icon: const Icon(Icons.assignment_add, size: 20, color: AdminTheme.accentOrange),
+                                  tooltip: 'มอบหมายงานลูกค้าให้ไรเดอร์คนนี้',
+                                  onPressed: () => _showAssignOrderToThisDriverModal(context, driver),
+                                ),
+                              ],
                               if (driver.status == DriverVerificationStatus.pending) ...[
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(
@@ -455,4 +462,113 @@ class _DriversTabState extends State<DriversTab> {
       child: Text(label, style: GoogleFonts.kanit(fontSize: 11, fontWeight: FontWeight.bold, color: fg)),
     );
   }
+
+  void _showAssignOrderToThisDriverModal(BuildContext context, DriverAdminModel driver) {
+    final pendingOrders = widget.dataService.orders.where((o) => o.status == AdminOrderStatus.pending || o.driverName == 'รอคนขับตอบรับ').toList();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.assignment_ind_rounded, color: AdminTheme.accentOrange),
+            const SizedBox(width: 8),
+            Text('มอบหมายงานลูกค้าให้: ${driver.fullName}', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ไรเดอร์: ${driver.fullName} (${driver.plate}) • ${driver.vehicleType} • โทร ${driver.phone}',
+                style: GoogleFonts.kanit(fontSize: 12, color: Colors.grey),
+              ),
+              const Divider(height: 16),
+              Text(
+                'เลือกจากคำสั่งซื้อที่รอจัดสรรคนขับ (${pendingOrders.length} รายการ):',
+                style: GoogleFonts.kanit(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              if (pendingOrders.isEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Text('ไม่มีคำสั่งซื้อที่รอไรเดอร์ในขณะนี้', style: GoogleFonts.kanit(color: Colors.grey)),
+                  ),
+                ),
+              ] else ...[
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 340),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: pendingOrders.length,
+                    itemBuilder: (context, idx) {
+                      final o = pendingOrders[idx];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(o.orderNo, style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13, color: AdminTheme.primaryBlue)),
+                                      const SizedBox(width: 8),
+                                      Text('฿${o.amount.toInt()}', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 13, color: AdminTheme.accentGreen)),
+                                    ],
+                                  ),
+                                  Text('ลูกค้า: ${o.customerName} (${o.customerPhone})', style: GoogleFonts.kanit(fontSize: 11)),
+                                  Text('${o.pickupAddress} ➔ ${o.dropoffAddress}', style: GoogleFonts.kanit(fontSize: 11, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  Text('พัสดุ: ${o.parcelType} (${o.vehicleType})', style: GoogleFonts.kanit(fontSize: 11, color: AdminTheme.primaryBlue)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AdminTheme.primaryBlue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  widget.dataService.assignOrderToDriver(driver.id, o.orderNo);
+                                });
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('🚀 มอบหมายออเดอร์ ${o.orderNo} ให้ไรเดอร์ ${driver.fullName} สำเร็จแล้ว!'),
+                                    backgroundColor: AdminTheme.accentGreen,
+                                  ),
+                                );
+                              },
+                              child: Text('มอบหมายงาน', style: GoogleFonts.kanit(fontSize: 11)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('ปิด', style: GoogleFonts.kanit())),
+        ],
+      ),
+    );
+  }
+
 }

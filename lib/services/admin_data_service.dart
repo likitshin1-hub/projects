@@ -620,24 +620,78 @@ class AdminDataService extends ChangeNotifier {
   }
 
   void assignOrderToDriver(String driverId, String orderNo) {
-    final d = trackingDrivers.firstWhere((item) => item.driverId == driverId);
     final o = orders.firstWhere((item) => item.orderNo == orderNo);
-    d.activeOrderNo = orderNo;
-    d.customerName = o.customerName;
-    d.customerPhone = o.customerPhone;
-    d.pickupAddress = o.pickupAddress;
-    d.dropoffAddress = o.dropoffAddress;
-    d.status = TrackingStatus.arriving;
-    d.etaMinutes = 10;
-    d.distanceRemainingKm = o.distanceKm;
-    d.waypoints = [
-      TrackingWaypoint(title: 'มอบหมายงานใหม่โดยแอดมิน', address: 'ศูนย์ควบคุม HQ', time: 'เมื่อสักครู่', isCompleted: true),
-      TrackingWaypoint(title: 'กำลังมุ่งหน้าจุดรับ', address: o.pickupAddress, time: 'ประมาณ 10 นาที', isCurrent: true),
-      TrackingWaypoint(title: 'จุดส่งมอบปลายทาง', address: o.dropoffAddress, time: 'กำลังคำนวณ'),
-    ];
+    
+    // Find driver from tracking drivers or fleet drivers
+    DriverTrackingInfo? trackingDriver;
+    try {
+      trackingDriver = trackingDrivers.firstWhere((item) => item.driverId == driverId || item.driverName == driverId);
+    } catch (_) {
+      trackingDriver = null;
+    }
+
+    DriverAdminModel? fleetDriver;
+    try {
+      fleetDriver = drivers.firstWhere((item) => item.id == driverId || item.fullName == driverId);
+    } catch (_) {
+      fleetDriver = null;
+    }
+
+    final driverName = trackingDriver?.driverName ?? fleetDriver?.fullName ?? driverId;
+    final driverPhone = trackingDriver?.driverPhone ?? fleetDriver?.phone ?? '-';
+
+    o.driverName = driverName;
+    o.driverPhone = driverPhone;
     o.status = AdminOrderStatus.accepted;
-    addAuditLog('จัดสรรคำสั่งซื้อให้ไรเดอร์แบบเจาะจง', '$orderNo -> ${d.driverName}');
+
+    if (trackingDriver != null) {
+      trackingDriver.activeOrderNo = orderNo;
+      trackingDriver.customerName = o.customerName;
+      trackingDriver.customerPhone = o.customerPhone;
+      trackingDriver.pickupAddress = o.pickupAddress;
+      trackingDriver.dropoffAddress = o.dropoffAddress;
+      trackingDriver.status = TrackingStatus.arriving;
+      trackingDriver.etaMinutes = 10;
+      trackingDriver.distanceRemainingKm = o.distanceKm;
+      trackingDriver.waypoints = [
+        TrackingWaypoint(title: 'มอบหมายงานใหม่โดยแอดมิน', address: 'ศูนย์ควบคุม HQ', time: 'เมื่อสักครู่', isCompleted: true),
+        TrackingWaypoint(title: 'กำลังมุ่งหน้าจุดรับพัสดุ', address: o.pickupAddress, time: 'ประมาณ 10 นาที', isCurrent: true),
+        TrackingWaypoint(title: 'นำส่งปลายทาง', address: o.dropoffAddress, time: 'กำลังคำนวณ'),
+      ];
+    }
+
+    addAuditLog('จัดสรรคำสั่งซื้อให้ไรเดอร์แบบเจาะจง', '$orderNo -> $driverName ($driverPhone)');
     notifyListeners();
+  }
+
+  int autoDispatchPendingOrders() {
+    final pending = orders.where((o) => o.status == AdminOrderStatus.pending || o.driverName == 'รอคนขับตอบรับ').toList();
+    if (pending.isEmpty) return 0;
+
+    int dispatchedCount = 0;
+    for (var order in pending) {
+      // Find candidate from available tracking drivers
+      final availableCandidate = trackingDrivers.firstWhere(
+        (d) => d.status == TrackingStatus.available,
+        orElse: () => trackingDrivers[dispatchedCount % trackingDrivers.length],
+      );
+      assignOrderToDriver(availableCandidate.driverId, order.orderNo);
+      dispatchedCount++;
+    }
+    return dispatchedCount;
+  }
+
+  void autoMatchOrderToBestDriver(String orderNo) {
+    final o = orders.firstWhere((item) => item.orderNo == orderNo);
+    // Find matching candidate by vehicle first, then available status
+    final candidate = trackingDrivers.firstWhere(
+      (d) => (d.vehicleType.contains(o.vehicleType) || o.vehicleType.contains(d.vehicleType)) && d.status == TrackingStatus.available,
+      orElse: () => trackingDrivers.firstWhere(
+        (d) => d.status == TrackingStatus.available,
+        orElse: () => trackingDrivers.first,
+      ),
+    );
+    assignOrderToDriver(candidate.driverId, orderNo);
   }
 
   void simulateGpsMovement() {
